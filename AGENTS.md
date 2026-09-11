@@ -402,17 +402,6 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
       - SOL 1d "went straight into ema12 and died as soon as it hit that resistance" -> the 12 EMA as resistance (his read).
       - ETH 4h 2019 / YM_F 1h "fair fakeout"; DOGE 4h "wow" (+21%); NVDA 5m daily-EMA question answered by #26f.
     Round 3 of /eqfree gets those fixes before he grades again.
-    THE DAILY 50 EMA AND THE 12 EMA, his follow-ups (2026-09-11): "you didnt address needing more to buying than just
-    the chart being over the daily 50ema, thats kind of ridiculous to base a 5m or 15m trade on something like that" ->
-    5m/15m drawings switched to this chart's own 12 EMA + the EQ's own read. Then: "the ema 12 on 5 and 15m is usually
-    right in the middle of the eq." He is right (GOOGL 5m, META 15m drawings: the 12 EMA runs through the middle of the
-    box). Inside an EQ price crosses it on every swing, and right after a higher low confirms price has just bounced
-    over it, so "price over a rising 12 EMA" nearly always agrees with a buy. #26f's 58-60% for that read is probably
-    that bounce, not direction skill. DO NOT use this chart's 12 EMA as the direction for a fast EQ. What is left that
-    is his: "whatever higher timeframe shapes going on" -- ASKED HIM what he actually looks at for a 5m/15m EQ's
-    direction before building round 4. Also fixed: the EQ's own read counted touches against the EQ's final edges (a
-    small look-ahead); it now uses the edges as they stood (eq_freeride2, eq_fastread, eq_breaktrade). #26f numbers
-    for that read need a rerun.
 26. CHANNELS (was called "EQs" in error until 2026-09-09). His trade: get positioned at an edge to catch the BREAK ("buying the floor
     or selling the ceiling in order to be positioned for the eq to break one way or the other ... eqs
     usually break with follow through ... the longer they go on the clearer the breaks"). NOT buy-floor-
@@ -580,4 +569,4 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
   Studies built on it: `studies/eq_fastread.py` (what calls a 5m/15m EQ), `studies/eq_riders.py` (the 12 EMAs above + location
   + his exits on 5m/15m EQs).
 - Long-form notes: `PROJECT_STATE.md`. Per-rule memory notes with his exact words:
-  `C:\Users\jayru\.claude\projects\C--Users-jayru-Desktop-AI-Trading-Project\memory\`.
+  `C:\Users\jayru\.Codex\projects\C--Users-jayru-Desktop-AI-Trading-Project\memory\`.
