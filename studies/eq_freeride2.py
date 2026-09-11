@@ -18,7 +18,7 @@ Direction: the daily chart against its 50 EMA (8 of 8 on the obvious trends), an
 Entry: the next open after a higher low (or lower high) confirms inside the live EQ. Stop a wick through it.
 
     pythonw studies/eq_freeride2.py --procs 20 --log logs/eq_freeride2.log
-Writes validation/eq_freeride2.json
+Writes validation/eq_freeride2.json. pics_eqfree.py draws trades from trades() below.
 """
 import bisect
 import concurrent.futures as cf
@@ -87,16 +87,22 @@ def regular_hours(frames):
     return out
 
 
+def share_of(mode, risk, gain):
+    return {"third": 1.0 / 3, "half": 0.5, "all": 1.0, "old": risk / (risk + gain)}.get(mode, 0.0)
+
+
 def walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode):
     """From the fill at bar e. The stop is checked before the far line on every bar (the careful reading).
     third / half / old: sell that share at the far line and move the rest's stop to the entry.
-    all: everything off at the far line. hold: no partial. Past the far line our way, trail 5 bars."""
+    all: everything off at the far line. hold: no partial. Past the far line our way, trail 5 bars.
+    Returns (exit bar, exit price for the whole position, reached the far line, bar it was reached, why)."""
     risk = abs(fill - stop)
     gain = abs(target - fill)
     if risk <= 0 or gain <= 0:
         return None
-    share = {"third": 1.0 / 3, "half": 0.5, "old": risk / (risk + gain)}.get(mode, 0.0)
+    share = share_of(mode, risk, gain) if mode != "all" else 0.0
     took = False
+    took_bar = None
     broke = False
     stop_now = stop
     best = c[e]
@@ -104,12 +110,14 @@ def walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode):
         a = atr[k] if np.isfinite(atr[k]) else 0.0
         if (sgn > 0 and l[k] < stop_now) or (sgn < 0 and h[k] > stop_now):
             px = o[k + 1]
-            return k, (share * target + (1 - share) * px) if took else px, took
+            why = "the rest stopped at breakeven" if took else "stopped: a wick through the signal pivot"
+            return k, (share * target + (1 - share) * px) if took else px, took, took_bar, why
         if not took and ((sgn > 0 and h[k] >= target) or (sgn < 0 and l[k] <= target)):
             if mode == "all":
-                return k, target, True
+                return k, target, True, k, "all out at the far line"
             if share > 0:
                 took = True
+                took_bar = k
                 stop_now = fill
         if not broke:
             tol = P.SAME_LEVEL_ATR * a
@@ -120,16 +128,18 @@ def walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode):
             best = max(best, c[k]) if sgn > 0 else min(best, c[k])
             if (sgn > 0 and c[k] < best - TRAIL * a) or (sgn < 0 and c[k] > best + TRAIL * a):
                 px = o[k + 1]
-                return k, (share * target + (1 - share) * px) if took else px, took
+                return k, (share * target + (1 - share) * px) if took else px, took, took_bar, "trailed out after the EQ broke our way"
         if day is not None and k + 1 < n and day[k + 1] != day[k]:
-            return k, (share * target + (1 - share) * c[k]) if took else c[k], took
+            return k, (share * target + (1 - share) * c[k]) if took else c[k], took, took_bar, "closed at the bell"
         if k - e >= cap:
             px = o[k + 1]
-            return k, (share * target + (1 - share) * px) if took else px, took
+            return k, (share * target + (1 - share) * px) if took else px, took, took_bar, "out at the 30-day limit"
     return None
 
 
-def one_frame(kind, tf, df, frames, start, hours_i, gap, codes, rets, drifts, tooks, helds):
+def trades(kind, tf, df, frames, start, gap, modes=None):
+    """Every trade on one chart, one dict per trade per exit variant. `frames` supplies the daily/weekly
+    chart for the direction read (always the all-hours frames: a daily bar is the whole session)."""
     if df is None or len(df) < 300:
         return
     c = df["Close"].values.astype(float); o = df["Open"].values.astype(float)
@@ -187,22 +197,28 @@ def one_frame(kind, tf, df, frames, start, hours_i, gap, codes, rets, drifts, to
                     continue
             side = SIDES[side_i]
             t = df.index[e]
-            era_i = 0 if t < start else 1 if t < mid else 2
-            tag1 = TAGS.index(FR.tag(side, e50[ci]))
-            tag2 = TAGS.index(FR.tag(side, both[ci]))
-            rr_ = abs(target - fill) / abs(fill - stop)
-            rr_i = 0 if rr_ < 1 else 1 if rr_ < 2 else 2
+            risk = abs(fill - stop); gain = abs(target - fill)
+            rr_ = gain / risk
+            base = dict(side=side, side_i=side_i, tf_i=tf_i, gap_i=gap_i, kind_i=kind_i,
+                        era_i=0 if t < start else 1 if t < mid else 2,
+                        tag1=TAGS.index(FR.tag(side, e50[ci])), tag2=TAGS.index(FR.tag(side, both[ci])),
+                        rr=rr_, rr_i=0 if rr_ < 1 else 1 if rr_ < 2 else 2,
+                        born=int(r["born"]), end=int(end), e=int(e), pj=int(j), pivot=lab, t=str(t),
+                        fill=float(fill), stop=float(stop), target=float(target),
+                        e50=str(e50[ci]), e200=str(e200[ci]),
+                        eq_lo=float(np.min(l[r["born"]:end + 1])), eq_hi=float(np.max(h[r["born"]:end + 1])))
             for mode_i, (vname, mode) in enumerate(MODES):
+                if modes is not None and vname not in modes:
+                    continue
                 res = walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode)
                 if res is None:
                     continue
-                xb, xpx, took = res
+                xb, xpx, took, took_bar, why = res
                 held = xb + 1 - e
-                codes.append(encode([hours_i, gap_i, mode_i, tf_i, side_i, tag1, tag2, rr_i, era_i, kind_i]))
-                rets.append(sgn * (xpx / fill - 1) - cost)
-                drifts.append(sgn * (np.exp(drift * held) - 1) - cost)
-                tooks.append(1 if took else 0)
-                helds.append(held)
+                yield dict(base, mode_i=mode_i, variant=vname, mode=mode, share=share_of(mode, risk, gain),
+                           xb=int(xb), took=took, took_bar=took_bar, why=why, held=int(held),
+                           ret=float(sgn * (xpx / fill - 1) - cost),
+                           drift=float(sgn * (np.exp(drift * held) - 1) - cost))
 
 
 def _work(args):
@@ -225,7 +241,11 @@ def _work(args):
                 if hours_i == 1 and tf == "1d":
                     continue                       # a daily bar is the whole session either way
                 try:
-                    one_frame(kind, tf, fr.get(tf), frames, start, hours_i, gap, codes, rets, drifts, tooks, helds)
+                    for x in trades(kind, tf, fr.get(tf), frames, start, gap):
+                        codes.append(encode([hours_i, x["gap_i"], x["mode_i"], x["tf_i"], x["side_i"], x["tag1"],
+                                             x["tag2"], x["rr_i"], x["era_i"], x["kind_i"]]))
+                        rets.append(x["ret"]); drifts.append(x["drift"])
+                        tooks.append(1 if x["took"] else 0); helds.append(x["held"])
                 except Exception as ex:
                     errs.append("%s %s %s %s gap%d: %s" % (kind, sym, tf, HOURS[hours_i], gap, ex))
     if not codes:

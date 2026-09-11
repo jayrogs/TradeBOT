@@ -1,12 +1,17 @@
 """pics_eqfree.py -- his EQ trade drawn: direction from the bigger chart, buy the higher low
-(or short the lower high), sell part at the far line so the rest is free.
+(or short the lower high), sell part at the far line, rest to breakeven.
 
-    pythonw pics_eqfree.py --procs 20 --log logs/pics_eqfree.log
-    --per-tf N   how many per chart size (default 4: two that reached the free ride, two that did not)
+    pythonw pics_eqfree.py --procs 20 --log logs/eq_free.log
+    --per-tf N     how many per chart size (default 4: two that reached the far line, two that did not)
+    --variant V    exit variant from eq_freeride2.MODES (default: a third at the far line, rest to breakeven)
+    --gap G        pivots at least G bars apart (default 3)
+    --hours H      "regular" (default) or "all": which bars stocks and ETFs are drawn on
 
-Only trades taken WITH the bigger picture: the daily chart over its rising 50 EMA for a long, under
-its falling 50 EMA for a short (weekly for a daily EQ). That read matched his eye on 8 of 8 obvious
-trends; every swing-shape read missed several. Picked at random inside each group. Every chart measured before saving.
+Redone after his grading (2026-09-10): a fixed partial instead of "sell 91%", no EQ whose pivots sit on top
+of each other, stocks on regular-hours bars, the EQ that had already broken before it was declared is gone
+(eq_coil.py), and the EQ is boxed on the daily panel so its place on the bigger chart is obvious.
+Only trades taken WITH the bigger picture: the daily chart over its rising 50 EMA for a long, under its
+falling 50 EMA for a short (weekly for a daily EQ). Picked at random inside each group. Every chart measured.
 Writes validation/eq_free/*.png + eq_free_index.json  ->  /eqfree
 """
 import concurrent.futures as cf
@@ -19,6 +24,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt   # noqa: E402
+from matplotlib.patches import Rectangle  # noqa: E402
 import pandas as pd               # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -28,25 +34,24 @@ import chartkit as CK             # noqa: E402
 import structure as ST            # noqa: E402
 import eq_coil as EC              # noqa: E402
 import eq_freeride as FR          # noqa: E402
+import eq_freeride2 as FR2        # noqa: E402
 import exit_managers as XM        # noqa: E402
 
 DARK, DIM = "#0d0f12", "#8b93a1"
 UP, DN, BLUE, AMBER = "#3ddc97", "#ff5c72", "#5aa9ff", "#ffb84d"
 OUT = os.path.join("validation", "eq_free")
-TFS = FR.TFS
-VARIANT = "free ride, rest keeps the stop"
-WORD = {"UP": "uptrend", "DOWN": "downtrend", "FLAT": "no trend", "NA": "no data",
-        "up": "higher highs and higher lows", "down": "lower highs and lower lows", "mixed": "mixed swings"}
-FILTER = "h_ema_daily"
+TFS = FR2.TFS
+VARIANT = FR2.MODES[0][0]
 EMAWORD = {"down": "under its falling 50 EMA", "up": "over its rising 50 EMA", "mixed": "tangled around its 50 EMA", "NA": "no data"}
+SOLD = {"third": "sold a third here, rest to breakeven", "half": "sold half here, rest to breakeven",
+        "all": "sold everything here"}
 
 
 def fmt(x):
     return ("%.4g" % x) if abs(x) < 10 else ("%.2f" % x) if abs(x) < 1000 else ("%.0f" % x)
 
 
-def render(sym, kind, tf, row, frames, path):
-    df = frames[tf]
+def render(sym, kind, tf, row, df, hdf, path, hours, gap):
     c = df["Close"].values.astype(float); o = df["Open"].values.astype(float)
     h = df["High"].values.astype(float); l = df["Low"].values.astype(float)
     n = len(c)
@@ -55,12 +60,11 @@ def render(sym, kind, tf, row, frames, path):
     long_ = row["side"] == "long"
     fill, stop, target = row["fill"], row["stop"], row["target"]
     risk = abs(fill - stop); gain = abs(target - fill)
-    share = risk / (risk + gain)
+    share = row["share"]
     ret = row["ret"]; won = ret > 0
     x0 = max(0, born - 12); x1 = min(n - 1, max(xb, end) + 20)
     d = df.iloc[x0:x1 + 1]; xs = np.arange(len(d))
     htf = "1d" if tf in ("5m", "15m", "1h", "4h") else "1w"      # where the reason for the direction lives
-    hdf = frames.get(htf)
     if hdf is not None and len(hdf) >= 60:
         fig = plt.figure(figsize=(17, 9.2), dpi=105); fig.patch.set_facecolor(DARK)
         gs = fig.add_gridspec(1, 2, width_ratios=[1.8, 1], wspace=0.13, top=0.92, bottom=0.17)
@@ -92,24 +96,24 @@ def render(sym, kind, tf, row, frames, path):
     ax.fill_between(xs, np.where(m_, fl, np.nan), np.where(m_, cl, np.nan), step="post", color=BLUE, alpha=0.09, zorder=1)
     lo = float(np.nanmin(d["Low"].values)); hi = float(np.nanmax(d["High"].values)); rng = max(hi - lo, 1e-9)
     ax.set_ylim(lo - 0.66 * rng, hi + 0.66 * rng)
-    ax.set_xlim(-1, len(d) + 30)
+    ax.set_xlim(-1, len(d) + max(30, int(0.22 * len(d))))       # room for the price labels on long windows
     below = [lo - 0.17 * rng, lo - 0.34 * rng, lo - 0.51 * rng]
     above = [hi + 0.17 * rng, hi + 0.34 * rng, hi + 0.51 * rng]
 
     def lane(under, level):
         return below[level] if under else above[level]
 
-    def peg(x, y_bar, y_lane, col, label, side=0):
+    def peg(axis, x, y_bar, y_lane, col, label, side=0):
         under = y_lane < y_bar
-        ax.plot([x, x], [y_bar, y_lane], color=col, lw=.8, ls=":", alpha=.7, zorder=6)
-        ax.scatter([x], [y_lane], marker="^" if under else "v", s=210, color=col, edgecolor="#ffffff", lw=.9, zorder=14)
+        axis.plot([x, x], [y_bar, y_lane], color=col, lw=.8, ls=":", alpha=.7, zorder=6)
+        axis.scatter([x], [y_lane], marker="^" if under else "v", s=210, color=col, edgecolor="#ffffff", lw=.9, zorder=14)
         dy = -13 if under else 13
-        an = ax.annotate(label, (x, y_lane), xytext=(10 * side, dy), textcoords="offset points",
-                         ha="center" if side == 0 else ("right" if side < 0 else "left"),
-                         va="top" if dy < 0 else "bottom", color=col, fontsize=10, weight="bold", zorder=20)
+        an = axis.annotate(label, (x, y_lane), xytext=(10 * side, dy), textcoords="offset points",
+                           ha="center" if side == 0 else ("right" if side < 0 else "left"),
+                           va="top" if dy < 0 else "bottom", color=col, fontsize=10, weight="bold", zorder=20)
         # measure it against its own plot and flip it back inside if it would hang off either side
         rend = fig.canvas.get_renderer()
-        box = ax.get_window_extent(rend)
+        box = axis.get_window_extent(rend)
         bb = an.get_window_extent(rend)
         if bb.x0 < box.x0 + 3:
             an.set_ha("left"); an.xyann = (10, dy)
@@ -122,46 +126,49 @@ def render(sym, kind, tf, row, frames, path):
     ax.axhline(fill, color=AMBER, lw=1.0, ls=":", alpha=.8, zorder=5)
     ax.axhline(target, color=UP, lw=1.1, ls="--", alpha=.75, zorder=5)
     pbar = l[pj] if long_ else h[pj]
-    # a label near the left edge points right, one near the right edge points left, so no text
-    # ever runs off the plot onto the price scale
+
+    # a label near the left edge points right, one near the right edge points left
     def inward(x, prefer):
         if x < 0.22 * len(d):
             return 1
         if x > 0.72 * len(d):
             return -1
         return prefer
-    peg(pj - x0, pbar, lane(sig_under, 0), BLUE, "%s: the signal" % near, side=inward(pj - x0, -1))
-    peg(e - x0, o[e], lane(sig_under, 1), AMBER, "BOUGHT" if long_ else "SHORTED", side=inward(e - x0, 1))
-    if took_bar is not None:
-        peg(took_bar - x0, h[took_bar] if long_ else l[took_bar], lane(not sig_under, 0), UP,
-            "sold %.0f%% here: the rest is free" % (100 * share), side=inward(took_bar - x0, 1 if (took_bar - x0) < 0.6 * len(d) else -1))
+    peg(ax, pj - x0, pbar, lane(sig_under, 0), BLUE, "%s: the signal" % near, side=inward(pj - x0, -1))
+    peg(ax, e - x0, o[e], lane(sig_under, 1), AMBER, "BOUGHT" if long_ else "SHORTED", side=inward(e - x0, 1))
+    if took_bar is not None and row["mode"] in SOLD and xb != took_bar:
+        label = SOLD[row["mode"]]
+        peg(ax, took_bar - x0, h[took_bar] if long_ else l[took_bar], lane(not sig_under, 0), UP, label,
+            side=inward(took_bar - x0, 1 if (took_bar - x0) < 0.6 * len(d) else -1))
     if won:
-        peg(xb - x0, h[xb] if long_ else l[xb], lane(not sig_under, 1), UP, "OUT %+.1f%%" % (100 * ret),
+        peg(ax, xb - x0, h[xb] if long_ else l[xb], lane(not sig_under, 1), UP, "OUT %+.1f%%" % (100 * ret),
             side=inward(xb - x0, 1 if (xb - x0) < 0.6 * len(d) else -1))
     else:
-        peg(xb - x0, l[xb] if long_ else h[xb], lane(sig_under, 2), DN, "OUT %+.1f%%" % (100 * ret),
+        peg(ax, xb - x0, l[xb] if long_ else h[xb], lane(sig_under, 2), DN, "OUT %+.1f%%" % (100 * ret),
             side=inward(xb - x0, 1 if (xb - x0) < 0.6 * len(d) else -1))
     xr = len(d) + 1
     labs = sorted([(stop, DN, "stop %s" % fmt(stop)), (fill, AMBER, "%s %s" % ("bought" if long_ else "shorted", fmt(fill))),
                    (target, UP, "%s %s" % (far, fmt(target)))])
-    gap = 0.05 * rng
+    gap_y = 0.05 * rng
     ys = [labs[0][0]]
     for m in range(1, len(labs)):
-        ys.append(max(labs[m][0], ys[-1] + gap))
+        ys.append(max(labs[m][0], ys[-1] + gap_y))
     for (y0, col, txt), y_ in zip(labs, ys):
         ax.text(xr, y_, txt, color=col, fontsize=8.5, va="center", ha="left", zorder=20)
     step_ = max(len(d) // 8, 1)
     ax.set_xticks(xs[::step_]); ax.set_xticklabels([q.strftime("%m-%d %H:%M") for q in d.index[::step_]], fontsize=6.5)
     ax.set_yticks([y for y in ax.get_yticks() if y >= 0 and ax.get_ylim()[0] <= y <= ax.get_ylim()[1]])
-    reason = "%s %s" % ("daily" if htf == "1d" else "weekly", "falling" if row["h_ema_daily_raw"] == "down" else "rising" if row["h_ema_daily_raw"] == "up" else "mixed")
-    ax.set_title("%s  %s   %s, %s   %s %+.1f%% in %d bars   free ride %s" % (
+    reason = "%s %s" % ("daily" if htf == "1d" else "weekly", "falling" if row["e50"] == "down" else "rising" if row["e50"] == "up" else "mixed")
+    ax.set_title("%s  %s   %s, %s   %s %+.1f%% in %d bars   far line %s" % (
         sym, tf, "LONG" if long_ else "SHORT", reason, "WON" if won else "LOST", 100 * ret, row["held"],
-        "reached" if took_bar is not None else "not reached"), color="#e6e9ee", fontsize=11.5, loc="left", pad=8)
+        "reached" if row["took"] else "not reached"), color="#e6e9ee", fontsize=11.5, loc="left", pad=8)
+    bars_word = ("regular-hours bars only" if hours == "regular hours" and kind in ("stock", "etf") and tf != "1d"
+                 else "all bars")
     key = [[(BLUE, "blue: the EQ, flat until the next higher low or lower high"),
             (AMBER, "dotted: the entry"), (DN, "red dashed: the stop, a wick through the signal pivot"),
             (UP, "green dashed: the far line, where part is sold")],
-           [("#8b93a1", "Direction: the daily chart over its rising 50 EMA = long, under its falling 50 EMA = short (weekly for a daily EQ). Right panel: that chart, 50 EMA in purple.")],
-           [("#8b93a1", "HH HL LH LL: swing highs and lows. Green background: uptrend. Red: downtrend. Picked at random among trades WITH the bigger picture, NOT for how they turned out.")]]
+           [("#8b93a1", "Direction: the daily chart over its rising 50 EMA = long, under its falling 50 EMA = short (weekly for a daily EQ). Right panel: that chart, 50 EMA in purple, the EQ boxed in orange.")],
+           [("#8b93a1", "Pivots at least %d bars apart. Drawn on %s. Picked at random among trades WITH the bigger picture, NOT for how they turned out." % (gap, bars_word))]]
     for r_i, items in enumerate(key):
         xpos = 0.045
         for c_, txt in items:
@@ -171,22 +178,32 @@ def render(sym, kind, tf, row, frames, path):
     if hdf is not None and len(hdf) >= 60:
         axh = fig.add_subplot(gs[0, 1])
         te = df.index[e]
-        pos = max(0, int(hdf.index.searchsorted(te)) - 90)
-        win = min(len(hdf) - pos, 110)
+        anchor = int(hdf.index.searchsorted(te, side="right")) - 1
+        pos = max(0, anchor - 55)
+        win = min(len(hdf) - pos, 75)
         hb = CK.bundle(hdf, pos, win)
         hb["spans"] = [(k_, max(s0, pos) - pos, min(s1, pos + win - 1) - pos)
                        for k_, s0, s1 in ST.spans(hdf, causal=True) if s1 >= pos and s0 <= pos + win - 1]
         CK.render(axh, hb, "", "%m-%d %H:%M")
         panels.append((axh, hb["d"]))
         sub = hdf.index[pos:pos + win]
-        a_ = min(max(int(sub.searchsorted(te)) - 1, 0), win - 1)
         hl_ = hdf["Low"].values[pos:pos + win]; hh_ = hdf["High"].values[pos:pos + win]
         ylo = float(np.nanmin(hl_)); yhi = float(np.nanmax(hh_)); yr = max(yhi - ylo, 1e-9)
         axh.set_ylim(ylo - 0.3 * yr, yhi + 0.3 * yr)
-        axh.axvline(a_, color=AMBER, lw=1.2, alpha=.9, zorder=9)
         e50 = XM.ema(hdf["Close"].values.astype(float), 50)[pos:pos + win]
         axh.plot(np.arange(len(e50)), e50, color="#b48cff", lw=1.7, zorder=7)
-        axh.set_title("%s: %s" % ("daily" if htf == "1d" else "weekly", EMAWORD.get(row["h_ema_daily_raw"], row["h_ema_daily_raw"])),
+        # where the EQ sits on the bigger chart: an orange box over the bars it lived in, at its prices
+        b_ = int(sub.searchsorted(df.index[born], side="right")) - 1
+        z_ = int(sub.searchsorted(df.index[min(max(end, xb), n - 1)], side="right")) - 1
+        b_ = min(max(b_, 0), win - 1); z_ = min(max(z_, b_), win - 1)
+        lo_b, hi_b = row["eq_lo"], row["eq_hi"]
+        if hi_b - lo_b < 0.03 * yr:
+            mid_b = (hi_b + lo_b) / 2
+            lo_b, hi_b = mid_b - 0.015 * yr, mid_b + 0.015 * yr
+        axh.add_patch(Rectangle((b_ - 0.7, lo_b), (z_ - b_) + 1.4, hi_b - lo_b, facecolor=AMBER, alpha=.28,
+                                edgecolor=AMBER, lw=2.4, zorder=12))
+        peg(axh, (b_ + z_) / 2, hi_b, yhi + 0.17 * yr, AMBER, "the %s EQ" % tf, side=-1 if (b_ + z_) / 2 > 0.6 * win else 1)
+        axh.set_title("%s: %s" % ("daily" if htf == "1d" else "weekly", EMAWORD.get(row["e50"], row["e50"])),
                       loc="left", color=DIM, fontsize=9.5, pad=3)
         plt.setp(axh.get_xticklabels(), fontsize=6)
     import pics_ride as PR
@@ -196,47 +213,55 @@ def render(sym, kind, tf, row, frames, path):
     big = "daily" if tf in ("5m", "15m", "1h", "4h") else "weekly"
     story = ("The %s chart was %s, so this EQ was a %s. A %s confirmed, so the %s went in "
              "at the next open, %s. The stop sat a wick past that %s at %s, and the %s was %s, %.1f times the risk away. " % (
-                 big, EMAWORD.get(row["h_ema_daily_raw"], "?"),
+                 big, EMAWORD.get(row["e50"], "?"),
                  "buy" if long_ else "short", near, "buy" if long_ else "short", fmt(fill), near, fmt(stop), far,
                  fmt(target), gain / risk))
-    if took_bar is not None:
-        story += "Price reached the %s after %d bars, %.0f%% was sold there, and the rest could no longer lose. " % (
-            far, took_bar - e + 1, 100 * share)
+    if row["took"]:
+        if row["mode"] == "all":
+            story += "Price reached the %s after %d bars and everything was sold there. " % (far, took_bar - e + 1)
+        elif row["mode"] in SOLD:
+            story += "Price reached the %s after %d bars: %s. " % (far, took_bar - e + 1, SOLD[row["mode"]].replace(" here", ""))
     else:
         story += "It never reached the %s. " % far
     story += "Out after %d bars: %s. %+.2f%%." % (row["held"], row["why"], 100 * ret)
     return dict(sym=sym, kind=kind, tf=tf, t=row["t"], side=row["side"], ret=float(ret), held=int(row["held"]),
-                reached=took_bar is not None, why=row["why"], rr=float(gain / risk), share=float(share),
-                h_next=row["h_ema_daily_raw"], h_two=row["h_ema200_raw"], story=story,
+                reached=bool(row["took"]), why=row["why"], rr=float(gain / risk), share=float(share),
+                variant=row["variant"], gap=gap, hours=bars_word,
+                h_next=row["e50"], h_two=row["e200"], story=story,
                 png=os.path.basename(path), problems=probs)
 
 
 def _one(args):
-    sym, kind, seed = args
+    sym, kind, seed, variant, gap, hours = args
     try:
         fr = S.frames_for(sym, kind)
     except Exception as ex:
         return [], ["%s %s: %s" % (kind, sym, ex)]
+    use = FR2.regular_hours(fr) if (hours == "regular hours" and kind in ("stock", "etf")) else fr
     rng = np.random.default_rng(seed)
     start = pd.Timestamp.now().normalize() - pd.Timedelta(days=365 * S.YEARS)
     got, errs = [], []
     for tf in TFS:
+        df = use.get(tf)
+        if df is None:
+            continue
         try:
-            rows = FR.trades_for_frame(sym, kind, tf, fr, start, detail=True)
+            rows = [x for x in FR2.trades(kind, tf, df, fr, start, gap, modes=[variant])
+                    if x["tag1"] == 0 and x["born"] > 40 and x["xb"] + 22 < len(df)]
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex)); continue
-        rows = [r for r in rows if r["variant"] == VARIANT and r[FILTER] == "with" and r["born"] > 40 and r["xb"] + 22 < len(fr[tf])]
         if not rows:
             continue
-        for want in (True, False):                 # one that reached the free ride, one that did not
-            pool = [r for r in rows if (r["took_bar"] is not None) == want]
+        htf = "1d" if tf in ("5m", "15m", "1h", "4h") else "1w"
+        for want in (True, False):                 # one that reached the far line, one that did not
+            pool = [r for r in rows if bool(r["took"]) == want]
             if not pool:
                 continue
             r = pool[int(rng.integers(len(pool)))]
             os.makedirs(OUT, exist_ok=True)
             path = os.path.join(OUT, "%s_%s_%s_%s_%d.png" % (kind, sym, tf, r["side"], r["e"]))
             try:
-                out = render(sym, kind, tf, r, fr, path)
+                out = render(sym, kind, tf, r, df, fr.get(htf), path, hours, gap)
             except Exception as ex:
                 errs.append("%s %s %s draw: %s" % (kind, sym, tf, ex)); continue
             if out:
@@ -245,19 +270,27 @@ def _one(args):
 
 
 def main():
-    procs, per_tf = max(1, os.cpu_count() or 4), 4
+    procs, per_tf, variant, gap, hours = max(1, os.cpu_count() or 4), 4, VARIANT, 3, "regular hours"
     for i, a in enumerate(sys.argv):
-        if a == "--procs" and i + 1 < len(sys.argv):
-            procs = int(sys.argv[i + 1])
-        if a == "--per-tf" and i + 1 < len(sys.argv):
-            per_tf = int(sys.argv[i + 1])
-        if a == "--log" and i + 1 < len(sys.argv):
-            sys.stdout = sys.stderr = open(sys.argv[i + 1], "w", buffering=1, encoding="utf-8", errors="replace")
+        nxt = sys.argv[i + 1] if i + 1 < len(sys.argv) else None
+        if a == "--procs" and nxt:
+            procs = int(nxt)
+        if a == "--per-tf" and nxt:
+            per_tf = int(nxt)
+        if a == "--variant" and nxt:
+            variant = nxt
+        if a == "--gap" and nxt:
+            gap = int(nxt)
+        if a == "--hours" and nxt:
+            hours = "all hours" if nxt.startswith("all") else "regular hours"
+        if a == "--log" and nxt:
+            sys.stdout = sys.stderr = open(nxt, "w", buffering=1, encoding="utf-8", errors="replace")
+    assert variant in [m[0] for m in FR2.MODES], "unknown variant: %s" % variant
     t0 = time.time()
     import focus
     names = [(s_, k_) for s_, k_ in focus.names() if focus.have(s_, k_)]
     rng = np.random.default_rng(20260910)
-    jobs = [(s_, k_, int(rng.integers(1 << 30))) for s_, k_ in names]
+    jobs = [(s_, k_, int(rng.integers(1 << 30)), variant, gap, hours) for s_, k_ in names]
     rows, errs = [], []
     with cf.ProcessPoolExecutor(max_workers=procs) as ex:
         for got, err in ex.map(_one, jobs, chunksize=1):
@@ -276,9 +309,10 @@ def main():
             os.remove(os.path.join(OUT, fn))
     json.dump(keep, open(os.path.join(OUT, "eq_free_index.json"), "w"), indent=1)
     bad = [r for r in keep if r["problems"]]
+    print("  %s | pivots %d+ bars apart | %s" % (variant, gap, hours))
     print("  %d trades drawn from %d candidates, %d with text problems  (%.0fs)" % (len(keep), len(rows), len(bad), time.time() - t0))
     for r in keep:
-        print("    %-6s %-3s %-5s %+7.2f%%  %3d bars  free ride %-11s %4.1fx  %-5s/%-5s  %s" % (
+        print("    %-6s %-3s %-5s %+7.2f%%  %3d bars  far line %-11s %4.1fx  %-5s/%-5s  %s" % (
             r["sym"], r["tf"], r["side"], 100 * r["ret"], r["held"], "reached" if r["reached"] else "not reached",
             r["rr"], r["h_next"], r["h_two"], "clean" if not r["problems"] else r["problems"]))
     for e in errs[:12]:

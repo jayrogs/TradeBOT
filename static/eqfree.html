@@ -17,9 +17,12 @@
   .rule div{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--amber);
             border-radius:10px;padding:10px 13px;color:var(--dim);font-size:13px}
   .rule b{color:var(--fg);display:block;margin-bottom:2px}
+  .rule i{color:var(--amber)}
   .note{color:var(--dim);font-size:12.5px;max-width:1060px;margin:0 0 10px}
   .note b{color:var(--fg)}
-  .pick{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 12px}
+  .pickrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:4px 0 6px}
+  .pickrow .lab{color:var(--faint);font-size:11px;letter-spacing:1px;text-transform:uppercase;min-width:70px}
+  .pick{display:flex;flex-wrap:wrap;gap:7px}
   .pick span{background:var(--card2);border:1px solid var(--line);color:var(--dim);padding:5px 12px;border-radius:8px;
              cursor:pointer;font-size:12.5px;user-select:none}
   .pick span.on{background:rgba(255,184,77,.16);border-color:var(--amber);color:var(--amber)}
@@ -48,52 +51,60 @@
 <body>
 <header>
   <h1>EQ: the free ride, with the bigger chart</h1>
-  <p class="quote">"usually its based on whatever higher timeframe shapes going on"</p>
   <p class="quote">"the idea is buying the floor and selling the LH ideally to make a risk free position"</p>
-  <div class="sub">The first EQ study bought every floor no matter what the bigger chart was doing, and bought a later touch
-  of the floor rather than the higher low itself. This is your version. The shape is the same EQ as on <a href="/eqcoils">/eqcoils</a>.</div>
+  <div class="sub">Redone after your grading. Every change below comes from a note you wrote on a chart. The EQ shape is the same one as on <a href="/eqcoils">/eqcoils</a>.</div>
 </header>
 <main>
-  <h2>the trade, as coded</h2>
+  <h2>what your notes changed</h2>
   <div class="rule">
-    <div><b>which way</b>from the bigger chart. Every EQ is tested both ways and each trade is marked as taken with the bigger chart, against it, or with no trend there.</div>
-    <div><b>the buy</b>a higher low confirms inside the EQ: buy the next open. Short side: a lower high confirms, short the next open.</div>
-    <div><b>the stop</b>a wick through that higher low (or over that lower high), deeper than an equal low would be.</div>
-    <div><b>the free ride</b>at the lower high, sell the share that makes the rest unable to lose.</div>
-    <div><b>the rest</b>if it breaks through our way, trail 5 normal bars behind the best close.</div>
-    <div><b>careful reading</b>a bar that touches both the stop and the lower high counts as stopped. Costs are out.</div>
+    <div><b>the partial</b><i>"wtf 91% sold? who is deciding this?"</i> The old rule sold whatever share made the rest risk free. When the lower high sat right on top of the entry, that meant selling almost everything. Now it sells a fixed <b>third</b> or <b>half</b>, and the rest's stop moves to the entry. The old rule stays in the table for comparison.</div>
+    <div><b>pivots on top of each other</b><i>"a HL then an LH in the next candle ... thats an anomaly, not an eq"</i> Now the pivots must be at least 3 bars apart. The old rule (any spacing) stays in the table.</div>
+    <div><b>after-hours candles</b><i>"was this after hours?"</i> Yes: V 4h had 13 of 17 bars outside regular hours, ORCL 1h 18 of 31, NVDA 5m all 23 of 23 at 6% of normal volume. Stocks and ETFs are now also run on <b>regular-hours bars only</b>.</div>
+    <div><b>a buy after a higher high</b><i>"did this buy, after a HH?"</i> A bug. On INJ, price spiked through the ceiling in the two bars before the EQ could be known, and the EQ was still declared. An EQ that already broke is no longer an EQ.</div>
+    <div><b>where it is on the daily</b><i>"i cant really tell where this is on the right side daily chart"</i> The EQ is now an orange box on the daily panel, labeled, and the daily shows fewer bars so they are wider.</div>
   </div>
 
-  <h2>what counts as the bigger chart</h2>
-  <div class="note">Several readings, because "the higher timeframe shape" can be read more than one way. I checked each against
-    eight trends nobody would argue about (NVDA down in May 2022 and up in 2023 and 2024, TSLA down late 2022, BTC down mid 2022
-    and up late 2023, META down 2022, AAPL up 2023). <b>The daily against its 50 EMA got all eight right</b>, and so did the daily
-    against its 200 EMA. Every reading built from swing highs and lows missed several: inside a big decline the small pivots flip
-    on every bounce. The page opens on the daily 50 EMA; click another to compare.</div>
-  <div class="pick" id="reads"></div>
+  <h2>the trade, as coded</h2>
+  <div class="rule">
+    <div><b>which way</b>the daily chart over its rising 50 EMA = long, under its falling 50 EMA = short (weekly for a daily EQ). Every EQ is still tested both ways, to show what "against" costs.</div>
+    <div><b>the buy</b>a higher low confirms inside the EQ: buy the next open. Short: a lower high confirms, short the next open.</div>
+    <div><b>the stop</b>a wick through that higher low (or over that lower high), deeper than an equal low would be.</div>
+    <div><b>the far line</b>the lower high for a long, the higher low for a short. Part is sold there.</div>
+    <div><b>the rest</b>if it breaks through our way, trail 5 normal bars behind the best close. 5 and 15 minute stock trades close at the bell.</div>
+    <div><b>careful reading</b>a bar that touches both the stop and the far line counts as stopped. Costs are taken out.</div>
+  </div>
 
-  <h2>how you get in</h2>
-  <div class="note"><b>After the higher low confirms</b> buys the next open two bars after the low printed, which is when you can first
-    know it was a higher low. By then price has often bounced most of the way to the lower high. The three <b>limit</b> entries rest a buy
-    order down in the EQ instead: at the floor, a quarter of the way up the box, or halfway up. They fill only if price comes down to them,
-    the stop is a wick under the floor, and the target is the lower high. Shorts are the mirror.</div>
-  <div class="pick" id="entries"></div>
+  <h2>pick</h2>
+  <div class="pickrow"><span class="lab">stock bars</span><div class="pick" id="p-hours"></div></div>
+  <div class="pickrow"><span class="lab">spacing</span><div class="pick" id="p-gap"></div></div>
+  <div class="pickrow"><span class="lab">managed</span><div class="pick" id="p-var"></div></div>
+  <div class="note" id="p-warn"></div>
 
   <h2>the answer</h2>
-  <div class="note">Per trade after costs. The big number is the <b>average</b>, because that is the money you actually make over many trades.
-    Under it is the <b>middle trade</b>, what an ordinary trade looks like. <b>free ride</b> is how often price reached the lower high before the stop.
-    The two can disagree in two ways and both matter: <span class="neg">!</span> the average is positive only because a few big winners carry
-    ordinary trades that lost; <span class="neg">~</span> the ordinary trade wins, but the losses are bigger than the wins, so the average does not.</div>
+  <div class="note">Per trade after costs. The big number is the <b>average</b>, the money over many trades. Under it is the <b>middle trade</b>, what an ordinary trade looks like, and <b>far line</b>: how often price reached it before the stop.
+    <span class="neg">!</span> the average is positive only because a few big winners carry trades that mostly lost. <span class="neg">~</span> the ordinary trade wins, but the losses are bigger than the wins.</div>
   <div class="box" id="answer">loading&hellip;</div>
 
+  <h2>how far away the far line is</h2>
+  <div class="note">Your note on TSM: the far line was 0.09 times the risk, so there was almost nothing to sell into. Trades taken <b>with</b> the daily chart, split by how far the far line sat from the entry, measured in units of the risk (entry to stop).</div>
+  <div class="box" id="rr"></div>
+
+  <h2>pivots 3+ bars apart vs any spacing</h2>
+  <div class="note">Trades taken with the daily chart, same bars and management as picked above.</div>
+  <div class="box" id="gaps"></div>
+
+  <h2>stocks: all hours vs regular hours</h2>
+  <div class="note">Stocks and ETFs only, trades with the daily chart. A daily bar is the whole session either way, so the daily is not split.</div>
+  <div class="box" id="hours"></div>
+
   <h2>does it hold in every era</h2>
-  <div class="note">Only the trades taken <b>with</b> the bigger chart. Before 2022, the first half of the window, the second half. Average, with the middle trade underneath.</div>
+  <div class="note">Trades with the daily chart. Before 2022, the first half of the window, the second half.</div>
   <div class="box" id="eras"></div>
 
   <h2>the trades, drawn</h2>
   <div class="note" id="meta">loading&hellip;</div>
-  <div class="note">Only trades taken with the daily chart's 50 EMA, because those are the ones you would take. Per chart size, two that reached the free ride and two that did not, picked at random inside each.
-    Blue is the EQ, amber dotted the entry, red dashed the stop, green dashed the far line. The right panel is the daily (weekly for a daily EQ) with its 50 EMA in purple and the entry marked. Click to enlarge.</div>
+  <div class="note">Only trades taken with the daily chart's 50 EMA. Per chart size, two that reached the far line and two that did not, picked at random inside each.
+    Blue is the EQ, amber dotted the entry, red dashed the stop, green dashed the far line. The right panel is the daily (weekly for a daily EQ): 50 EMA in purple, the EQ boxed in orange. Click to enlarge.</div>
   <div id="list"></div>
 </main>
 <div id="zoom"></div>
@@ -103,54 +114,66 @@ const pct = (x, d = 2) => x == null ? '<span class="faint">-</span>'
   : `<span class="${x >= 0 ? 'pos' : 'neg'}">${x >= 0 ? '+' : ''}${(100 * x).toFixed(d)}%</span>`;
 const p0 = x => x == null ? '-' : (100 * x).toFixed(0) + '%';
 const NICE = {'5m': '5 minute', '15m': '15 minute', '1h': '1 hour', '4h': '4 hour', '1d': 'daily'};
-let D = null, READ = 'h_ema_daily', ENTRY = 'after the higher low confirms';
+let D = null, HOURS = 'regular hours', GAP = '3', VAR = null;
 
 function cell(v) {
   if (!v) return '<td class="faint">-</td>';
-  // the two numbers can disagree either way, and both ways matter
-  const lucky = v.mean > 0 && v.median <= 0;     // a few big winners carry an ordinary trade that lost
-  const bleed = v.median > 0 && v.mean <= 0;     // the ordinary trade wins, but the losses are bigger than the wins
+  const lucky = v.mean > 0 && v.median <= 0;
+  const bleed = v.median > 0 && v.mean <= 0;
   const flag = lucky ? ' <span class="neg" title="a few big winners carry this; the ordinary trade lost">!</span>'
              : bleed ? ' <span class="neg" title="the ordinary trade wins, but the losses are bigger than the wins">~</span>' : '';
   return `<td><span class="big">${pct(v.mean)}</span>${flag}` +
-         `<div class="sm">middle ${pct(v.median)}</div><div class="sm">free ride ${p0(v.reached)} &middot; n ${v.n.toLocaleString()}</div></td>`;
+         `<div class="sm">middle ${pct(v.median)}</div><div class="sm">far line ${p0(v.reached)} &middot; n ${v.n.toLocaleString()}</div></td>`;
+}
+
+function picker(id, items, cur, label, set) {
+  $(id).innerHTML = items.map(x => `<span class="${x === cur ? 'on' : ''}" data-x="${x}">${label(x)}</span>`).join('');
+  document.querySelectorAll(id + ' span').forEach(s => s.onclick = () => { set(s.dataset.x); draw(); });
 }
 
 function draw() {
   if (!D) return;
-  $('#reads').innerHTML = D.meta.reads.map(r => `<span class="${r === READ ? 'on' : ''}" data-r="${r}">${D.meta.read_names[r]}</span>`).join('');
-  document.querySelectorAll('#reads span').forEach(s => s.onclick = () => { READ = s.dataset.r; draw(); });
-  const entries = (D.meta.entries && D.meta.entries.length) ? D.meta.entries : ['after the higher low confirms'];
-  $('#entries').innerHTML = entries.map(e => `<span class="${e === ENTRY ? 'on' : ''}" data-e="${e}">${e}</span>`).join('');
-  document.querySelectorAll('#entries span').forEach(s => s.onclick = () => { ENTRY = s.dataset.e; draw(); });
-  const limitLabels = entries.slice(1);
-  // the variants that belong to the chosen entry, and how to show their names without repeating the entry
-  const mine = D.meta.variants.filter(v => ENTRY === entries[0]
-      ? !limitLabels.some(l => v.startsWith(l + ', '))
-      : v.startsWith(ENTRY + ', '));
-  const shortName = v => ENTRY === entries[0] ? v : v.slice(ENTRY.length + 2);
-  const by = D['by_' + READ] || {}, era = D['era_' + READ] || {};
-  let h = '<table><tr><th class="l">chart</th><th class="l">managed</th><th>with the bigger chart</th><th>against it</th><th>no trend there</th><th>every EQ, both ways</th></tr>';
-  for (const tf of D.meta.tfs) {
-    h += `<tr class="grp"><td class="l" colspan="6">${NICE[tf]} chart</td></tr>`;
-    for (const v of mine) {
-      h += `<tr><td class="l"></td><td class="l">${shortName(v)}</td>` +
-        ['with', 'against', 'no trend'].map(t => cell(by[`${v} | ${tf} | ${t}`])).join('') +
-        cell(D.base[`${v} | ${tf}`]) + '</tr>';
+  const M = D.meta;
+  VAR = VAR || M.variants[0];
+  picker('#p-hours', M.hours, HOURS, x => x === 'all hours' ? 'all hours' : 'regular hours only', x => HOURS = x);
+  picker('#p-gap', M.gaps, GAP, x => M.gap_names[x], x => GAP = x);
+  picker('#p-var', M.variants, VAR, x => x, x => VAR = x);
+  $('#p-warn').innerHTML = HOURS === 'regular hours'
+    ? '<b>Regular hours</b> changes stocks and ETFs only; crypto and futures have no session, so the tables below with regular hours hold <b>stocks and ETFs only</b> (no daily row). Pick all hours to see every market.'
+    : 'All hours: every market, stocks and ETFs including pre-market and after-hours bars.';
+  const k = (h, g, v, tf) => `${h} | ${g} | ${v} | ${tf}`;
+
+  let a = '<table><tr><th class="l">chart</th><th class="l">managed</th><th>with the daily chart</th><th>against it</th><th>no trend there</th><th>every EQ, both ways</th></tr>';
+  for (const tf of M.tfs) {
+    a += `<tr class="grp"><td class="l" colspan="6">${NICE[tf]} chart</td></tr>`;
+    for (const v of M.variants) {
+      a += `<tr><td class="l"></td><td class="l">${v}</td>` +
+        M.tags.map(t => cell(D.by_h_ema_daily[`${k(HOURS, GAP, v, tf)} | ${t}`])).join('') +
+        cell(D.base[k(HOURS, GAP, v, tf)]) + '</tr>';
     }
   }
-  $('#answer').innerHTML = h + '</table>';
-  let e = '<table><tr><th class="l">chart</th><th class="l">managed</th><th>before 2022</th><th>first half</th><th>second half</th></tr>';
-  for (const tf of D.meta.tfs) {
-    for (const v of mine) {
-      e += `<tr><td class="l">${NICE[tf]}</td><td class="l">${shortName(v)}</td>` +
-        ['before', 'first', 'second'].map(x => cell(era[`${v} | ${tf} | with | ${x}`])).join('') + '</tr>';
-    }
+  $('#answer').innerHTML = a + '</table>';
+
+  let r = `<table><tr><th class="l">chart</th>${M.rr.map(x => `<th>${x}</th>`).join('')}</tr>`;
+  for (const tf of M.tfs) r += `<tr><td class="l">${NICE[tf]}</td>` + M.rr.map(x => cell(D.rr_with[`${k(HOURS, GAP, VAR, tf)} | ${x}`])).join('') + '</tr>';
+  $('#rr').innerHTML = `<div class="sm" style="margin:4px 0 6px">${VAR}</div>` + r + '</table>';
+
+  let g = `<table><tr><th class="l">chart</th>${M.gaps.map(x => `<th>${M.gap_names[x]}</th>`).join('')}</tr>`;
+  for (const tf of M.tfs) g += `<tr><td class="l">${NICE[tf]}</td>` + M.gaps.map(x => cell(D.by_h_ema_daily[`${k(HOURS, x, VAR, tf)} | with`])).join('') + '</tr>';
+  $('#gaps').innerHTML = `<div class="sm" style="margin:4px 0 6px">${VAR}</div>` + g + '</table>';
+
+  let hrs = '<table><tr><th class="l">chart</th><th>stocks, all hours</th><th>stocks, regular hours</th><th>ETFs, all hours</th><th>ETFs, regular hours</th></tr>';
+  for (const tf of M.tfs.filter(x => x !== '1d')) {
+    hrs += `<tr><td class="l">${NICE[tf]}</td>` + ['stock', 'etf'].map(kd => M.hours.map(h => cell(D.kind_with[`${k(h, GAP, VAR, tf)} | ${kd}`])).join('')).join('') + '</tr>';
   }
-  $('#eras').innerHTML = e + '</table>';
+  $('#hours').innerHTML = `<div class="sm" style="margin:4px 0 6px">${VAR} &middot; ${M.gap_names[GAP]}</div>` + hrs + '</table>';
+
+  let e = `<table><tr><th class="l">chart</th><th>before 2022</th><th>first half</th><th>second half</th></tr>`;
+  for (const tf of M.tfs) e += `<tr><td class="l">${NICE[tf]}</td>` + M.eras.map(x => cell(D.era_with[`${k(HOURS, GAP, VAR, tf)} | ${x}`])).join('') + '</tr>';
+  $('#eras').innerHTML = `<div class="sm" style="margin:4px 0 6px">${VAR}</div>` + e + '</table>';
 }
 
-fetch('/validation/eq_freeride.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).then(d => {
+fetch('/validation/eq_freeride2.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).then(d => {
   if (!d) { $('#answer').innerHTML = '<span class="faint">the study has not finished yet</span>'; return; }
   D = d; draw();
 }).catch(() => { $('#answer').innerHTML = '<span class="faint">could not read the study</span>'; });
@@ -161,7 +184,8 @@ Promise.all([
 ]).then(([rows, notes]) => {
   notes = notes || {};
   if (!rows.length) { $('#meta').textContent = 'not drawn yet'; return; }
-  $('#meta').textContent = `${rows.length} trades drawn · ${rows.filter(r => r.reached).length} reached the free ride · ${rows.filter(r => (r.problems || []).length).length} with overlapping text`;
+  const r0 = rows[0];
+  $('#meta').textContent = `${rows.length} trades drawn · ${r0.variant || ''} · pivots ${r0.gap != null ? r0.gap + '+' : 'any'} bars apart · stocks on ${r0.hours || 'all bars'} · ${rows.filter(r => r.reached).length} reached the far line · ${rows.filter(r => (r.problems || []).length).length} with overlapping text`;
   const TFS = ['5m', '15m', '1h', '4h', '1d'];
   $('#list').innerHTML = TFS.map(tf => {
     const g = rows.filter(r => r.tf === tf);
@@ -170,7 +194,7 @@ Promise.all([
       const key = `${it.sym}|${it.tf}|${it.t}`;
       return `<div class="case">
         <div class="line"><b>${it.sym}</b> <span class="faint">${it.kind}</span> &middot; ${it.t} &middot; <b>${it.side === 'long' ? 'LONG' : 'SHORT'}</b>
-          &middot; <b class="${it.ret > 0 ? 'pos' : 'neg'}">${pct(it.ret)}</b> in ${it.held} bars &middot; free ride ${it.reached ? 'reached' : 'not reached'}
+          &middot; <b class="${it.ret > 0 ? 'pos' : 'neg'}">${pct(it.ret)}</b> in ${it.held} bars &middot; far line ${it.reached ? 'reached' : 'not reached'}
           &middot; far line ${it.rr.toFixed(1)}x the risk &middot; ${it.why}</div>
         <div class="story">${it.story}</div>
         <img src="/validation/eq_free/${it.png}?v=${Date.now()}" loading="lazy" alt="${it.sym} ${it.tf}">
@@ -181,8 +205,14 @@ Promise.all([
   document.querySelectorAll('textarea').forEach(ta => {
     let t = null;
     ta.oninput = () => { clearTimeout(t); t = setTimeout(() => {
+      const s = ta.nextElementSibling;
+      const fail = () => { s.textContent = 'NOT SAVED - tell Claude'; s.style.color = '#ff5c72'; s.style.opacity = 1; };
       fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({set: 'eqfree', n: ta.dataset.n, note: ta.value})}).then(r => { const s0 = ta.nextElementSibling; if (!r.ok) { s0.textContent = 'NOT SAVED - tell Claude'; s0.style.color = '#ff5c72'; s0.style.opacity = 1; return; } s0.textContent = 'saved'; s0.style.color = '';  const s = ta.nextElementSibling; s.classList.add('on'); setTimeout(() => s.classList.remove('on'), 1200); }).catch(() => { const s1 = ta.nextElementSibling; s1.textContent = 'NOT SAVED - tell Claude'; s1.style.color = '#ff5c72'; s1.style.opacity = 1; });
+        body: JSON.stringify({set: 'eqfree', n: ta.dataset.n, note: ta.value})}).then(r => {
+        if (!r.ok) return fail();
+        s.textContent = 'saved'; s.style.color = ''; s.style.opacity = ''; s.classList.add('on');
+        setTimeout(() => s.classList.remove('on'), 1200);
+      }).catch(fail);
     }, 600); };
   });
   document.querySelectorAll('.case img').forEach(im => im.onclick = () => {
