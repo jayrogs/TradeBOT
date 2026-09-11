@@ -382,6 +382,26 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     and ETFs and loses on crypto and futures. The management variants (walked-up stop, 12 EMA runner, all out at 2x)
     barely differ. Not yet drawn (rule 10): the break-even rows need pictures before any verdict, and the idea chart
     size may be the constraint -- their room plays the daily/weekly idea (see #26c supply: few EQs there).
+26k. HIS SECOND GRADING OF /eqfree (notes saved 2026-09-11 00:47-00:54 in validation/trade_notes_eqfree.csv, on the
+    redrawn set: half at the far line, far line >= 1x, pivots 3+ apart). I MISSED THESE for most of a day: I ran
+    studies off his chat line and never went through the notes. Always read the notes file after he says "graded".
+    What each note turned out to be (checked on the drawings and eq_free_index.json):
+      - NVDA 15m "i can barely see that the hl was broken at all, not sure why it sold" -> NOT a stop: bought on the
+        15:45 bar, the last of the session, and the 5m/15m stock rule closed it at the bell; next day it ran to 142.
+        Fix: no entries on the last bar before the bell.
+      - AVAX 5m "getting mogged by 12 ema ... why would you long that" -> bought under a FALLING 12 EMA with a 1-cent
+        stop (17.53 / 17.52) on crypto with 0.2% cost. Fix: this chart's own 12 EMA must not point against the trade
+        (#26f: 59% right on direction), and the risk must be several times the cost.
+      - SI_F 1h "it went so high, why did it never sell. whats the actual sell plan" -> half at the lower high, the
+        rest had only breakeven + a 5-bar trail after a break, rode the spike back down (-0.52%). Fix: a real plan
+        for the rest, TCG way: sell into overbought / the next 12 EMA or resistance, stop walked under higher lows.
+      - ETH 4h 2017 "seems like it gave a ton back" -> the 5-bar trail is too loose on the rest.
+      - AAVE 4h "how did it lose so much" -> 3.5% risk plus a gap past the stop: -4.8%.
+      - ORCL 1h "man that barely broke it, and it went straight into another eq" -> a small wick hit the stop. OPEN,
+        asked him: how far under the higher low counts as broken for the EQ stop.
+      - SOL 1d "went straight into ema12 and died as soon as it hit that resistance" -> the 12 EMA as resistance (his read).
+      - ETH 4h 2019 / YM_F 1h "fair fakeout"; DOGE 4h "wow" (+21%); NVDA 5m daily-EMA question answered by #26f.
+    Round 3 of /eqfree gets those fixes before he grades again.
 26. CHANNELS (was called "EQs" in error until 2026-09-09). His trade: get positioned at an edge to catch the BREAK ("buying the floor
     or selling the ceiling in order to be positioned for the eq to break one way or the other ... eqs
     usually break with follow through ... the longer they go on the clearer the breaks"). NOT buy-floor-
