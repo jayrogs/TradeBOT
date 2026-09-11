@@ -1,0 +1,74 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Backburner Study</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --amber:#ffb84d;--eq:#5aa9ff;--up:#3ddc97;--dn:#ff5c72;--mono:ui-monospace,Consolas,monospace}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:18px 22px 6px}
+  h1{font-size:18px;margin:0 0 6px}
+  h2{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--faint);margin:26px 0 8px}
+  .sub{color:var(--dim);font-size:13px;max-width:980px}
+  .meta{color:var(--faint);font-size:12px;font-family:var(--mono);margin-top:6px}
+  main{padding:8px 22px 60px}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:6px 0 14px}
+  th{color:var(--faint);font-weight:500;text-align:right;padding:5px 10px;border-bottom:1px solid var(--line);font-size:11px}
+  th:first-child,td:first-child{text-align:left}
+  td{padding:5px 10px;text-align:right;border-bottom:1px solid rgba(37,42,51,.6)}
+  .pos{color:var(--up)} .neg{color:var(--dn)} .thin{color:var(--faint)}
+  .hold{color:var(--amber);font-weight:700}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;max-width:1100px}
+  .note{color:var(--dim);font-size:12.5px;max-width:900px}
+  select{background:var(--card);border:1px solid var(--line);color:var(--fg);padding:5px 8px;border-radius:7px;font-size:13px}
+</style></head>
+<body>
+<header>
+  <h1>Backburner study &mdash; when does scaling into oversold work?</h1>
+  <div class="sub" id="how">loading&hellip;</div>
+  <div class="meta" id="meta"></div>
+</header>
+<main id="main"></main>
+<script>
+const $ = s => document.querySelector(s);
+const pct = (x, d=2) => x == null ? '' : `<span class="${x >= 0 ? 'pos' : 'neg'}">${x >= 0 ? '+' : ''}${(100*x).toFixed(d)}%</span>`;
+const p0 = x => x == null ? '' : (100*x).toFixed(0) + '%';
+const TFS = ['5m','15m','1h','4h','12h','1d','1w'];
+function row(label, b, extra=''){
+  return `<tr><td>${label}${extra}</td><td>${b.n}</td><td>${pct(b.dw)}</td><td>${pct(b.ride_dw)}</td><td>${pct(b.ema_dw)}</td><td>${pct(b.single)}</td><td>${pct(b.drift)}</td><td>${p0(b.win)}</td><td>${b.units.toFixed(1)}</td><td>${b.held.toFixed(0)}</td><td>${b.ride_held.toFixed(0)}</td><td>${p0(b.bad)}</td><td>${p0(b.ride_low)}</td><td>${p0(b.part)}</td></tr>`;
+}
+const HEAD = `<tr><th>set</th><th>campaigns</th><th>sell all at the bounce</th><th>breakeven partial + hold until the last higher low breaks (the standard)</th><th>breakeven partial + sell on a close under the 12 EMA</th><th>buy once, sell at bounce</th><th>market drift</th><th>win rate (sell all)</th><th>units</th><th>bars held (sell all)</th><th>bars held (ride)</th><th>stopped out before the bounce</th><th>low broke on the ride</th><th>partial sold</th></tr>`;
+fetch('/validation/backburner_study.json?v=' + Date.now()).then(r => r.json()).then(d => {
+  const m = d.meta;
+  $('#how').innerHTML = `A campaign starts the first time RSI(14) closes at or under ${m.os} on that timeframe: buy one unit at the next bar's open, buy another on every further close at or under ${m.os} (up to ${m.max_units}). If price closes more than 3 times a normal bar's move under your average cost first, it went really bad: everything is sold. Otherwise the bounce is RSI closing back above ${m.bounce}, handled three ways: <b>sell all</b>; or sell just enough that a stop at the backburner low leaves the trade breakeven and <b>hold the rest until a bar closes under the last higher low</b> (the standard rule) or <b>sell the rest on the first close under the 12 EMA</b>. Every return is money-weighted (on the dollars actually put in) after ${(100*m.cost).toFixed(1)}% round-trip cost. "Market drift" = what the name did on average over the same number of bars.`;
+  $('#meta').textContent = `${m.names} names (${Object.entries(m.names_by_kind).map(([k,v]) => v + ' ' + k).join(', ')}) · ${m.frames} timeframe-series · ${m.campaigns} campaigns since ${m.window_start} · generated ${m.generated}`;
+  let html = '<h2>By timeframe</h2><div class="card"><table>' + HEAD;
+  TFS.forEach(tf => { if (d.by_tf[tf]) html += row(tf, d.by_tf[tf]); });
+  html += row('all', d.all) + '</table>';
+  html += '<table>' + HEAD;
+  Object.keys(d.by_tf_asset).sort((a,b) => TFS.indexOf(a.split(' ')[1]) - TFS.indexOf(b.split(' ')[1]) || a.localeCompare(b)).forEach(k => html += row(k, d.by_tf_asset[k]));
+  html += '</table></div>';
+
+  html += '<h2>Conditions that hold up</h2><div class="note">A condition "holds" only if its edge over drift is positive in both halves of the 4 years and in both crypto and stocks (where both have at least 50 campaigns). Amber = holds.</div>';
+  for (const [cond, vals] of Object.entries(d.conditions)){
+    const keys = Object.keys(vals); if (!keys.length) continue;
+    html += `<div class="card"><b>${cond}</b><table>${HEAD}`;
+    keys.forEach(v => html += row(v, vals[v], vals[v].holds ? ' <span class="hold">holds</span>' : ''));
+    html += '</table></div>';
+  }
+
+  html += '<h2>By timeframe, the questions that matter</h2>';
+  html += `<select id="tfpick">${TFS.filter(t => d.per_tf[t]).map(t => `<option>${t}</option>`).join('')}</select>`;
+  html += '<div id="pertf"></div>';
+  $('#main').innerHTML = html;
+  const draw = () => {
+    const tf = $('#tfpick').value; let h = '';
+    for (const [cond, vals] of Object.entries(d.per_tf[tf] || {})){
+      h += `<div class="card"><b>${tf} · ${cond}</b><table>${HEAD}`;
+      Object.keys(vals).forEach(v => h += row(v, vals[v]));
+      h += '</table></div>';
+    }
+    $('#pertf').innerHTML = h || '<div class="note">not enough campaigns</div>';
+  };
+  $('#tfpick').onchange = draw; draw();
+}).catch(e => { $('#how').textContent = 'no results yet: ' + e.message + ' (run python studies/backburner_study.py)'; });
+</script>
+</body></html>

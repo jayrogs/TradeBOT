@@ -1,0 +1,252 @@
+//@version=5
+// Jay pivots + trends. Mirrors structure.py / panel.py:
+//   pivot   = 2 bars each side, leg of at least 1 normal bar's move (ATR 14) from the last pivot
+//   labels  = HH/HL/LH/LL, EH/EL when within 0.15 of a bar's move of the previous one of its kind
+//   uptrend = a HL and a HH (either order, nothing contrary between); floor = the last HL, steps up
+//   dies    = a LH or LL pivot, or a wick under the floor by more than the same 0.15 tolerance
+//   downtrend mirrors it.
+//
+// 2026-09-08 fix: when a newer, more extreme pivot of the same kind REPLACES the last one
+// (about 1 pivot in 5), the study never saw the replaced pivot. This script used to keep
+// whatever that phantom pivot had done to the trend. Now it rolls the trend state back to
+// before the phantom, deletes the drawings it caused, and re-applies the wick rule over the
+// bars since. Floors and shading are drawn as objects (not plots) so they can be undone.
+indicator("Jay pivots + trends (matches the study)", overlay=true, max_labels_count=500, max_lines_count=500, max_boxes_count=500, max_bars_back=1000)
+
+P        = input.int(2,     "bars each side", minval=1)
+minLeg   = input.float(1.0, "min leg, in normal bars' moves (ATR 14)", step=0.1)
+sameTol  = input.float(0.15,"same level: within this many ATR", step=0.05)
+showLine = input.bool(true, "draw the trend floor / ceiling")
+showBg   = input.bool(true, "shade the background while a trend is on")
+debug    = input.bool(false,"debug: also show the leg size")
+sizeOpt  = input.string("small", "text size", options=["tiny", "small", "normal", "large"])
+colHigh  = input.color(color.lime, "highs")
+colLow   = input.color(color.red,  "lows")
+colUp    = input.color(color.new(#3ddc97, 0), "uptrend floor")
+colDown  = input.color(color.new(#ff5c72, 0), "downtrend ceiling")
+
+txtSize = sizeOpt == "tiny" ? size.tiny : sizeOpt == "normal" ? size.normal : sizeOpt == "large" ? size.large : size.small
+atr = ta.atr(14)
+max_bars_back(atr, 1000)
+max_bars_back(low, 1000)
+max_bars_back(high, 1000)
+
+// ---------------- pivots kept so far
+var kinds  = array.new_int()
+var prices = array.new_float()
+var labs   = array.new_label()
+
+// ---------------- trend state, kept in one array so functions can change it
+// S[0] cur (0 none, 1 up, -1 down)   S[1] lvl (floor in an uptrend, ceiling in a downtrend)
+// S[2] last HL   S[3] last LH   S[4..7] pending HL, HH, LH, LL (1 = seen)
+var S = array.new_float(8, na)
+if barstate.isfirst
+    array.set(S, 0, 0)
+    array.set(S, 4, 0)
+    array.set(S, 5, 0)
+    array.set(S, 6, 0)
+    array.set(S, 7, 0)
+
+// snapshot of S BEFORE each kept pivot was applied, so a replaced pivot can be undone
+var snaps   = array.new_float()   // 8 values per pivot, flat
+var sBar    = array.new_int()     // the bar the pivot was applied on
+var sNLines = array.new_int()     // how many floor segments / x marks / shade boxes existed then
+var sNXs    = array.new_int()
+var sNBoxes = array.new_int()
+
+// drawings (objects, so they can be deleted on a rollback); the open ones live in 1-slot arrays
+var lines  = array.new_line()
+var xs     = array.new_label()
+var boxes  = array.new_box()
+var curLineA = array.new_line(1, na)
+var curBoxA  = array.new_box(1, na)
+
+bool pivotEvent = false
+
+// ---------------- helpers
+f_die(int kind, float level, int atBar) =>
+    // end the trend: x mark at the level on that bar, close the open line and box
+    label x = label.new(atBar, level, "x", style=label.style_none, textcolor=kind == 1 ? colUp : colDown, size=size.small, yloc=yloc.price)
+    array.push(xs, x)
+    array.set(S, 0, 0)
+    array.set(S, 1, na)
+    array.set(curLineA, 0, na)
+    array.set(curBoxA, 0, na)
+
+f_apply(string txt, float price) =>
+    // feed one labelled pivot to the trend machine (structure.py _spans, causal)
+    int cur = int(array.get(S, 0))
+    if txt == "HL"
+        array.set(S, 2, price)
+    if txt == "LH"
+        array.set(S, 3, price)
+    if cur == 0
+        if txt == "HL" or txt == "HH"
+            array.set(S, 6, 0)
+            array.set(S, 7, 0)
+        else
+            array.set(S, 4, 0)
+            array.set(S, 5, 0)
+        if txt == "HL"
+            array.set(S, 4, 1)
+        if txt == "HH"
+            array.set(S, 5, 1)
+        if txt == "LH"
+            array.set(S, 6, 1)
+        if txt == "LL"
+            array.set(S, 7, 1)
+        if array.get(S, 4) == 1 and array.get(S, 5) == 1
+            array.set(S, 0, 1)
+            array.set(S, 1, array.get(S, 2))
+            array.set(S, 4, 0)
+            array.set(S, 5, 0)
+        else if array.get(S, 6) == 1 and array.get(S, 7) == 1
+            array.set(S, 0, -1)
+            array.set(S, 1, array.get(S, 3))
+            array.set(S, 6, 0)
+            array.set(S, 7, 0)
+    else if cur == 1
+        if txt == "LH" or txt == "LL"
+            f_die(1, array.get(S, 1), bar_index)
+            array.set(S, 6, txt == "LH" ? 1 : 0)
+            array.set(S, 7, txt == "LL" ? 1 : 0)
+        else if txt == "HL"
+            array.set(S, 1, price)            // the floor steps up
+            array.set(curLineA, 0, na)        // start a new segment
+    else
+        if txt == "HH" or txt == "HL"
+            f_die(-1, array.get(S, 1), bar_index)
+            array.set(S, 5, txt == "HH" ? 1 : 0)
+            array.set(S, 4, txt == "HL" ? 1 : 0)
+        else if txt == "LH"
+            array.set(S, 1, price)            // the ceiling steps down
+            array.set(curLineA, 0, na)
+
+f_wick(int k) =>
+    // the wick rule on the bar k bars back: "trends die on the wick"
+    int cur = int(array.get(S, 0))
+    float lvl = array.get(S, 1)
+    float tolB = sameTol * nz(atr[k])
+    if cur == 1 and low[k] < lvl - tolB
+        f_die(1, lvl, bar_index - k)
+    else if cur == -1 and high[k] > lvl + tolB
+        f_die(-1, lvl, bar_index - k)
+
+// ---------------- pivot detection
+lo5 = ta.lowest(low, 2 * P + 1)
+hi5 = ta.highest(high, 2 * P + 1)
+isLow  = low[P]  == lo5
+isHigh = high[P] == hi5 and not isLow
+
+if isLow or isHigh
+    int   kind  = isHigh ? 1 : -1
+    float price = isHigh ? high[P] : low[P]
+    float thresh = minLeg * nz(atr[P])
+    float tol    = sameTol * nz(atr)
+    int   n = array.size(kinds)
+    bool  keep = false
+    bool  replace = false
+    if n == 0
+        keep := true
+    else if array.get(kinds, n - 1) == kind
+        float lastP = array.get(prices, n - 1)
+        if (kind == 1 and price > lastP) or (kind == -1 and price < lastP)
+            keep := true
+            replace := true
+    else
+        float lastP = array.get(prices, n - 1)
+        float leg = kind == 1 ? price - lastP : lastP - price
+        if leg >= thresh
+            keep := true
+    if keep
+        pivotEvent := true
+        if replace
+            // ---- undo the phantom: state back to before it, its drawings gone
+            label.delete(array.get(labs, n - 1))
+            array.pop(kinds)
+            array.pop(prices)
+            array.pop(labs)
+            n := n - 1
+            for i = 7 to 0
+                array.set(S, i, array.pop(snaps))
+            int snapBar = array.pop(sBar)
+            int nL = array.pop(sNLines)
+            int nX = array.pop(sNXs)
+            int nB = array.pop(sNBoxes)
+            while array.size(lines) > nL
+                line.delete(array.pop(lines))
+            while array.size(xs) > nX
+                label.delete(array.pop(xs))
+            while array.size(boxes) > nB
+                box.delete(array.pop(boxes))
+            array.set(curLineA, 0, na)
+            array.set(curBoxA, 0, na)
+            if array.get(S, 0) != 0
+                // the trend that was on before the phantom is on again: pick its drawings back up
+                if array.size(lines) > 0
+                    array.set(curLineA, 0, array.get(lines, array.size(lines) - 1))
+                if array.size(boxes) > 0
+                    array.set(curBoxA, 0, array.get(boxes, array.size(boxes) - 1))
+                // and re-run the wick rule over the bars since the phantom (not on this bar: it is a pivot bar)
+                int back = bar_index - snapBar - 1
+                if back >= 1
+                    for k = back to 1
+                        if array.get(S, 0) != 0
+                            f_wick(k)
+        // ---- remember the state before this pivot, then apply it
+        for i = 0 to 7
+            array.push(snaps, array.get(S, i))
+        array.push(sBar, bar_index)
+        array.push(sNLines, array.size(lines))
+        array.push(sNXs, array.size(xs))
+        array.push(sNBoxes, array.size(boxes))
+
+        float prev = n >= 2 ? array.get(prices, n - 2) : na
+        string txt = na
+        if kind == 1
+            txt := na(prev) ? "H" : price > prev + tol ? "HH" : price < prev - tol ? "LH" : "EH"
+        else
+            txt := na(prev) ? "L" : price > prev + tol ? "HL" : price < prev - tol ? "LL" : "EL"
+        string shown = txt + " " + str.tostring(price, format.mintick)
+        if debug
+            float legNow = n >= 1 ? math.abs(price - array.get(prices, n - 1)) / nz(atr[P], 1) : na
+            shown := shown + (na(legNow) ? "" : " leg " + str.tostring(legNow, "#.#"))
+        label id = label.new(bar_index[P], price, shown, style=label.style_none,
+             yloc=kind == 1 ? yloc.abovebar : yloc.belowbar,
+             textcolor=kind == 1 ? colHigh : colLow, size=txtSize)
+        array.push(kinds, kind)
+        array.push(prices, price)
+        array.push(labs, id)
+
+        bool isE = txt == "EH" or txt == "EL" or txt == "H" or txt == "L"
+        if not isE
+            f_apply(txt, price)
+
+// the wick rule on bars with no pivot event (the engine skips pivot bars the same way)
+if not pivotEvent and array.get(S, 0) != 0
+    f_wick(0)
+
+// ---------------- drawing: the floor / ceiling as segments, the shade as boxes
+int   curNow = int(array.get(S, 0))
+float lvlNow = array.get(S, 1)
+if curNow != 0
+    color c = curNow == 1 ? colUp : colDown
+    if showLine
+        line cl = array.get(curLineA, 0)
+        if na(cl)
+            cl := line.new(bar_index, lvlNow, bar_index, lvlNow, xloc=xloc.bar_index, color=c, width=2)
+            array.push(lines, cl)
+            array.set(curLineA, 0, cl)
+        else
+            line.set_x2(cl, bar_index)
+            line.set_y2(cl, lvlNow)
+    if showBg
+        box cb = array.get(curBoxA, 0)
+        if na(cb)
+            cb := box.new(bar_index, high, bar_index, low, border_color=na, bgcolor=color.new(c, 92))
+            array.push(boxes, cb)
+            array.set(curBoxA, 0, cb)
+        else
+            box.set_right(cb, bar_index)
+            box.set_top(cb, math.max(box.get_top(cb), high))
+            box.set_bottom(cb, math.min(box.get_bottom(cb), low))

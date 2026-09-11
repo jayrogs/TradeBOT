@@ -1,0 +1,223 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Trading Desk</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--card2:#1a1e25;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;
+        --faint:#5b6472;--amber:#ffb84d;--eq:#5aa9ff;--up:#3ddc97;--dn:#ff5c72;
+        --mono:ui-monospace,Consolas,monospace}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{display:flex;align-items:baseline;gap:16px;padding:22px 26px 6px}
+  h1{font-size:20px;margin:0;letter-spacing:.3px}
+  .clock{color:var(--faint);font-family:var(--mono);font-size:12px}
+  .live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--faint);margin-right:6px}
+  .live.on{background:var(--up);box-shadow:0 0 8px var(--up)}
+  main{padding:10px 26px 60px;max-width:1240px}
+  h2{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint);margin:26px 0 4px}
+  .lead{color:var(--dim);font-size:12.5px;margin:0 0 10px;max-width:900px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  a.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+         color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+  a.card:hover{border-color:var(--eq);transform:translateY(-1px)}
+  a.card.main{border-color:rgba(255,184,77,.45)}
+  .card .t{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+  .card .t .path{color:var(--faint);font-family:var(--mono);font-size:11px;font-weight:400}
+  .card .d{color:var(--dim);font-size:12.5px;margin-top:5px;min-height:34px}
+  .card .s{margin-top:9px;font-family:var(--mono);font-size:11.5px;color:var(--eq)}
+  .card .s.warn{color:var(--amber)}
+  .card .s.off{color:var(--faint)}
+  .strip{display:flex;flex-wrap:wrap;gap:8px 18px;background:var(--card2);border:1px solid var(--line);
+         border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .strip b{color:var(--fg);font-weight:600}
+  .strip .ok{color:var(--up)} .strip .warn{color:var(--amber)} .strip .off{color:var(--faint)}
+  details{margin-top:26px} summary{cursor:pointer;color:var(--faint);font-size:12px;letter-spacing:1.4px;text-transform:uppercase}
+  details .grid{margin-top:10px} details a.card{opacity:.75}
+  footer{color:var(--faint);font-size:12px;margin-top:28px;max-width:820px}
+  .ideas{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:14px}
+  .ideas figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;overflow:hidden}
+  .ideas img{width:100%;display:block;border-radius:8px}
+  .ideas figcaption{color:var(--dim);font-size:12.5px;margin-top:8px;line-height:1.4}
+  .ideas figcaption b{color:var(--fg)} .ideas figcaption a{color:var(--eq);text-decoration:none}
+</style></head>
+<body>
+<header>
+  <h1>Trading Desk</h1>
+  <span class="clock"><span class="live" id="live"></span><span id="clock">connecting…</span></span>
+</header>
+<main>
+  <div class="strip" id="strip">loading status…</div>
+
+  <h2>Focus list</h2>
+  <p class="lead">The 40 names we refine on before touching the long tail. The live trend rides watch only these; every study can be run on just these with the focus switch. Edit the list in <span style="font-family:var(--mono)">focus.py</span>.</p>
+  <div class="strip" id="focus" style="line-height:1.9">loading…</div>
+
+  <h2>The ideas, in pictures</h2>
+  <p class="lead">One real trade for each thing this desk does, drawn from real bars. Click a picture for it full size. The page it belongs to is named under it.</p>
+  <div class="ideas">
+    <figure><a href="/ideas/trend_ride.png" target="_blank"><img src="/ideas/trend_ride.png" alt="trend ride"></a>
+      <figcaption><b>Trend ride</b> · buy the second higher low, sell when the last higher low breaks · <a href="/rides">/rides</a>, <a href="/ridecharts">/ridecharts</a></figcaption></figure>
+    <figure><a href="/ideas/exits.png" target="_blank"><img src="/ideas/exits.png" alt="exits"></a>
+      <figcaption><b>Exits</b> · the same buy, different ways to sell · <a href="/exitcharts">/exitcharts</a>, numbers on <a href="/trends">/trends</a></figcaption></figure>
+    <figure><a href="/ideas/backburner.png" target="_blank"><img src="/ideas/backburner.png" alt="backburner"></a>
+      <figcaption><b>Backburner</b> · a running name goes oversold: buy, a third off at the bounce, hold to the line · <a href="/bb">/bb</a>, <a href="/cases">/cases</a></figcaption></figure>
+    <figure><a href="/ideas/eq.png" target="_blank"><img src="/ideas/eq.png" alt="EQ"></a>
+      <figcaption><b>EQ</b> · higher lows pressing into lower highs, tightening until it breaks · <a href="/eqcoils">/eqcoils</a></figcaption></figure>
+    <figure><a href="/ideas/channel.png" target="_blank"><img src="/ideas/channel.png" alt="channel"></a>
+      <figcaption><b>Channel</b> · a flat-sided box. Not an EQ, a different shape · <a href="/eq">/eq</a>, <a href="/eqcharts">/eqcharts</a></figcaption></figure>
+    <figure><a href="/ideas/trend_steps.png" target="_blank"><img src="/ideas/trend_steps.png" alt="trend steps"></a>
+      <figcaption><b>Trend study</b> · how many steps a trend takes before it ends, and the fakeouts · <a href="/trendstudy">/trendstudy</a></figcaption></figure>
+  </div>
+
+  <h2>Live</h2>
+  <p class="lead">What is happening right now. These update on their own.</p>
+  <div class="grid">
+    <a class="card main" href="/bb"><div class="t">Backburners, live <span class="path">/bb</span></div>
+      <div class="d">Every name that just went oversold, tracked every 15 minutes under the frozen rules. The amber rows are the ones worth taking: an A or B name, hot, first dip in days. Write what you did next to each.</div>
+      <div class="s" id="s-bb">…</div></a>
+    <a class="card main" href="/eqcoils"><div class="t">EQ <span class="path">/eqcoils</span></div>
+      <div class="d">The shape as you defined it: higher lows pressing up into lower highs, tightening until it breaks. Your 24 graded drawings, how often they happen, which way they break, and what every version of the trade made. Direction is callable; none of the trades paid.</div>
+      <div class="s">measured 2026-09-10</div></a>
+    <a class="card main" href="/eqfree"><div class="t">EQ free ride, with the bigger chart <span class="path">/eqfree</span></div>
+      <div class="d">Your version of the EQ trade: direction from the daily chart's trend, buy the higher low (or short the lower high), sell part at the far line so the rest is free. Tested every way to read the bigger chart, drawn trade by trade.</div>
+      <div class="s">new 2026-09-10</div></a>
+    <a class="card main" href="/eqtrades"><div class="t">EQ trades, drawn <span class="path">/eqtrades</span></div>
+      <div class="d">Every buy, every stop, every exit on 24 real EQs, half winners and half losers. Drawing these caught a bug where it was buying bars that had already broken the floor. The verdict survived the fix.</div>
+      <div class="s">new 2026-09-10</div></a>
+    <a class="card main" href="/eq"><div class="t">EQ scan <span class="path">/eq</span></div>
+      <div class="d">A CHANNEL scan, not an EQ: it looks for a flat floor and a flat ceiling. It gets rebuilt once the coil shape on /eqcoils is graded. Every market, 5 minute to weekly, re-scanned every few minutes: which names are inside a box right now, where price sits in it, how many touches. The numbers behind the trade and drawn examples underneath.</div>
+      <div class="s" id="s-eq">…</div></a>
+    <a class="card main" href="/rides"><div class="t">Trend rides, live <span class="path">/rides</span></div>
+      <div class="d">The 40 focus names, checked every 15 minutes for a second higher low in an uptrend. A signal buys the next open; the line and the trailing stop update as it rides. Write what you did next to each.</div>
+      <div class="s" id="s-rides">…</div></a>
+    <a class="card main" href="/scan"><div class="t">Scanner <span class="path">/scan</span></div>
+      <div class="d">Crypto, stocks, futures, forex on every timeframe, sorted by what is firing. Movers mode shows the biggest gainers. Note: the "firing" marks are still the old rider signals, not the trend-ride rule.</div>
+      <div class="s" id="s-scan">…</div></a>
+    <a class="card" href="/markets"><div class="t">All markets, deep pass <span class="path">/markets</span></div>
+      <div class="d">A weekly sweep of every liquid name. The behaviour tags come from the old rider rules, so treat this as a liquidity and volatility list, not a signal list.</div>
+      <div class="s" id="s-markets">…</div></a>
+  </div>
+
+  <h2>Trend riding</h2>
+  <p class="lead">Buy the second higher low of an uptrend, sell when the last higher low breaks, trail once up 3x the risk. Your rules, as you graded them in.</p>
+  <div class="grid">
+    <a class="card main" href="/trendstudy"><div class="t">Trend study: which names trend cleanly <span class="path">/trendstudy</span></div>
+      <div class="d">Every name scored on its trends: how many steps a trend takes before it ends, how far it runs, how often it starts and quits, and what your ride made on it against BTC, SPY or ES. Click a name for every trend and every trade, with a chart for each.</div>
+      <div class="s" id="s-trendnames">…</div></a>
+    <a class="card main" href="/exitcharts"><div class="t">Exit examples <span class="path">/exitcharts</span></div>
+      <div class="d">Twenty ways to manage the trade after the same buy, tested on every market. Random charts under the best few and the rule as graded, so you can see what each exit does. The numbers are on /trends.</div>
+      <div class="s">new 2026-09-07</div></a>
+    <a class="card main" href="/ridecharts"><div class="t">Grade the rides <span class="path">/ridecharts</span></div>
+      <div class="d">Thirty random trades, five per timeframe, under the current rules. Every one has a plain story of what happened. Write under any you would not take. This is how the rules get fixed.</div>
+      <div class="s" id="s-ride">…</div></a>
+    <a class="card" href="/trends"><div class="t">Trend study, the numbers <span class="path">/trends</span></div>
+      <div class="d">The 4-year results behind the rules: every version tried, what each one made per trade, and what did not matter. The current rule is at the top.</div>
+      <div class="s" id="s-trends">…</div></a>
+  </div>
+
+  <h2>Backburners</h2>
+  <p class="lead">Scale into a name going oversold, sell a bit at the bounce for a free ride, hold the rest until the last higher low breaks.</p>
+  <div class="grid">
+    <a class="card main" href="/names"><div class="t">Which names obey <span class="path">/names</span></div>
+      <div class="d">Every name graded on the backburner rules against its benchmark. Click a name for every campaign it had, by year, with a chart for each.</div>
+      <div class="s off">scorecard</div></a>
+    <a class="card" href="/cases"><div class="t">Backburner cases <span class="path">/cases</span></div>
+      <div class="d">Real campaigns drawn: where the method lost, where the selective picks worked, with the higher timeframes beside each. Notes boxes.</div>
+      <div class="s off">grade</div></a>
+    <a class="card" href="/study"><div class="t">Backburner study, the numbers <span class="path">/study</span></div>
+      <div class="d">4 years, every name and timeframe: which conditions actually helped, and how each exit compared.</div>
+      <div class="s" id="s-study">…</div></a>
+  </div>
+
+  <h2>Tools</h2>
+  <div class="grid">
+    <a class="card" href="/paint"><div class="t">Paint your read <span class="path">/paint</span></div>
+      <div class="d">Mark uptrends, downtrends and EQs on random chart windows with the engine's read beside yours. For checking the trend colouring itself.</div>
+      <div class="s" id="s-paint">…</div></a>
+    <a class="card" href="/rules"><div class="t">The rules <span class="path">/rules</span></div>
+      <div class="d">The one file of how this project works: how to talk, how to work, what is settled. Edit it in the project folder.</div>
+      <div class="s off">CLAUDE.md</div></a>
+    <a class="card" href="/desk"><div class="t">Desk <span class="path">/desk</span></div>
+      <div class="d">Positions and the lights for the names you hold. The lights are the old rider conditions; little use until it reads the new rules.</div>
+      <div class="s off">open</div></a>
+  </div>
+
+  <details>
+    <summary>Archive: older rounds, kept for the record. Nothing here is live.</summary>
+    <div class="grid">
+      <a class="card" href="/log"><div class="t">Old rider forward log <span class="path">/log</span></div>
+        <div class="d">The old 12 EMA rider rule stamping live signals every hour. That rule failed the 2015-2022 test. The log keeps running so the record is unbroken, but nothing here is a signal.</div>
+        <div class="s" id="s-log">…</div></a>
+      <a class="card" href="/backburner"><div class="t">Backburners, first pass <span class="path">/backburner</span></div>
+        <div class="d">The first coding of the method, before the study. Superseded by /cases and /bb.</div>
+        <div class="s" id="s-backburner">…</div></a>
+      <a class="card" href="/trendcases"><div class="t">Trend ride charts, first version <span class="path">/trendcases</span></div>
+        <div class="d">The first trend-ride drawings, with the entry and stop you rejected. Kept so the before and after is visible.</div>
+        <div class="s off">archive</div></a>
+      <a class="card" href="/v4"><div class="t">Intraday charts <span class="path">/v4</span></div>
+        <div class="d">An early picture round of 15m and 5m windows with comment boxes.</div>
+        <div class="s" id="s-v4">…</div></a>
+      <a class="card" href="/validate"><div class="t">Grade the trend engine <span class="path">/validate</span></div>
+        <div class="d">The older blind-grading round of the trend colouring.</div>
+        <div class="s off">archive</div></a>
+      <a class="card" href="/trades"><div class="t">Trades <span class="path">/trades</span></div>
+        <div class="d">Rider trade pictures from the verdict era.</div>
+        <div class="s off">archive</div></a>
+    </div>
+  </details>
+
+  <footer>All of these read the same chart engine (pivots, trends, EQs from <code>structure.py</code>). Nothing here is a validated edge unless the page says so in its numbers; the scanner sorts attention, not probability.</footer>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const ago = s => s == null ? '' : (s < 90 ? s + 's ago' : s < 5400 ? Math.round(s / 60) + 'm ago' : Math.round(s / 3600) + 'h ago');
+function set(id, text, cls){ const e = $(id); if (!e) return; e.textContent = text; e.className = 's' + (cls ? ' ' + cls : ''); }
+async function tick(){
+  try {
+    const d = await fetch('/api/home?v=' + Date.now()).then(r => r.json());
+    $('#live').className = 'live on';
+    $('#clock').textContent = 'server ' + d.now + ' · up ' + ago(d.uptime);
+    const st = [];
+    st.push(`crypto universe <b>${d.universe}</b> names (Coinbase + Kraken)`);
+    st.push(`alerts <span class="${d.alerts.webhook ? 'ok' : 'warn'}">${d.alerts.webhook ? 'webhook on' : 'log only'}</span>`);
+    st.push(`alpaca <span class="${d.alpaca ? 'ok' : 'off'}">${d.alpaca ? 'keys ok' : 'no keys'}</span> · stock history files <b>${d.stock_history}</b>`);
+    st.push(`tests last run: <b>${d.tests || '?'}</b>`);
+    $('#strip').innerHTML = st.join('<span class="off"> · </span>');
+    const sc = d.scans || [];
+    if (!sc.length) set('#s-scan', 'no scan yet, open the page to start one', 'off');
+    else set('#s-scan', sc.map(s => `${s.key} ${s.running ? 'scanning…' : s.rows + ' names ' + ago(s.age)}`).join(' · '));
+    set('#s-markets', d.bigscan.rows ? `${d.bigscan.rows} names · scanned ${d.bigscan.at}` : 'no bigscan file', d.bigscan.rows ? '' : 'warn');
+    const lg = d.log;
+    set('#s-log', lg.last_tick ? `last tick ${lg.last_tick} UTC · ${lg.open} open · ${lg.total} logged` : 'no ticks yet', 'off');   // this one loop stamps UTC; every other time on this page is your local clock
+    const eqs = d.eq || {};
+    set('#s-eq', eqs.last_tick ? `scanned ${eqs.last_tick} · ${eqs.ranges} live EQs · ${eqs.floor} at the floor` : 'no scan yet (the first takes a few minutes)', eqs.last_tick ? '' : 'warn');
+    const rd0 = d.rides || {};
+    set('#s-rides', rd0.last_tick ? `last tick ${rd0.last_tick} · ${rd0.open} live · ${rd0.total} logged` : 'no ticks yet (ticks every 15 minutes)', rd0.last_tick ? '' : 'warn');
+    const bb = d.bb || {};
+    set('#s-bb', bb.last_tick ? `last tick ${bb.last_tick} · ${bb.open} live · ${bb.total} logged` : 'no ticks yet (ticks every 15 minutes)', bb.last_tick ? '' : 'warn');
+    const la = d.backburner;
+    set('#s-backburner', la.items ? `${la.items} pictures · ${la.generated}` : 'not rendered', 'off');
+    const stu = d.study || {};
+    set('#s-study', stu.campaigns ? `${stu.campaigns} campaigns · ${stu.names} names · ${stu.generated}` : 'not run yet', stu.campaigns ? '' : 'warn');
+    set('#s-paint', d.gen.windows ? 'windows generated ' + d.gen.windows : 'no windows', d.gen.windows ? '' : 'warn');
+    set('#s-v4', d.gen.charts ? 'charts generated ' + d.gen.charts : 'no charts', 'off');
+    const tn = d.trendnames || {};
+    set('#s-trendnames', tn.generated ? `${tn.names} names · ${tn.generated}` : 'not run yet', tn.generated ? '' : 'warn');
+    const rd = d.ridecharts || {};
+    set('#s-ride', rd.generated ? `${rd.items} charts · ${rd.generated}` : 'not drawn yet', rd.generated ? '' : 'warn');
+    const tr = d.trends || {};
+    set('#s-trends', tr.generated ? `latest run ${tr.generated}` : 'not run yet', tr.generated ? '' : 'warn');
+  } catch(e) {
+    $('#live').className = 'live';
+    $('#clock').textContent = 'server not answering: ' + e.message;
+  }
+}
+tick(); setInterval(tick, 30000);
+
+fetch('/api/focus').then(r=>r.json()).then(list=>{
+  const groups={stock:'stocks',futures:'futures',crypto:'crypto'};
+  const by={};
+  for(const [sym,kind] of list){(by[kind]=by[kind]||[]).push(sym.replace('_F','').replace('_X',''));}
+  document.getElementById('focus').innerHTML=Object.keys(groups).filter(k=>by[k]).map(k=>
+    '<span><b>'+groups[k]+'</b> ('+by[k].length+'): '+by[k].join(', ')+'</span>').join('');
+}).catch(()=>{document.getElementById('focus').textContent='focus list not available';});
+</script>
+</body></html>

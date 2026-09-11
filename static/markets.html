@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>All Markets</title>
+<style>
+  :root{
+    --bg:#0d0f12; --card:#15181d; --card2:#1b1f26; --line:#252a33;
+    --fg:#e7ebf0; --dim:#8b93a1; --faint:#5b6472;
+    --up:#3ddc97; --dn:#ff5c72; --eq:#5aa9ff; --amber:#ffb84d;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{position:sticky;top:0;z-index:10;background:rgba(13,15,18,.97);
+         backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+         padding:12px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  h1{margin:0 8px 0 0;font-size:15px;letter-spacing:.14em;text-transform:uppercase}
+  .stamp{color:var(--faint);font-size:12px;font-family:var(--mono);margin-left:auto}
+  select,input{background:var(--card2);border:1px solid var(--line);color:var(--fg);
+        padding:6px 10px;border-radius:7px;font-size:13px}
+  .chip{background:var(--card2);border:1px solid var(--line);color:var(--dim);
+        padding:5px 11px;border-radius:16px;cursor:pointer;font-size:12.5px}
+  .chip.on{background:rgba(90,169,255,.15);border-color:var(--eq);color:var(--eq)}
+  main{padding:14px 20px 60px;max-width:1500px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{color:var(--faint);text-align:left;font-weight:500;font-size:11px;
+     letter-spacing:.06em;text-transform:uppercase;padding:7px 8px;
+     border-bottom:1px solid var(--line);position:sticky;top:52px;background:var(--bg)}
+  td{padding:7px 8px;border-bottom:1px solid rgba(37,42,51,.55);vertical-align:top}
+  tr:hover td{background:rgba(27,31,38,.55)}
+  .sym{font-weight:700;font-family:var(--mono)}
+  .kind{color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .num{font-family:var(--mono);text-align:right;white-space:nowrap}
+  .sc{font-family:var(--mono);font-weight:700;text-align:center;
+      color:var(--amber)}
+  .tfs{font-family:var(--mono);letter-spacing:3px}
+  .U{color:var(--up)} .D{color:var(--dn)} .E{color:var(--eq)} .F{color:var(--faint)}
+  .tag{display:inline-block;font-size:11px;font-family:var(--mono);
+       padding:2px 7px;border-radius:5px;margin:2px 3px 2px 0;
+       background:var(--card2);border:1px solid var(--line);color:var(--dim)}
+  .tag.dip{color:#0d0f12;background:var(--up);border-color:var(--up);font-weight:700}
+  .tag.backburner{color:#0d0f12;background:var(--amber);border-color:var(--amber);font-weight:700}
+  .tag.ride{color:var(--amber);border-color:rgba(255,184,77,.45)}
+  .tag.trend{color:var(--eq);border-color:rgba(90,169,255,.35)}
+  .tag.eq{color:var(--eq);background:rgba(90,169,255,.12);border-color:var(--eq)}
+  .tag.bg{color:var(--faint);opacity:.65}
+  .empty{color:var(--faint);padding:24px 8px}
+  th.s{cursor:pointer;user-select:none}
+  th.s:hover{color:var(--fg)}
+  th.s .a{color:var(--eq);font-size:12px;margin-left:5px;font-weight:700;
+          text-transform:none;letter-spacing:0}
+  th.s.on{color:var(--eq)}
+  .sortbar{color:var(--dim);font-size:12px;margin:0 0 8px;font-family:var(--mono)}
+  .sortbar b{color:var(--eq);font-weight:700}
+  .sortbar .hint{color:var(--faint)}
+  .tfhead{display:flex;gap:2px}
+  .tfhead span{width:26px;text-align:center;font-size:9.5px;color:var(--faint);
+               letter-spacing:0}
+  .tfrow{display:flex;gap:2px}
+  .tfc{width:26px;height:18px;border-radius:3px;display:flex;align-items:center;
+       justify-content:center;font:700 10px var(--mono);color:#0d0f12}
+  .tfc.u{background:var(--up)}
+  .tfc.d{background:var(--dn)}
+  .tfc.e{background:var(--eq)}
+  .tfc.n{background:#1b1f26;color:#3a4150}
+
+  tbody tr{cursor:pointer}
+  .modal{position:fixed;inset:0;background:rgba(6,8,10,.86);z-index:50;
+         display:none;align-items:flex-start;justify-content:center;padding:28px}
+  .modal.on{display:flex}
+  .sheet{background:var(--card);border:1px solid var(--line);border-radius:14px;
+         max-width:1420px;width:100%;overflow:hidden}
+  .shead{display:flex;gap:12px;align-items:center;padding:12px 16px;
+         border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .shead .s{font:700 17px var(--mono)}
+  .tfbtn{background:var(--card2);border:1px solid var(--line);color:var(--dim);
+         padding:5px 12px;border-radius:7px;cursor:pointer;font:12.5px var(--mono)}
+  .tfbtn.on{background:rgba(90,169,255,.16);border-color:var(--eq);color:var(--eq)}
+  .tv{margin-left:auto;background:#2962ff;border:0;color:#fff;padding:7px 14px;
+      border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;
+      text-decoration:none}
+  .x{background:var(--card2);border:1px solid var(--line);color:var(--fg);
+     padding:6px 12px;border-radius:7px;cursor:pointer}
+  .sbody{padding:10px;min-height:300px}
+  .sbody img{width:100%;display:block;border-radius:8px}
+  .why{padding:0 16px 14px;color:var(--dim);font-size:12.5px}
+  .mname{color:var(--dim);font-size:13px}
+  footer{color:var(--faint);font-size:12px;max-width:860px;padding-top:16px}
+</style>
+</head>
+<body>
+<header>
+  <h1>All Markets</h1>
+  <select id="kind"><option value="all">every asset class</option></select>
+  <select id="flag"><option value="all">every behavior</option></select>
+  <span class="chip" id="tradable">Tradable only</span>
+  <input id="q" placeholder="symbol…" size="10">
+  <span class="stamp" id="stamp">loading…</span>
+</header>
+
+<main>
+  <div class="sortbar" id="sortbar"></div>
+  <table>
+    <thead><tr>
+      <th class="s" style="width:38px" data-k="score">#<span class="a"></span></th>
+      <th class="s" data-k="sym">symbol<span class="a"></span></th>
+      <th class="s num" data-k="price">price<span class="a"></span></th>
+      <th class="s num" data-k="dollar">$vol/day<span class="a"></span></th>
+      <th class="s" data-k="trend" id="thTrend"><span id="thLbl"><div class="tfhead"><span>5m</span><span>15m</span><span>1h</span><span>4h</span><span>12h</span><span>D</span><span>W</span><span>M</span></div></span><span class="a"></span></th>
+      <th class="s" data-k="nflags">what is firing<span class="a"></span></th>
+    </tr></thead>
+    <tbody id="rows"><tr><td colspan="6" class="empty">loading…</td></tr></tbody>
+  </table>
+  <footer>
+    Sorted by a weighted score, not by a count. A <b>dip into the 12 EMA while a
+    ride is armed</b> and a <b>lower-timeframe oversold under a higher uptrend</b>
+    are weighted highest because they are actionable on this bar. A trend or an
+    equilibrium is context and weighs less. <b>Stair steps weigh zero</b> —
+    fading them tested negative on 25,000 events, so they are shown greyed out
+    and never lift a name up the list.
+    <br><br>
+    The trend engine and the 12 EMA rider were each graded right on blind chart
+    samples (24 and 6). The backburner mark here is the OLD detector, never
+    tested end to end (the real backburner study lives on /study). Nothing here is validated as profitable. This page places
+    no orders.
+  </footer>
+</main>
+
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="shead">
+      <span class="s" id="mSym">-</span>
+      <span class="kind" id="mKind"></span>
+      <span class="mname" id="mName"></span>
+      <span class="tfbtn" data-tf="5m">5m</span>
+      <span class="tfbtn" data-tf="15m">15m</span>
+      <span class="tfbtn" data-tf="1h">1h</span>
+      <span class="tfbtn" data-tf="4h">4h</span>
+      <span class="tfbtn" data-tf="12h">12h</span>
+      <span class="tfbtn" data-tf="1d">D</span>
+      <span class="tfbtn" data-tf="1w">W</span>
+      <span class="tfbtn" data-tf="1mo">M</span>
+      <a class="tv" id="mTV" target="_blank" rel="noopener">Open in TradingView</a>
+      <button class="x" id="mX">Close</button>
+    </div>
+    <div class="sbody"><img id="mImg" alt="chart"></div>
+    <div class="why" id="mWhy"></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const TFS = ['5m','15m','1h','4h','12h','1d','1w','1mo'];
+const SHORT = {UP:'U', DOWN:'D', BALANCE:'E', FLAT:'.'};
+let DATA = [], tradableOnly = false;
+
+function cls(k){
+  if (k.startsWith('rider-dip')) return 'dip';
+  if (k.startsWith('backburner') || k.startsWith('ladder')) return 'backburner';
+  if (k.startsWith('riding'))    return 'ride';
+  if (k.startsWith('eq-'))       return 'eq';
+  if (k.startsWith('trend'))     return 'trend';
+  if (k.startsWith('stair'))     return 'bg';
+  return '';
+}
+function fmt(v, d){
+  if (v === null || v === undefined || !isFinite(v)) return '<span class="F">–</span>';
+  return Number(v).toPrecision(d || 5);
+}
+
+let SORT = {k:'score', dir:-1, trendMode:'ups'};
+
+function tfCells(r){
+  return '<div class="tfrow">' + TFS.map(t => {
+    const s = (r.tfs[t] || {}).trend;
+    const k = s === 'UP' ? 'u' : s === 'DOWN' ? 'd' : s === 'BALANCE' ? 'e' : 'n';
+    const ch = s === 'UP' ? 'U' : s === 'DOWN' ? 'D' : s === 'BALANCE' ? 'E' : '·';
+    const v = r.tfs[t];
+    const tip = v ? `${t}: ${v.trend} · RSI ${v.rsi.toFixed(0)}` : `${t}: no data`;
+    return `<span class="tfc ${k}" title="${tip}">${ch}</span>`;
+  }).join('') + '</div>';
+}
+
+function counts(r){
+  let u=0, dn=0, e=0;
+  TFS.forEach(t => {
+    const s = (r.tfs[t]||{}).trend;
+    if (s==='UP') u++; else if (s==='DOWN') dn++; else if (s==='BALANCE') e++;
+  });
+  return {ups:u, downs:dn, eqs:e};
+}
+
+function sortRows(rows){
+  const k = SORT.k, dir = SORT.dir;
+  const val = r => {
+    if (k==='sym')    return r.sym;
+    if (k==='price')  return Number(r.price)||0;
+    if (k==='dollar') return Number(r.dollar)||0;
+    if (k==='score')  return r.score||0;
+    if (k==='nflags') return (r.flags||[]).filter(f=>f.wt).length;
+    if (k==='trend')  return counts(r)[SORT.trendMode];
+    return 0;
+  };
+  return rows.slice().sort((a,b) => {
+    const x = val(a), y = val(b);
+    if (typeof x === 'string') return dir * x.localeCompare(y);
+    if (x === y) return (b.score||0) - (a.score||0);
+    return dir * (x - y);
+  });
+}
+
+// what the current sort means, in words (the arrow alone was too easy to miss)
+const SORT_NAME  = {score:'rank', sym:'symbol', price:'price', dollar:'$vol/day',
+                    trend:'trend', nflags:'what is firing'};
+const SORT_WORDS = {sym:    ['A → Z', 'Z → A'],
+                    price:  ['lowest first', 'highest first'],
+                    dollar: ['lowest first', 'highest first'],
+                    score:  ['lowest rank first', 'highest rank first'],
+                    nflags: ['fewest firing first', 'most firing first']};
+const TREND_WORDS = {ups:'most UP first', downs:'most DOWN first',
+                     eqs:'most EQ first'};
+function sortWords(){
+  if (SORT.k === 'trend') return TREND_WORDS[SORT.trendMode];
+  const w = SORT_WORDS[SORT.k] || ['ascending', 'descending'];
+  return SORT.dir < 0 ? w[1] : w[0];
+}
+
+function headers(){
+  const arrow = SORT.dir < 0 ? '▼' : '▲';
+  document.querySelectorAll('th.s').forEach(th => {
+    const on = th.dataset.k === SORT.k;
+    th.classList.toggle('on', on);
+    th.querySelector('.a').textContent = !on ? ''
+      : SORT.k === 'trend'
+        ? arrow + ' ' + {ups:'up', downs:'down', eqs:'eq'}[SORT.trendMode]
+        : arrow;
+  });
+  const bar = $('#sortbar');
+  if (bar) bar.innerHTML = 'sorted by <b>' + (SORT_NAME[SORT.k] || SORT.k)
+    + '</b> · ' + sortWords()
+    + (SORT.k === 'trend'
+        ? ' <span class="hint">(click again: up → down → eq)</span>'
+        : ' <span class="hint">(click again to flip)</span>');
+  const lbl = document.querySelector('#thLbl');
+  if (lbl) lbl.title = SORT.k === 'trend' ? 'sorting by ' + sortWords()
+                                          : 'click to sort by most up/down/eq';
+}
+
+document.querySelectorAll('th.s').forEach(th => th.onclick = () => {
+  const k = th.dataset.k;
+  if (k === 'trend'){
+    if (SORT.k !== 'trend'){ SORT.k='trend'; SORT.trendMode='ups'; SORT.dir=-1; }
+    else SORT.trendMode = SORT.trendMode==='ups' ? 'downs'
+                        : SORT.trendMode==='downs' ? 'eqs' : 'ups';
+  } else if (SORT.k === k){ SORT.dir = -SORT.dir; }
+  else { SORT.k = k; SORT.dir = (k==='sym') ? 1 : -1; }
+  headers(); draw();
+});
+
+function draw(){
+  const q = $('#q').value.trim().toUpperCase();
+  let rows = DATA.filter(r => !q || r.sym.includes(q));
+  if (tradableOnly) rows = rows.filter(r => r.score >= 5);
+  if (!rows.length){
+    $('#rows').innerHTML = '<tr><td colspan="6" class="empty">nothing matches</td></tr>';
+    return;
+  }
+  $('#rows').innerHTML = sortRows(rows).slice(0,300).map(r => {
+    const seq = tfCells(r);
+    const tags = (r.flags||[]).map(f =>
+      `<span class="tag ${cls(f.key)}">${f.why}</span>`).join('');
+    const dv = (r.dollar && isFinite(r.dollar))
+      ? '$' + (r.dollar/1e6).toFixed(0) + 'M' : '–';
+    const why = (r.flags||[]).filter(f=>f.wt).map(f=>f.why).join(' � ');
+    return `<tr data-sym="${r.sym}" data-kind="${r.kind||'equity'}" data-why="${why.replace(/"/g,'&quot;')}">
+      <td class="sc">${r.score||0}</td>
+      <td><span class="sym">${r.sym}</span><br><span class="kind">${r.kind||''}${({coinbase:' · Coinbase', kraken:' · Kraken', okx:' · OKX'})[r.source] || ''}</span></td>
+      <td class="num">${fmt(r.price)}</td>
+      <td class="num">${dv}</td>
+      <td class="tfs">${seq}</td>
+      <td>${tags}</td></tr>`;
+  }).join('');
+}
+
+async function load(){
+  const kind = $('#kind').value, flag = $('#flag').value;
+  const r = await fetch(`/api/bigscan?kind=${kind}&flag=${flag}`);
+  const d = await r.json();
+  if (d.err){ $('#stamp').textContent = d.err; }
+  else {
+    $('#stamp').textContent = `${d.total} names · scanned ${d.at} · ${d.age_min}m ago`;
+    if ($('#kind').options.length === 1)
+      d.kinds.forEach(k => $('#kind').add(new Option(k, k)));
+    if ($('#flag').options.length === 1)
+      d.flags.forEach(k => $('#flag').add(new Option(k, k)));
+  }
+  DATA = d.rows || [];
+  draw();
+}
+
+let cur = {sym:null, kind:null, tf:'5m'};
+
+function openChart(sym, kind, tf, why){
+  cur = {sym, kind, tf: tf || cur.tf};
+  $('#mSym').textContent = sym;
+  $('#mKind').textContent = kind || '';
+  $('#mWhy').innerHTML = why || '';
+  document.querySelectorAll('.tfbtn').forEach(b =>
+    b.classList.toggle('on', b.dataset.tf === cur.tf));
+  $('#mImg').src = `/api/chart.png?sym=${encodeURIComponent(sym)}&kind=${kind}&tf=${cur.tf}&_=${Date.now()}`;
+  fetch(`/api/tvlink?sym=${encodeURIComponent(sym)}&kind=${kind}&tf=${cur.tf}`)
+    .then(r => r.json()).then(d => {
+      $('#mTV').href = d.url;
+      const n = document.querySelector('#mName');
+      if (n) n.textContent = d.name || '';
+    });
+  $('#modal').classList.add('on');
+}
+document.querySelectorAll('.tfbtn').forEach(b =>
+  b.onclick = () => openChart(cur.sym, cur.kind, b.dataset.tf, $('#mWhy').innerHTML));
+$('#mX').onclick = () => $('#modal').classList.remove('on');
+$('#modal').onclick = e => { if (e.target.id === 'modal') $('#modal').classList.remove('on'); };
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') $('#modal').classList.remove('on');
+});
+
+$('#rows').onclick = e => {
+  const tr = e.target.closest('tr');
+  if (!tr || !tr.dataset.sym) return;
+  openChart(tr.dataset.sym, tr.dataset.kind, cur.tf, tr.dataset.why);
+};
+
+$('#kind').onchange = load;
+$('#flag').onchange = load;
+$('#q').oninput = draw;
+$('#tradable').onclick = e => {
+  tradableOnly = !tradableOnly;
+  e.target.classList.toggle('on', tradableOnly);
+  draw();
+};
+headers();
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>

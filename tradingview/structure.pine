@@ -1,0 +1,230 @@
+//@version=6
+// =============================================================================
+//  STRUCTURE + EMA 12 RIDER
+//  A Pine port of panel.py (trend state) and rider.py (the 12 EMA rider).
+//
+//  Both engines were built by grading charts by eye, not by fitting returns.
+//  The trend state reads 24 of 24 blind-sampled charts the way the author does,
+//  plus 8 hand-written regression cases. The rider reads 6 of 6.
+//
+//  DEFINITIONS -- these are the whole thing, and they are about the SEQUENCE OF
+//  PIVOT LABELS, not about price crossing levels. Every earlier version drove
+//  the state off level crossings and was graded wrong.
+//
+//    pivot     a turning point: PIVOT_BARS either side, and a leg of at least
+//              MIN_PIVOT_ATR so noise inside a range is not structure
+//    HH/HL     higher high / higher low      LH/LL  lower high / lower low
+//    EH/EL     equal -- within SAME_LEVEL_ATR of the previous pivot of its kind,
+//              so it is a double top/bottom rather than structure
+//
+//    UP        a HL and a HH, with nothing invalidating in between. TWO pivots
+//    DOWN      a LH and a LL
+//    EQ        HL,LH,HL,LH -- FOUR pivots, lows rising into falling highs.
+//              EH and EL count as boundaries too, so flat-topped ranges qualify
+//
+//    UP dies on a LL or a LH, the moment that pivot confirms. It also dies if
+//    price simply closes below the last higher low. DOWN mirrors it.
+//    Death goes to NOTHING (unshaded) -- never straight to the opposite, which
+//    would need its own pivots. Unshaded is a real answer and it is common.
+//
+//  THE RIDER
+//    holding   judged on the candle BODY, not the close. A wick below the EMA
+//              is a hold -- price was bought back before the close. Up to
+//              BODY_GRACE of the body may sit under it as well
+//    armed     LATCHES. Arms on trend up + holding + MIN_HL higher lows, then
+//              stays armed through the dips until it dies. The higher lows
+//              start the ride, they do not have to keep printing during it
+//    entry     a dip back into the EMA while armed
+//
+//  KNOWN DIFFERENCE FROM THE PYTHON CHARTS
+//  The Python version draws a second, BACKDATED reading that extends a
+//  confirmed trend back to the pivot that started it -- what your eye does
+//  looking back. That is retrospective by construction and cannot be a live
+//  signal, so this indicator plots the CAUSAL state only. Expect shading here
+//  to begin later than on those charts. That is correct, not a bug.
+// =============================================================================
+
+indicator("Structure + EMA 12 Rider", overlay = true, max_labels_count = 500,
+   max_boxes_count = 500)
+
+// ------------------------------------------------------------------- inputs
+grpS = "Structure"
+pivBars  = input.int(2,    "Pivot bars either side", minval = 1, group = grpS)
+minLegATR= input.float(1.0,"Min pivot leg (ATR)", step = 0.1, group = grpS)
+sameATR  = input.float(0.15,"Equal-level tolerance (ATR)", step = 0.05, group = grpS)
+showLbl  = input.bool(true,"Show pivot labels", group = grpS)
+showBG   = input.bool(true,"Shade the trend", group = grpS)
+showStop = input.bool(true,"Plot the invalidation level", group = grpS)
+
+grpR = "EMA 12 Rider"
+emaLen   = input.int(12,   "EMA length", group = grpR)
+bodyGrace= input.float(0.10,"Body allowed under the EMA", step = 0.05, group = grpR)
+minHL    = input.int(2,    "Higher lows to arm", group = grpR)
+touchATR = input.float(0.35,"Dip counts within (ATR)", step = 0.05, group = grpR)
+showRide = input.bool(true,"Highlight the EMA while armed", group = grpR)
+showDips = input.bool(true,"Mark dips into the EMA", group = grpR)
+
+cUp   = input.color(color.new(#12351f, 55), "Uptrend",   group = "Colours")
+cDn   = input.color(color.new(#3a1720, 55), "Downtrend", group = "Colours")
+cEq   = input.color(color.new(#14263d, 55), "Equilibrium", group = "Colours")
+cRide = input.color(#ffb84d, "Rider armed", group = "Colours")
+
+atr = ta.atr(14)
+ema12 = ta.ema(close, emaLen)
+
+// ------------------------------------------------------------------ pivots
+// ta.pivothigh confirms pivBars AFTER the turn, which is the honest timing:
+// a pivot is not knowable until the bars on its right have printed.
+ph = ta.pivothigh(high, pivBars, pivBars)
+pl = ta.pivotlow(low, pivBars, pivBars)
+
+var float lastHi   = na          // price of the last confirmed pivot high
+var float lastLo   = na
+var float prevHi   = na          // the one before it, for labelling
+var float prevLo   = na
+var string lastHiL = na          // its label: HH / LH / EH
+var string lastLoL = na
+
+// the alternating sequence: a pivot only registers if it moved MIN_PIVOT_ATR
+// from the previous pivot of the other kind, so wiggles inside a range are not
+// structure.
+newHi = false
+newLo = false
+if not na(ph)
+    if na(lastLo) or math.abs(ph - lastLo) >= minLegATR * atr
+        prevHi := lastHi
+        lastHi := ph
+        newHi := true
+if not na(pl)
+    if na(lastHi) or math.abs(lastHi - pl) >= minLegATR * atr
+        prevLo := lastLo
+        lastLo := pl
+        newLo := true
+
+tol = sameATR * atr
+
+if newHi and not na(prevHi)
+    lastHiL := lastHi > prevHi + tol ? "HH" : lastHi < prevHi - tol ? "LH" : "EH"
+if newLo and not na(prevLo)
+    lastLoL := lastLo > prevLo + tol ? "HL" : lastLo < prevLo - tol ? "LL" : "EL"
+
+// ------------------------------------------------------------- trend state
+// "recent" is the run of labels since the last invalidation, exactly as the
+// Python engine keeps it. A trend needs two pivots; an equilibrium needs four.
+var string state = "FLAT"
+var int nHH = 0
+var int nHL = 0
+var int nLH = 0
+var int nLL = 0
+var float holdLo = na            // the higher low an uptrend rests on
+var float holdHi = na
+
+resetCounts() =>
+    nHH := 0
+    nHL := 0
+    nLH := 0
+    nLL := 0
+
+newLabel = (newHi and not na(lastHiL)) or (newLo and not na(lastLoL))
+lab = newHi and not na(lastHiL) ? lastHiL : newLo and not na(lastLoL) ? lastLoL : na
+
+if newLabel and not na(lab)
+    // does this pivot kill the running state?
+    killsUp = lab == "LL" or lab == "LH"
+    killsDn = lab == "HH" or lab == "HL"
+    killsEq = lab == "HH" or lab == "LL"
+    if (state == "UP" and killsUp) or (state == "DOWN" and killsDn) or (state == "EQ" and killsEq)
+        state := "FLAT"
+        resetCounts()
+
+    nHH := nHH + (lab == "HH" ? 1 : 0)
+    nHL := nHL + (lab == "HL" or lab == "EL" ? 1 : 0)
+    nLH := nLH + (lab == "LH" or lab == "EH" ? 1 : 0)
+    nLL := nLL + (lab == "LL" ? 1 : 0)
+
+    if state == "FLAT"
+        if nHL >= 1 and nHH >= 1
+            state := "UP"
+        else if nLH >= 1 and nLL >= 1
+            state := "DOWN"
+        else if nHL >= 2 and nLH >= 2
+            state := "EQ"
+
+    if state == "UP"
+        holdLo := lastLo
+    if state == "DOWN"
+        holdHi := lastHi
+
+// price-based invalidation: an uptrend ends when a close breaks the last higher
+// low, without waiting for a pivot to confirm it
+if state == "UP" and not na(holdLo) and close < holdLo - tol
+    state := "FLAT"
+    resetCounts()
+if state == "DOWN" and not na(holdHi) and close > holdHi + tol
+    state := "FLAT"
+    resetCounts()
+if state == "EQ" and ((not na(lastHi) and close > lastHi + tol) or (not na(lastLo) and close < lastLo - tol))
+    state := "FLAT"
+    resetCounts()
+
+// ------------------------------------------------------------------- rider
+bodyLo = math.min(open, close)
+bodyHi = math.max(open, close)
+body   = bodyHi - bodyLo
+under  = math.max(ema12 - bodyLo, 0)
+tiny   = body < 0.05 * atr
+share  = tiny ? (close < ema12 ? 1.0 : 0.0) : (body > 0 ? under / body : 0.0)
+holding = bodyHi > ema12 and share <= bodyGrace
+wickHold = low < ema12 and holding
+
+var int hlRun = 0
+hlRun := low > low[1] ? hlRun + 1 : 0
+
+dead = not holding or (state == "UP" and not na(holdLo) and close < holdLo)
+var bool armed = false
+if armed
+    if dead
+        armed := false
+else if state == "UP" and holding and hlRun >= minHL
+    armed := true
+
+dip = armed and holding and (close - ema12) <= touchATR * atr
+
+// ------------------------------------------------------------------ drawing
+bgcolor(showBG and state == "UP" ? cUp : showBG and state == "DOWN" ? cDn :
+   showBG and state == "EQ" ? cEq : na, title = "Trend")
+
+stopLevel = state == "UP" ? holdLo : state == "DOWN" ? holdHi : na
+plot(showStop ? stopLevel : na, "Invalidates at", color = #5aa9ff, linewidth = 2,
+   style = plot.style_stepline)
+
+plot(ema12, "EMA 12", color = showRide and armed ? cRide : color.new(#6b5636, 0),
+   linewidth = showRide and armed ? 3 : 1)
+
+plotshape(showDips and dip, "Dip into the EMA", shape.circle, location.belowbar,
+   color = #3ddc97, size = size.tiny)
+plotshape(showDips and wickHold, "Wick below, body held", shape.triangleup,
+   location.belowbar, color = #5aa9ff, size = size.tiny)
+
+if showLbl and newHi and not na(lastHiL)
+    label.new(bar_index - pivBars, lastHi, lastHiL, style = label.style_label_down,
+       color = color.new(color.black, 100), size = size.small,
+       textcolor = lastHiL == "HH" ? #3ddc97 : lastHiL == "LH" ? #ff5c72 : #8b93a1)
+if showLbl and newLo and not na(lastLoL)
+    label.new(bar_index - pivBars, lastLo, lastLoL, style = label.style_label_up,
+       color = color.new(color.black, 100), size = size.small,
+       textcolor = lastLoL == "HL" ? #3ddc97 : lastLoL == "LL" ? #ff5c72 : #8b93a1)
+
+// ------------------------------------------------------------------- alerts
+alertcondition(dip and not dip[1], "Rider: dip into the EMA",
+   "{{ticker}} {{interval}} dipped into the 12 EMA while the ride is armed")
+alertcondition(armed and not armed[1], "Rider: armed",
+   "{{ticker}} {{interval}} EMA 12 rider armed")
+alertcondition(armed[1] and not armed, "Rider: dead",
+   "{{ticker}} {{interval}} EMA 12 rider died -- body closed under the EMA")
+alertcondition(state == "UP" and state[1] != "UP", "Structure: uptrend",
+   "{{ticker}} {{interval}} structure turned UP")
+alertcondition(state == "DOWN" and state[1] != "DOWN", "Structure: downtrend",
+   "{{ticker}} {{interval}} structure turned DOWN")
+alertcondition(state == "EQ" and state[1] != "EQ", "Structure: equilibrium",
+   "{{ticker}} {{interval}} structure entered equilibrium")

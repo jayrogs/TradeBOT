@@ -1,0 +1,266 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Trend Riding Study</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --amber:#ffb84d;--eq:#5aa9ff;--up:#3ddc97;--dn:#ff5c72;--mono:ui-monospace,Consolas,monospace}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:18px 22px 6px}
+  h1{font-size:18px;margin:0 0 6px}
+  h2{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--faint);margin:26px 0 8px}
+  .sub{color:var(--dim);font-size:13px;max-width:980px}
+  .meta{color:var(--faint);font-size:12px;font-family:var(--mono);margin-top:6px}
+  main{padding:8px 22px 60px}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:6px 0 14px}
+  th{color:var(--faint);font-weight:500;text-align:right;padding:5px 10px;border-bottom:1px solid var(--line);font-size:11px}
+  th:first-child,td:first-child{text-align:left}
+  td{padding:5px 10px;text-align:right;border-bottom:1px solid rgba(37,42,51,.6)}
+  .pos{color:var(--up)} .neg{color:var(--dn)} .thin{color:var(--faint)}
+  .hold{color:var(--amber);font-weight:700}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;max-width:1200px;overflow-x:auto}
+  .note{color:var(--dim);font-size:12.5px;max-width:900px}
+  select{background:var(--card);border:1px solid var(--line);color:var(--fg);padding:5px 8px;border-radius:7px;font-size:13px}
+  tr.top td{background:rgba(255,184,77,.07)}
+</style></head>
+<body>
+<header>
+  <h1>Trend riding &mdash; the numbers behind the rule</h1>
+  <div class="sub" id="how">loading&hellip;</div>
+  <div class="meta" id="meta"></div>
+</header>
+<main id="main"></main>
+<script>
+const $ = s => document.querySelector(s);
+const pct = (x, d=2) => x == null ? '' : `<span class="${x >= 0 ? 'pos' : 'neg'}">${x >= 0 ? '+' : ''}${(100*x).toFixed(d)}%</span>`;
+const p0 = x => x == null ? '' : (100*x).toFixed(0) + '%';
+const TFS = ['5m','15m','1h','4h','12h','1d','1w'];
+const HEAD = `<tr><th>set</th><th>trades</th><th>per trade</th><th>buy any bar, same exit</th><th>market drift</th><th>edge over drift</th><th>won</th><th>typical win</th><th>typical loss</th><th>made a new high</th><th>more higher lows</th><th>bars held</th><th>12 EMA exit instead</th></tr>`;
+function row(label, b, nul, extra=''){
+  if (!b) return '';
+  return `<tr><td>${label}${extra}</td><td>${b.n}</td><td>${pct(b.ret)}</td><td>${nul != null ? pct(nul) : '<span class="thin">–</span>'}</td><td>${pct(b.drift)}</td><td>${pct(b.edge)}</td><td>${p0(b.win)}</td><td>${pct(b.avg_win,1)}</td><td>${pct(b.avg_loss,1)}</td><td>${p0(b.new_hh)}</td><td>${b.legs.toFixed(1)}</td><td>${b.held.toFixed(0)}</td><td>${pct(b.ema)}</td></tr>`;
+}
+Promise.all([
+  fetch('/validation/trend_study.json?v=' + Date.now()).then(r => r.json()),
+  fetch('/validation/trend_variants.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_trail.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_leash.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_ride.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_ride_focus.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_ride_trail.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_ride_focus_trail.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_ride_exits.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_ride_focus_exits.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/entry_study.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/entry_study_focus.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_ride_exits2.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_ride_focus_exits2.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_ride_tol.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_ride_focus_tol.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/portfolio.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+]).then(([d, V, TR, LE, RIDE, RIDEF, TRAIL, TRAILF, EX, EXF, EN, ENF, EX2, EX2F, TOL, TOLF, PF]) => {
+  const m = d.meta;
+  $('#how').innerHTML = `Every result on this page is money per trade after costs, on real bars, with the buy always at the open after the signal. The current rule is at the top. The older sections below it are how it got there; their numbers belong to the older versions.`;
+  $('#meta').textContent = `first study: ${m.names} names · ${m.trades} entries · window from ${m.window_start} · ${m.generated}` + (RIDE ? ` · current rule: ${RIDE.meta.names} names · ${RIDE.meta.generated}` : '');
+  let html = '<h2>By timeframe</h2><div class="card"><table>' + HEAD;
+  TFS.forEach(tf => { if (d.by_tf[tf]) html += row(tf, d.by_tf[tf], d.null_by_tf[tf] && d.null_by_tf[tf].ret); });
+  html += row('all', d.all, d.null.ret) + '</table>';
+  html += '<table>' + HEAD;
+  Object.keys(d.by_tf_asset).sort((a,b) => TFS.indexOf(a.split(' ')[1]) - TFS.indexOf(b.split(' ')[1]) || a.localeCompare(b)).forEach(k => html += row(k, d.by_tf_asset[k], d.null_by_tf_asset[k] && d.null_by_tf_asset[k].ret));
+  html += '</table></div>';
+  html += '<h2>By era</h2><div class="card"><table>' + HEAD;
+  ['before','first','second'].forEach(e => { if (d.by_era[e]) html += row(e === 'before' ? 'before the 4-year window' : e === 'first' ? 'first 2 years' : 'last 2 years', d.by_era[e]); });
+  html += '</table></div>';
+
+  html += '<h2>What predicts a trend that keeps running</h2><div class="note">Every condition is known at the entry bar. Amber <b>holds</b> = edge over drift positive in every era and every asset class with 50+ trades. The "buy any bar" column shows the same condition on the control entries: if both columns rise together, it\'s the weather, not the entry.</div>';
+  const ranked = [];
+  for (const [cond, vals] of Object.entries(d.conditions)){
+    const keys = Object.keys(vals); if (!keys.length) continue;
+    html += `<div class="card"><b>${cond}</b><table>${HEAD}`;
+    keys.forEach(v => { html += row(v, vals[v], vals[v].null_ret, vals[v].holds ? ' <span class="hold">holds</span>' : ''); if (vals[v].holds) ranked.push([cond, v, vals[v]]); });
+    html += '</table></div>';
+  }
+  ranked.sort((a, b) => b[2].edge - a[2].edge);
+  const CH = `<tr><th>set</th><th>trades</th><th>per trade</th><th>vs drift</th><th>won</th><th>typical win</th><th>typical loss</th><th>bars held</th><th>worst dip</th><th>left on the table after</th></tr>`;
+  const crow = (label, b) => `<tr><td>${label}</td><td>${b.n}</td><td>${pct(b.ret)}</td><td>${pct(b.edge)}</td><td>${p0(b.win)}</td><td>${pct(b.avg_win,1)}</td><td>${pct(b.avg_loss,1)}</td><td>${b.held.toFixed(0)}</td><td>${pct(b.worst,1)}</td><td>${pct(b.left,1)}</td></tr>`;
+  const pfSec = () => {
+    if (!PF) return '';
+    const B = PF.benchmarks || {}, H = PF.hold || {}, W = PF.wallet || {}, O = PF.out_of_sample;
+    let s = `<h2>How much a year, not how much a trade</h2><div class="note">Your point: "the main difference is being able to make multiple trades vs just holding, the number of trades is everything." Per-trade numbers cannot answer that, so this runs the money. Every signal in time order into a wallet with a fixed number of slots, each new position sized off the running account, cash idle when nothing is on. Repeated 60 times with a random pick when more signals arrive than there are free slots, so you can see how much is the rule and how much is which trades you happened to catch. Hold times are calendar days, weekends counted. Costs are already out.</div>`;
+    s += '<div class="card"><table><tr><th>chart</th><th>a trade lasts</th><th>per trade</th><th>per day held</th><th>signals per name a year</th><th>if a slot were never idle</th></tr>';
+    for (const tf of ['1h', '4h', '1d']) {
+      const k = tf + ' | stock', h = H[k];
+      if (!h) continue;
+      s += `<tr><td>${tf}, stocks</td><td>${h.days.toFixed(1)} days<div class="thin">${h.bars.toFixed(0)} bars</div></td><td>${pct(h.ret, 2)}</td><td>${pct(h.per_day, 3)}</td><td>${h.trades_per_name_year.toFixed(1)}</td><td>${pct(PF.ceiling_if_never_idle[k], 0)}</td></tr>`;
+    }
+    s += '</table></div>';
+    s += '<div class="note" style="margin-top:10px">The wallet, stocks and ETFs only. The spread is the middle 80% of the 60 runs.</div><div class="card"><table><tr><th>chart</th><th>slots</th><th>trades taken</th><th>deployed</th><th>a year</th><th>spread</th></tr>';
+    for (const tf of ['1h', '4h', '1d', 'all three']) {
+      for (const n of [1, 3, 5, 10, 20]) {
+        const w = W[`${tf} | stocks and ETFs | ${n} slots`];
+        if (!w) continue;
+        s += `<tr><td>${tf}</td><td>${n}</td><td>${w.trades}</td><td>${p0(w.deployed)}</td><td><b>${pct(w.per_year, 1)}</b></td><td class="thin">${pct(w.per_year_low, 1)} to ${pct(w.per_year_high, 1)}</td></tr>`;
+      }
+    }
+    s += '</table></div>';
+    s += '<div class="note" style="margin-top:10px">Buy and hold over the same 4 years: ' + Object.entries(B).map(([k, v]) => `<b>${k}</b> ${pct(v.per_year, 1)} a year`).join(' &middot; ') + `. Crypto on the fast charts lost (1h ${pct(PF.ceiling_if_never_idle['1h | crypto'], 0)} a year if never idle) and futures were near flat, so the wallet above is stocks and ETFs.</div>`;
+    if (O && O.wallet) {
+      const groups = ['the biggest movers', 'every stock and ETF', 'all the others'];
+      const base = O.base_cost || 0;
+      s += `<h2>Which names, and what costs do to it</h2><div class="note">The one honest test on this page. Names are picked using only the FIRST half of the window, then traded from <b>${O.starts}</b> for ${O.years} years I never looked at while choosing. <b>The biggest movers</b> are the top quarter by how much a name moves (a normal bar as a share of its price) — nothing about how much it went up, and nothing about how it traded. ${O.movers} names out of ${O.universe}. Wallet of ${O.slots} slots on the ${O.tf} chart. Each row is a different assumption about what a round trip really costs you, all in: commission, the spread, and the fill you actually get.</div>`;
+      s += '<div class="card"><table><tr><th>round trip cost</th>' + groups.map(g => '<th>' + g + '</th>').join('') + '</tr>';
+      for (const c of O.costs) {
+        s += `<tr><td>${(100 * (base + c)).toFixed(2)}%${c === 0 ? '<div class="thin">what the study assumes</div>' : ''}</td>` +
+          groups.map(g => {
+            const w = O.wallet[`${g} | +${(100 * c).toFixed(2)}% cost`];
+            return w ? `<td>${pct(w.per_year, 1)}<div class="thin">${pct(w.per_year_low, 1)} to ${pct(w.per_year_high, 1)}</div></td>` : '<td></td>';
+          }).join('') + '</tr>';
+      }
+      s += '</table></div>';
+      if (O.spy) s += `<div class="note" style="margin-top:10px">SPY over the same stretch: <b>${pct(O.spy.per_year, 1)}</b> a year. So the movers stay ahead of the market up to about a ${(100 * (base + 0.0035)).toFixed(2)}% round trip; everything else is already at the market by ${(100 * (base + 0.001)).toFixed(2)}%. <b>Finding your real cost is the most useful thing you can do for this.</b></div>`;
+      if (O.mover_names && O.mover_names.length) {
+        s += `<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--faint);font-size:12px">the ${O.mover_names.length} names picked as the biggest movers</summary><div class="note" style="margin-top:6px;line-height:1.7">${O.mover_names.join(', ')}</div></details>`;
+      }
+    }
+    return s;
+  };
+  let top = pfSec() + `<h2>The rule as it stands</h2><div class="card note" style="max-width:1200px;color:var(--fg)">
+    <b>Entry:</b> the uptrend already has a higher low and a higher high (counting the ones before the chart turned green). Buy the <b>second higher low</b> at the next open. Skip it if the open is under the low, or ran more than one normal bar's move above it (three on the daily and up). An equal low counts as a higher low.<br>
+    <b>Exit:</b> a wick half a normal bar under the last higher low, sold at the next open. A lower high is not a sale. Once up 3x the risk, a trailing stop 8 normal bars' moves under the highest close is added; it only ever raises the line (the trail question is open, see the table below). 5 and 15 minute stock trades close at the bell; the 1-hour and up hold overnight.<br>
+    <b>Partial:</b> a third when up twice the risk, risk floored at one normal bar's move. It costs a little return.<br>
+    <b>Where it came from:</b> 85 of your chart gradings over three rounds, on <a href="/ridecharts">/ridecharts</a>. Each round changed the rule; the history is further down this page.
+  </div>`;
+  const section = (title, src, note) => {
+    if (!src) return '';
+    const key = 'higher low breaks, trail once up 3R';
+    let s = `<h2>${title}</h2><div class="note">${note}</div><div class="card"><table>${CH}`;
+    for (const tf of TFS) { const b = src.by_exit_tf[key + ' | ' + tf]; if (b) s += crow(tf, b); }
+    for (const [k, b] of Object.entries(src.by_exit)) if (k.startsWith(key)) s += crow('all timeframes, ' + k.split(' | ')[1], b);
+    for (const [k, b] of Object.entries(src.by_exit)) if (!k.startsWith(key)) s += crow('<span class="thin">' + k.replace(' | ', ', ') + ' (no trail)</span>', b);
+    s += '</table></div>';
+    if (src.by_exit_kind) { s += `<div class="card"><b>by class</b><table>${CH}`; for (const [k, b] of Object.entries(src.by_exit_kind)) if (k.startsWith(key)) s += crow(k.split(' | ')[1], b); s += '</table></div>'; }
+    if (src.by_nth) { s += `<div class="card"><b>which higher low of the trend (all entries, not just the second)</b><table>${CH}`; for (const [k, b] of Object.entries(src.by_nth)) if (k.startsWith(key)) s += crow(k.split(' | ')[1], b); s += '</table></div>'; }
+    if (src.by_leg) { s += `<div class="card"><b>first try vs the re-entry after a fakeout</b><table>${CH}`; for (const [k, b] of Object.entries(src.by_leg)) if (k.startsWith(key)) s += crow(k.split(' | ')[1], b); s += '</table></div>'; }
+    for (const [ttl, kk] of [['the next chart up', 'by_hi'], ['chop (trend flips in the last 60 bars)', 'by_chop'], ['how far above the last higher low', 'by_spacing'], ['the next chart stretched', 'by_stretched'], ['a giant bar just before', 'by_big']]) {
+      if (!src[kk]) continue;
+      s += `<div class="card"><b>${ttl}</b><table>${CH}`; for (const [k, b] of Object.entries(src[kk])) if (k.startsWith(key)) s += crow(k.split(' | ')[1], b); s += '</table></div>';
+    }
+    return s;
+  };
+  top += section('Every name, 4 years', RIDE, 'Second higher low only, no partial unless the row says so. "Left on the table" is how much higher the name went in the 60 bars after the exit. Rows further down are the conditions you asked about; none of them separates winners as coded.');
+  top += section('The focus list: 20 stocks, 10 futures, 10 crypto', RIDEF, 'Same rule on the names we are refining on.');
+  const trailSec = (title, src) => {
+    if (!src) return '';
+    let s = `<h2>${title}</h2><div class="note">Your sentence was "once it really takes off, start trailing a stop instead of waiting for a down pivot." Two readings. <b>Raises the line</b>: the trail can only lift the last-higher-low line (what the charts you graded and the live page do; 8 bars under the high is usually below the last higher low, so it rarely changes anything). <b>Replaces the line</b>: once up 3x the risk, the last higher low is forgotten and only the trail remains. Wider trails hold longer and make more per trade, and give more back: with 8 bars, about half of those exits ended under the buy price. Which one you want is your call.</div><div class="card"><table><tr><th>exit</th>${TFS.map(t => '<th>' + t + '</th>').join('')}</tr>`;
+    const exits = [...new Set(Object.keys(src.by_exit_tf).map(k => k.split(' | ')[0]))];
+    const order = ['higher low breaks', 'higher low breaks, trail once up 3R', 'trail replaces the line once up 3R, 2 bars under the high', 'trail replaces the line once up 3R, 4 bars under the high', 'trail replaces the line once up 3R, 8 bars under the high'];
+    exits.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    const nice = k => k === 'higher low breaks' ? 'no trail at all' : k === 'higher low breaks, trail once up 3R' ? 'trail raises the line (8 bars) — the rule as graded' : k.replace('trail replaces the line once up 3R, ', 'trail replaces the line, ');
+    for (const ex of exits) {
+      s += `<tr><td>${nice(ex)}</td>` + TFS.map(t => { const b = src.by_exit_tf[ex + ' | ' + t]; return b ? `<td>${pct(b.ret, 2)}<div class="thin">won ${p0(b.win)} · held ${b.held.toFixed(0)}</div></td>` : '<td></td>'; }).join('') + '</tr>';
+    }
+    return s + '</table></div>';
+  };
+  const tolSec = (title, src) => {
+    if (!src) return '';
+    const order = ['a wick under the line at all', 'a wick a quarter bar under', 'a wick half a bar under (as graded)', 'a wick a whole bar under', 'a wick one and a half bars under', 'a wick two bars under', 'a close under the line', 'a close half a bar under', 'a close a whole bar under'];
+    let s = `<h2>${title}</h2><div class="note">How far under the last higher low counts as a break? Same buy, same trail, only the tolerance changes ("bar" = a normal bar's move on that chart). A looser line makes more per trade on the 4h and daily, holds proportionally longer, and dips deeper on the way; per day in the trade it comes out about even. A close under the line behaves like a wick half a bar under. On the 1h nothing changes.</div><div class="card"><table><tr><th>what counts as a break</th>${TFS.map(t => '<th>' + t + '</th>').join('')}</tr>`;
+    for (const ex of order) {
+      s += `<tr><td>${ex}</td>` + TFS.map(t => { const b = src.by_exit_tf[ex + ' | ' + t]; return b ? `<td>${pct(b.ret, 2)}<div class="thin">vs drift ${pct(b.edge, 2)} · won ${p0(b.win)} · held ${b.held.toFixed(0)} · dip ${pct(b.worst, 1)}</div></td>` : '<td></td>'; }).join('') + '</tr>';
+    }
+    return s + '</table></div>';
+  };
+  top += tolSec('How far under the higher low is a break, every name', TOL);
+  top += tolSec('How far under the higher low is a break, focus list', TOLF);
+  top += trailSec('The trail question, every name', TRAIL);
+  top += trailSec('The trail question, focus list', TRAILF);
+  const exitSec = (title, src, note) => {
+    if (!src) return '';
+    const tfs = ['5m', '15m', '1h', '4h', '1d'];
+    const exits = [...new Set(Object.keys(src.by_exit_tf).map(k => k.split(' | ')[0]))];
+    const val = (ex, tf) => { const b = src.by_exit_tf[ex + ' | ' + tf]; return b ? b.ret : null; };
+    exits.sort((a, b) => (val(b, '1d') ?? -9) - (val(a, '1d') ?? -9));
+    let s = `<h2>${title}</h2><div class="note">${note}</div><div class="card"><table><tr><th>exit, after the same buy</th>${tfs.map(t => '<th>' + t + '</th>').join('')}<th>all classes, by era</th></tr>`;
+    for (const ex of exits) {
+      const era = ['before', 'first', 'second'].map(e => { const b = src.by_exit_era && src.by_exit_era[ex + ' | ' + e]; return b ? pct(b.ret, 2) : '–'; }).join(' · ');
+      const isRule = ex === 'higher low breaks, trail once up 3R';
+      s += `<tr${isRule ? ' style="background:rgba(255,184,77,.08)"' : ''}><td>${isRule ? '<b>the rule as graded</b> (the line, wick rule, trail raises it once up 3R)' : ex}</td>` +
+        tfs.map(t => { const b = src.by_exit_tf[ex + ' | ' + t]; return b ? `<td>${pct(b.ret, 2)}<div class="thin">vs drift ${pct(b.edge, 2)} · won ${p0(b.win)} · held ${b.held.toFixed(0)}</div></td>` : '<td></td>'; }).join('') + `<td class="thin">${era}</td></tr>`;
+    }
+    s += '</table></div>';
+    if (src.by_exit_kind) {
+      const kinds = [...new Set(Object.keys(src.by_exit_kind).map(k => k.split(' | ')[1]))];
+      s += `<div class="card"><b>by class</b><table><tr><th>exit</th>${kinds.map(k => '<th>' + k + '</th>').join('')}</tr>`;
+      for (const ex of exits) s += `<tr><td>${ex}</td>` + kinds.map(k => { const b = src.by_exit_kind[ex + ' | ' + k]; return b ? `<td>${pct(b.ret, 2)}</td>` : '<td></td>'; }).join('') + '</tr>';
+      s += '</table></div>';
+    }
+    return s;
+  };
+  top += exitSec('Twenty ways to manage the exit, every name', EX, 'Same buy for all of them: the second higher low at the next open, no partial. Every exit sells at the open after the bar that triggered it. "The line" is the last higher low, raised as new ones confirm; "wick rule" is a wick half a normal bar under it. Sorted by the daily result. Charts of any of these: /exitcharts.');
+  top += exitSec('Twenty ways to manage the exit, focus list', EXF, 'Same table on the 40 focus names.');
+  top += exitSec('Twenty MORE ways to manage the exit, every name', EX2, 'Second batch. The first batch said looser wins, so these push on that from every side: wider chandeliers, measured off the high instead of the close, ones that tighten with time or with profit, a percent trail instead of normal bars, a slower average, a stall clock, fixed targets, half off at 3R, the next chart\'s higher low, a volume climax, and pure structure. Read "vs drift": a stop wide enough to hold for months just collects the market, and the drift column says how much of it is really the exit. Charts: /exitcharts.');
+  top += exitSec('Twenty MORE ways to manage the exit, focus list', EX2F, 'Same on the 40 focus names.');
+  const entrySec = (title, src, note) => {
+    if (!src) return '';
+    const tfs = ['5m', '15m', '1h', '4h', '1d'];
+    let s = `<h2>${title}</h2><div class="note">${note}</div>`;
+    for (const ex of src.meta.exits) {
+      const entries = src.meta.entries.slice().sort((a, b) => ((src.by_entry_exit_tf[b + ' | ' + ex + ' | 1d'] || {}).edge ?? -9) - ((src.by_entry_exit_tf[a + ' | ' + ex + ' | 1d'] || {}).edge ?? -9));
+      s += `<div class="card"><b>exit: ${ex}</b> · sorted by the daily edge over drift<table><tr><th>how you buy</th>${tfs.map(t => '<th>' + t + '</th>').join('')}<th>all, by era</th></tr>`;
+      for (const en of entries) {
+        if (!tfs.some(t => src.by_entry_exit_tf[en + ' | ' + ex + ' | ' + t])) continue;
+        const isRule = en.startsWith('second higher low (the rule)'), isCtl = en.startsWith('buy any bar');
+        const era = ['before', 'first', 'second'].map(e => { const b = src.by_entry_exit_era[en + ' | ' + ex + ' | ' + e]; return b ? pct(b.edge, 2) : '–'; }).join(' · ');
+        s += `<tr${isRule ? ' style="background:rgba(255,184,77,.08)"' : isCtl ? ' style="background:rgba(90,169,255,.08)"' : ''}><td>${en}</td>` +
+          tfs.map(t => { const b = src.by_entry_exit_tf[en + ' | ' + ex + ' | ' + t]; return b ? `<td>${pct(b.ret, 2)}<div class="thin">vs drift ${pct(b.edge, 2)} · won ${p0(b.win)} · n ${b.n}</div></td>` : '<td></td>'; }).join('') + `<td class="thin">${era}</td></tr>`;
+      }
+      s += '</table></div>';
+    }
+    return s;
+  };
+  top += entrySec('Twenty ways to buy, every name', EN, 'Now the exit is held fixed and the buy changes. Every buy fills at the next open after its signal. One trade at a time per way of buying. The blue row is the control: buy every 25th bar, same exit, which is what the exit alone does. A buy only earns its keep if it beats that control and the drift. "The next chart" is the timeframe up (15m for 5m, 1h for 15m, and so on).');
+  top += entrySec('Twenty ways to buy, focus list', ENF, 'Same table on the 40 focus names.');
+  top += '<h2>How the rule got here</h2><div class="note">Everything below is the trail of earlier versions, kept so the before and after is visible. The numbers in these older sections are for the older rules, not the one above.</div>';
+  let shortlist = '<h2>The short list: conditions that hold, best first</h2><div class="note">Read with the verdict above: these are mostly weak-market conditions where the control entries improve too.</div><div class="card"><table>' + HEAD;
+  ranked.slice(0, 25).forEach(([c, v, b]) => shortlist += row(`${c} = ${v}`, b, b.null_ret));
+  shortlist += '</table></div>';
+
+  html += '<h2>By timeframe, every condition</h2>';
+  html += `<select id="tfpick">${TFS.filter(t => d.per_tf[t]).map(t => `<option>${t}</option>`).join('')}</select>`;
+  html += '<div id="pertf"></div>';
+  let vhtml = '';
+  if (V){
+    const VH = `<tr><th>technique</th><th>trades</th><th>per trade</th><th>vs drift</th><th>won</th><th>typical win</th><th>typical loss</th><th>bars held</th><th>left on the table after the sale</th></tr>`;
+    const vrow = (label, b) => `<tr><td>${label}</td><td>${b.n}</td><td>${pct(b.ret)}</td><td>${pct(b.edge)}</td><td>${p0(b.win)}</td><td>${pct(b.avg_win,1)}</td><td>${pct(b.avg_loss,1)}</td><td>${b.held.toFixed(0)}</td><td>${b.left == null ? '' : pct(b.left,1)}</td></tr>`;
+    const ent = Object.entries(V.by_variant).sort((a,b) => b[1].ret - a[1].ret);
+    vhtml = `<h2>Same idea, different technique</h2><div class="note">The first version bought at the next open after the pivot confirmed (often far above the pivot) and moved the stop to every new higher low the moment one confirmed, including ones that formed two bars earlier and above the entry. These are the same trades with the entry and the stop done other ways, on ${V.meta.tfs.join(', ')}. "Left on the table" = how much higher it went in the 60 bars after the sale. Controls at the bottom are buy-any-bar with the same stop rule.</div><div class="card"><table>${VH}` +
+      ent.map(([k, b]) => vrow(k, b)).join('') +
+      Object.entries(V.control).map(([k, b]) => vrow('<span class="thin">' + k + '</span>', b)).join('') +
+      `</table></div>`;
+  }
+  let hhtml = '';
+  const HH = `<tr><th>how you hold it</th><th>trades</th><th>per trade</th><th>vs drift</th><th>won</th><th>bars held</th><th>worst dip on the way</th><th>dips over 10%</th><th>left on the table after</th></tr>`;
+  const hrow = (k, b) => `<tr><td>${k}</td><td>${b.n}</td><td>${pct(b.ret)}</td><td>${pct(b.edge)}</td><td>${p0(b.win)}</td><td>${b.held.toFixed(0)}</td><td>${pct(b.worst,1)}</td><td>${b.deep == null ? '' : p0(b.deep)}</td><td>${pct(b.left,1)}</td></tr>`;
+  if (TR || LE){
+    const src = TR || LE;
+    hhtml = `<h2>How long to hold, and what it costs you in pain</h2><div class="note">Same entry every time (a higher low, not chased). What changes is the leash. "Worst dip on the way" is how far underwater the position went before it closed, counting the partial once it is sold. "Left on the table" is how much higher the name went in the 60 bars after the exit.</div><div class="card"><table>${HH}` +
+      Object.entries(src.by_variant).sort((a,b) => b[1].ret - a[1].ret).map(([k, b]) => hrow(k, b)).join('') + '</table></div>' +
+      `<div class="card"><b>the leash on its own, every partial pooled</b><table>${HH}` +
+      Object.entries(src.by_run).sort((a,b) => b[1].ret - a[1].ret).map(([k, b]) => hrow(k, b)).join('') + '</table></div>';
+    if (LE && TR){
+      hhtml += `<div class="card"><b>holding for a fixed time, no stop at all</b><div class="note">Makes the most in the last four years and loses to the market in the older data, so read it as a bull-market number, not a rule.</div><table>${HH}` +
+        Object.entries(LE.by_run).filter(([k]) => k.startsWith('hold')).sort((a,b) => b[1].ret - a[1].ret).map(([k, b]) => hrow(k, b)).join('') + '</table></div>';
+    }
+  }
+  $('#main').innerHTML = top + hhtml + vhtml + shortlist + html;
+  const draw = () => {
+    const tf = $('#tfpick').value; let h = '';
+    for (const [cond, vals] of Object.entries(d.per_tf[tf] || {})){
+      h += `<div class="card"><b>${tf} · ${cond}</b><table>${HEAD}`;
+      Object.keys(vals).forEach(v => h += row(v, vals[v], null));
+      h += '</table></div>';
+    }
+    $('#pertf').innerHTML = h || '<div class="note">not enough trades</div>';
+  };
+  $('#tfpick').onchange = draw; draw();
+}).catch(e => { $('#how').textContent = 'no results yet: ' + e.message + ' (the study is still running: python studies/trend_study.py)'; });
+</script>
+</body></html>

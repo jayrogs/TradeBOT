@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Forward Log</title>
+<style>
+  :root{--bg:#0d0f12;--card:#12151a;--line:#252a33;--fg:#e6e9ee;
+        --mut:#8b93a1;--up:#3ddc97;--dn:#ff5c72;--mono:'Consolas',monospace}
+  body{background:var(--bg);color:var(--fg);margin:0;
+       font:14px/1.5 -apple-system,'Segoe UI',Roboto,sans-serif}
+  .wrap{max-width:1100px;margin:0 auto;padding:22px 16px 60px}
+  h1{font-size:19px;margin:0 0 4px}
+  .sub{color:var(--mut);font-size:12.5px;margin-bottom:16px}
+  .cards{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;
+        padding:10px 16px;min-width:100px}
+  .stat b{display:block;font-size:17px}
+  .stat span{color:var(--mut);font-size:11px}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);
+        font-size:12px;margin-bottom:26px}
+  th{color:var(--mut);text-align:left;padding:6px 8px;font-weight:normal;
+     border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid #171b21}
+  .up{color:var(--up)} .dn{color:var(--dn)} .mut{color:var(--mut)}
+  h2{font-size:14px;color:var(--mut);margin:24px 0 8px}
+  input,textarea,select{background:#0f1216;border:1px solid var(--line);
+        color:var(--fg);border-radius:7px;padding:7px 9px;font-size:13px}
+  button{background:#1c2f45;border:1px solid #2c4a6e;color:#cfe3ff;
+        border-radius:7px;padding:7px 14px;cursor:pointer}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Forward Log</h1>
+  <div class="sub">
+    The frozen rule stamps every signal automatically while the server runs
+    &mdash; fills are confirmed closes, exits are the tested walk, rows are
+    never edited. Expectation to beat: +0.67% a trade raw, +0.28% over
+    random. The verdict writes itself from here.
+  </div>
+  <div class="cards" id="stats"></div>
+
+  <h2>OPEN</h2>
+  <table id="open"><thead><tr>
+    <th>entered (bar)</th><th>sym</th><th>tf</th><th>fill</th><th>wind</th>
+    <th>vol</th><th>wk</th><th>prom</th><th>last</th><th>unreal</th>
+  </tr></thead><tbody></tbody></table>
+
+  <h2>CLOSED</h2>
+  <table id="closed"><thead><tr>
+    <th>entered</th><th>sym</th><th>tf</th><th>fill</th><th>exit</th>
+    <th>why</th><th>net</th>
+  </tr></thead><tbody></tbody></table>
+
+  <h2>MY TRADES (log yours next to the bot's)</h2>
+  <div class="row">
+    <input id="msym" placeholder="sym" size="6">
+    <select id="mside"><option>long</option><option>short</option></select>
+    <input id="mentry" placeholder="entry px" size="9">
+    <input id="mexit" placeholder="exit px (blank if open)" size="16">
+    <input id="mnote" placeholder="note" size="34">
+    <button onclick="addTrade()">add</button>
+  </div>
+  <table id="mine"><thead><tr>
+    <th>at</th><th>sym</th><th>side</th><th>entry</th><th>exit</th><th>note</th>
+  </tr></thead><tbody></tbody></table>
+</div>
+<script>
+const pc=(x,d=2)=>(x>0?'+':'')+(100*x).toFixed(d)+'%';
+const cls=x=>x>0?'up':(x<0?'dn':'mut');
+function load(){
+ fetch('/api/log').then(r=>r.json()).then(d=>{
+  const s=d.summary||{};
+  const hb=d.heartbeat||{};
+  const age=hb.last_tick?Math.round((Date.now()-Date.parse(hb.last_tick+'Z'))/60000):null;
+  document.getElementById('stats').innerHTML=
+   (age!==null?`<div class="stat"><b class="${age<130?'up':'dn'}">${age}m</b><span>since last scan</span></div>`:
+   `<div class="stat"><b class="dn">?</b><span>no scan yet</span></div>`)+
+   `<div class="stat"><b>${s.n||0}</b><span>signals</span></div>`+
+   `<div class="stat"><b>${s.open||0}</b><span>open</span></div>`+
+   `<div class="stat"><b>${s.closed||0}</b><span>closed</span></div>`+
+   (s.closed?`<div class="stat"><b class="${cls(s.mean)}">${pc(s.mean,3)}</b><span>mean/trade</span></div>`+
+   `<div class="stat"><b>${(100*s.win).toFixed(0)}%</b><span>winners</span></div>`+
+   `<div class="stat"><b class="${cls(s.total)}">${pc(s.total,1)}</b><span>summed</span></div>`:'');
+  const rows=d.signals||[];
+  document.querySelector('#open tbody').innerHTML=rows
+   .filter(r=>r.status=='open').map(r=>`<tr><td>${r.bar}</td><td>${r.sym}</td>
+    <td>${r.tf}</td><td>${r.fill}</td><td>${r.wind}</td><td>${r.relvol}x</td>
+    <td>${pc(+r.ret7d,1)}</td><td>${+r.promoted?'★':''}</td>
+    <td>${r.last_px}</td>
+    <td class="${cls(+r.unreal)}">${pc(+r.unreal)}</td></tr>`).join('')
+    ||'<tr><td colspan=10 class="mut">none yet</td></tr>';
+  document.querySelector('#closed tbody').innerHTML=rows
+   .filter(r=>r.status=='closed').reverse().map(r=>`<tr><td>${r.bar}</td>
+    <td>${r.sym}</td><td>${r.tf}</td><td>${r.fill}</td><td>${r.exit_px}</td>
+    <td>${r.why}</td>
+    <td class="${cls(+r.net)}">${pc(+r.net)}</td></tr>`).join('')
+    ||'<tr><td colspan=7 class="mut">none yet</td></tr>';
+ });
+ fetch('/api/mytrade').then(r=>r.json()).then(rows=>{
+  document.querySelector('#mine tbody').innerHTML=(rows||[]).reverse()
+   .map(r=>`<tr><td>${r.at}</td><td>${r.sym}</td><td>${r.side}</td>
+    <td>${r.entry}</td><td>${r.exit}</td><td>${r.note}</td></tr>`).join('')
+    ||'<tr><td colspan=6 class="mut">none yet</td></tr>';
+ });
+}
+function addTrade(){
+ fetch('/api/mytrade',{method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({sym:msym.value,side:mside.value,entry:mentry.value,
+                       exit:mexit.value,note:mnote.value})})
+  .then(()=>{msym.value=mentry.value=mexit.value=mnote.value='';load();});
+}
+load(); setInterval(load, 60000);
+</script>
+</body>
+</html>

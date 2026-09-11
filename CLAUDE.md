@@ -1,0 +1,418 @@
+# Rules for working with Jay on this project
+
+One file. Read at the start of every session, before anything else.
+Edit it freely. If a rule here and a memory note disagree, this file wins.
+
+## How to talk
+
+1. Short and plain. Answer first, then the why.
+2. No jargon, no invented terms, no acronyms without the plain phrase.
+   Say "a normal bar's move", not ATR. Say "worst dip", not drawdown.
+   Never: span, wash, print, run, rung, ladder, clock, causal, grammar.
+3. His words. **backburner** = RSI at or under 30 on a running name; never "ladder"/"rung".
+   **EQ** = the sideways box; never call it a "range" (2026-09-08: "you seriously calling eq's
+   ranges? wtf bro i set the language"). If he names a thing, that name is the only name.
+4. Numbers go in a small table, never packed into a paragraph.
+5. No absolutes. "As coded, this did not beat the control" — never "this doesn't work".
+   He has caught the technique being wrong every time I said something was dead.
+6. If he has to say "simplify" again, that is my miss, not his.
+
+## How to work
+
+7. Just do it, ask later. Never hand him a command to run. Never ask to confirm a routine step.
+   Batch questions for after the work.
+8. Use ALL 20 cores for anything that takes more than about a minute (his words 2026-09-08: "always
+   using all cores possible"): studies, chart rendering, data pulls, data fixes. Feed the biggest names
+   first so the cores stay full to the end. One core is only for a handful of files.
+9. Never launch anything through cmd.exe or a .bat file: black windows pop up on his screen.
+   Launch with `pythonw.exe script.py --procs 16 --log logs\name.log`, detached with WMI.
+   The server starts the same way (`run_server.ps1`).
+10. Draw the trades before any verdict. Every study of his methods gets a page of random
+    example charts, on every timeframe, before I report a number.
+11. Every chart is MEASURED before it is saved (pics_ride.py `overlaps()`: label on label,
+    label on candle, label off the edge, label on the price/time scale, label hanging off its own plot --
+    the last two added 2026-09-10 after one slipped through) and the log says "clean" or lists the problems. Zero
+    problems on every chart, then open at least three and look. Nothing may sit on the candles:
+    markers and labels live in empty lanes above and below price, joined by a thin dotted line.
+    Looking at one chart and calling it done is how he got the same overlap back three times.
+12. Load a page and look at it before saying it is done. A page that SAVES anything must check the
+    server's answer and show NOT SAVED in red when it fails. (2026-09-10: his whole grading of /eqfree was
+    lost to a page that flashed "saved" while the server rejected every save -- wrong field names.)
+13. When the technique is wrong, code the variants and run them. Do not ask which one to try.
+
+## What is settled (do not re-litigate)
+
+14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.
+15. Every result is compared against a control (buy any bar, same exit) and against the
+    chart's own drift, over three eras (before 2022, first half, second half).
+16. The standard backburner exit after the breakeven partial: hold until a bar closes under the
+    last higher low. The 12 EMA close is the alternate.
+17. The trend ride, as he graded it in on 85 charts (2026-09-06, three rounds). Entry: the
+    uptrend already has a higher low AND a higher high (count the ones before it turned green),
+    then buy the SECOND higher low only, at the next open. An equal low counts. No buy if it
+    opened under the pivot. Chase limit one normal bar's move on 5m/15m/1h, three on daily and up.
+    Partial: a third when up twice the risk (risk floored at one normal bar's move). Exit: a wick
+    half a normal bar under the last higher low, sold next open. A LOWER HIGH IS NOT A SALE. Once
+    up 3x the risk, trail 8 normal bars' moves under the highest close. 5m/15m stock trades close
+    at the bell; the 1h and up hold overnight. Stock intraday data is ALL HOURS since 2026-09-07 evening (Polygon, 04:00-20:00 New York, 5 years; owner: "we need to trade all hours"). A
+    stop-out that does not follow through (price back above the line within 5 bars) is a re-entry,
+    and it tests as well as a fresh entry. Honest numbers (2026-09-07 evening, trail fix #22, stocks all hours): 5m/15m flat, 1h +0.11%,
+    4h +0.32%, daily +1.11% per trade (focus list: 1h +0.15%, 4h +1.17%, daily +2.95%). Later higher lows were NOT worse on average
+    (2nd +0.07%, 3rd +0.06%, 4th+ +0.07% -- checked against the file 2026-09-08; the old +0.21/+0.23/+0.34
+    predated the trail fix #22): "second only" is his preference, applied as such. My
+    chop measure (trend flips in 60 bars) flags 78% of entries and separates nothing; higher-chart
+    state, spacing, stretched, giant bar do not separate either. Open: his range/chop read, the
+    higher-chart read (both ways: entering off a lower-chart flip, and a higher-chart higher low
+    overriding an exit), and the 12 EMA rider (parked: "refine ema riders later").
+18. Sizing the first buy by how far the name ran up does not help. Flat sizing.
+19. The old rider exit (stop trailing only once up 1%) is dead for backburners: it rides bleeds
+    back to the low.
+20. Stock intraday history was not split-adjusted until 2026-09-06 (`fix_stock_history.py`) and had
+    almost no pre/after-hours bars until 2026-09-07 (Polygon pull). Studies on stocks before then are suspect.
+    About 400 of the 604 stocks trade thinly outside regular hours: an after-hours pivot there can be one trade.
+    Polygon is now called Massive (massive.com). Stocks Starter $29 and Developer $79 are BOTH 15-minute delayed;
+    real-time is Advanced, $199/month. (Checked 2026-09-08.)
+21. A pivot confirms on the CLOSE of its confirm bar; the sale is the next open. Selling at the
+    confirm bar's open inflated the ride from +0.21% to +0.49%.
+22. The trail (once up 3x the risk) has two readings of his sentence. As graded on the charts and
+    as the live page runs it, the trail only RAISES the higher-low line, and it almost never binds
+    (8 bars under the high is usually below the last higher low). Until 2026-09-07 the study
+    instead let the trail REPLACE the line (and did not floor the risk): a much looser exit that
+    held 3x longer, made more per trade (daily +3.27% vs +1.11%), and gave the whole gain back on
+    half of its trail exits. Variants (trail replaces the line at 8/4/2 bars) are in
+    `validation/trend_ride_trail.json`. Which reading he wants is open.
+23. Twenty exit managers after the same buy (2026-09-07 night, `studies/exit_managers.py`, results in
+    `validation/trend_ride_exits.json`, charts on /exitcharts). The loosest stops made the most: a
+    chandelier 5 normal bars under the highest close, from the start, ignoring the pivots (daily +4.70%
+    vs +1.19% as graded, 4h +1.33% vs +0.36%, both about 2.5x the drift edge), then chandelier 3, then
+    his line with a 1.5-bar wick. EMA closes, the SAR and "two closes under the 12 EMA" were the worst.
+    Everything fades in the second half of the window. 5m/15m: nothing made money. Not settled: it is
+    a different method from the pivots he graded; he has to look at /exitcharts and decide.
+24. Twenty ways to buy with the exit held fixed (`studies/entry_study.py`, `validation/entry_study.json`,
+    tables on /trends). Under the chandelier exit the buy barely matters on the whole universe: buy-any-
+    bar control 4h +0.94% / daily +4.70% vs the second higher low +1.30% / +5.22%. On the focus list the
+    pivot buy does earn its keep (4h +3.57% vs control +2.64%, daily +12.1% vs +9.6%). Best buy by edge
+    over drift on all names: the backburner bounce (RSI back over 30), then any/second higher low. The
+    higher-chart filter (only when the next chart is already up) LOWERED the edge everywhere: it buys late.
+    5m/15m: every buy, both exits, loses after cost (edge over drift +0.02 to +0.07%, cost eats it).
+25. Batch two of exits (`studies/exit_managers2.py`, `validation/trend_ride_exits2.json`, /exitcharts).
+    Per trade keeps rising with a wider stop (chandelier 12: daily +14.3%, focus +29.8%) but the wide
+    ones LOST to drift before 2022; they are a bull-market hold. Steadier: "chandelier that tightens
+    with profit" (daily +4.2%, edge +1.4%, same dips as chandelier 5) and "the second lower high"
+    (daily +2.7%, positive edge in all three eras, pure structure in his words). His graded rule is
+    the floor of the table. Nothing works on 5m/15m; a 15% trail on the 15m is the one positive
+    number there (+0.12% a trade) and it is a swing trade entered off a fast chart.
+26b. WHAT AN EQ IS (2026-09-09, owner, after seeing my drawing): "this picture you sent is a channel,
+    not an eq, and eq is a series of HL and LH increasingly tightening". So an EQ is a COIL: rising lows
+    pressing up into falling highs, the gap narrowing, until price has to leave. Everything in #26 below
+    was built on a flat-floor/flat-ceiling box, which is a CHANNEL. #26's findings are about channels and
+    are kept under that name; they are NOT about EQs.
+    The coil detector is `studies/eq_coil.py`: the pivot run where every low is a higher low and every
+    high is a lower high (an equal one does not break the run), at least two of each, and the last pair
+    closer together than the first. Floor = the last higher low, ceiling = the last lower high, both
+    stepping inward. Dies on a close outside, or on a lower low / higher high pivot.
+    TIMING MATTERS HERE: the shape spans ~20-35 bars but the last pivot only confirms two bars after it
+    prints, and by then the edges have converged onto price -- the median coil has about 3 LIVE bars
+    after it becomes knowable, and 27% break before they are knowable at all (recorded tradeable=False).
+    That is probably the trade rather than a fault: buy the last higher low with the ceiling ~1.5 normal
+    bars away, and it resolves within a few bars. His free-ride line fits it exactly ("buy a HL and sell
+    partial at LH").
+    Charts: `pics_eqcoil.py` -> /eqcoils, 24 drawn at random, all measured clean. NOTHING IS MEASURED YET
+    ON PURPOSE: the shape gets graded first (rule 10). Open: does he want 2 pairs or more, must it be
+    strictly tightening, and is a close the right break trigger.
+26c. WHAT THE EQ IS WORTH (2026-09-10, `studies/eq_coil_study.py`, validation/eq_coil_study.json,
+    page /eqcoils). 809 names, every chart 5m to weekly, 179,000 breaks, 828,000 trades.
+    HE GRADED THE SHAPE FIRST (24 drawings, notes saved under set "eqcoils"). Verdicts ran from
+    "beautiful eq, wow, like a painting" (COST weekly) and "great"/"clean" down to "ugly eq, bad
+    candles, would not trade" (JPM 4h). Two corrections came out of it, both applied:
+      - THE BREAK IS THE WICK, not the close: "a break isnt a close under the floor, a break is a
+        wick though the floor, with slight tolerance, basically for it not to be an EL."
+      - THE EDGES ARE FLAT STEPS, not angled trendlines: "i would rather have the thick blue
+        outline lines be horizontal lines that continue straight until the next LH or HL."
+    WHAT IS REAL:
+      - Supply. EQs are everywhere on fast charts and almost absent on slow ones: per name a year,
+        5m 73, 15m 28, 1h 5.5, 4h 1.3, daily 0.19, weekly 0.03. The shape always takes about 25
+        bars to build, on every chart size, which says the rule is not tuned to one.
+      - Only about 3 bars of EQ are left once the last pivot confirms and you could know it is
+        there. By then the two lines are ~1.5 normal bars apart, sitting on top of price.
+      - DIRECTION IS CALLABLE, and both reads point OPPOSITE to intuition:
+          the line tested MORE is the one that HOLDS -> floor tested more breaks up 59%,
+            ceiling tested more 46%
+          it resolves AGAINST what it came in from -> from a downtrend 57% up, from an uptrend 47%
+        Both together: 61% up vs 44%, a 17-point spread on 39,000 breaks, and it holds in ALL THREE
+        eras (63/62/60 and 44/44/43) and on every chart size. The chart above is worth NOTHING here
+        (52/52/52), and so is which line is steeper (51-53). My first call used those two and came
+        out backwards; it is rebuilt on the two that work.
+      - Follow-through is a coin flip: 54% run 2+ normal bars, 47% are back inside within 20.
+    WHAT IS NOT: no version of the trade made money. Ten of them -- buy the floor, short the
+    ceiling, both free rides (his "buy a HL and sell partial at LH"), buy/short the break, both
+    failed-break trades, and the call traded with a normal bar of room instead of the line as the
+    stop. EVERY ONE has a NEGATIVE MIDDLE TRADE on EVERY chart size. Filtering by the call does not
+    rescue any of them. Win rate is ~13-25% throughout.
+    THE TRAP THIS ALMOST SET: "buy the floor" averaged +2.83% on the daily and +10.06% weekly, which
+    reads like a strong result. It is one trade in 2024 that made +167% out of a couple of hundred.
+    Median -1.12%, negative in 7 of 10 years. The study now reports a MEDIAN beside every average and
+    the page flags any column where the average is positive and the middle trade is not. NO AVERAGE
+    GETS REPORTED TO HIM WITHOUT ITS MEDIAN.
+    THE BUG DRAWING THE TRADES FOUND (2026-09-10, after he said "show me examples youre obviously
+    fucking something up"): a "touch of the floor" was ANY bar whose low was at or under
+    floor + 0.25 bars, which includes bars whose low went straight THROUGH the floor. Those are not
+    touches, they are the break. So it bought the open after the EQ had already died. The drawings
+    showed it instantly: several trades had a stop ABOVE the fill (printed as a NEGATIVE "bars
+    below") and a wall of one-bar losses. Fixed: a touch must land INSIDE the band
+    (floor - tolerance <= low <= floor + 0.25 bars) and the next open must not be under the floor,
+    the same guard his trend ride has. After the fix: still 0 of 60 trade-and-chart combinations
+    with a positive middle result. The verdict held, but it now stands on a machine that showed its
+    work. Trades drawn on /eqtrades (pics_eqtrade.py), 24 of them, half winners half losers.
+    LESSON: rule 10 says draw the trades before a verdict. I drew the SHAPE and skipped the TRADES,
+    and he caught it. Drawing the shape is not drawing the trade.
+    Open: the direction call is worth something and nothing built on it pays yet. The stop is the
+    suspect -- the shape hands you an entry with the exit ~1.5 bars away. Worth trying: use the call
+    on the NEXT chart's structure rather than the EQ's own edges, or wait for the break and use the
+    trend-ride rules from there.
+26d. THE EQ TRADE HIS WAY (2026-09-10, `studies/eq_freeride.py`, validation/eq_freeride.json, /eqfree,
+    charts `pics_eqfree.py`). Two corrections from him after seeing /eqtrades:
+      - DIRECTION COMES FROM THE BIGGER CHART: "usually its based on whatever higher timeframe shapes going
+        on. Like NVDA, that shit is so much a downtrend, like wtf? why would be long that". #26c bought every
+        floor blindly.
+      - THE TRADE IS THE FREE RIDE ON THE HIGHER LOW: "the idea is buying the floor and selling the LH ideally
+        to make a risk free position". #26c bought a later touch of the floor, but in a tightening EQ price
+        does not come back to the last higher low -- it makes a new, higher one. So the long now buys the next
+        open after a higher low CONFIRMS inside the live EQ (trend-ride timing), stop a wick through it, and at
+        the lower high sells the share that makes the rest free. The short is the mirror.
+    WHICH READ OF "THE BIGGER CHART" MATCHES HIS EYE. Checked against eight trends nobody would argue about
+    (NVDA May 2022 down, Jun 2023 up, Mar 2024 up; TSLA Dec 2022 down; BTC Jun 2022 down, Nov 2023 up;
+    META Sep 2022 down; AAPL Jul 2023 up):
+        the daily over its rising / under its falling 50 EMA      8 of 8
+        the daily above / below its 200 EMA                        8 of 8
+        the engine's trend state one size up, two up, daily        missed several (FLAT in obvious trends)
+        the swing shape (last high and last low both lower/higher) on the 4h, daily, big swings, weekly
+                                                                   missed several
+    Why the pivot reads fail here: inside a big decline the 2-bar pivots flip on every bounce. NVDA's daily
+    printed a "higher high" 27 cents above the last lower high in the middle of a 60% crash, and his exact
+    May 2022 example read "no trend" on the engine and "mixed" on every swing read. The daily 50 EMA read it
+    as down. So the page and the drawings lead with the daily 50 EMA; every other read is kept for comparison.
+    RESULTS, entry after the higher low confirms (809 names, 880k trade rows, all 20 cores, 13 minutes):
+      - THE BIGGER CHART BARELY SEPARATES OUTCOMES as coded. With vs against the daily 50 EMA, average per
+        trade, "all out at the lower high": 1h +0.01 vs -0.05, 4h +0.15 vs +0.03, daily +0.06 vs +0.59 (the
+        daily goes the wrong way, small sample). Every other read the same or less. It picks the side he
+        would pick; it does not yet pick a better trade.
+      - THE FAR LINE IS REACHED 2 TIMES IN 3 (55-67% on every chart). The free ride idea is sound.
+      - BUT IT PAYS ABOUT NOTHING, because the entry is late: a higher low confirms two bars after it prints,
+        by which time price has bounced most of the way to the lower high. Median target 0.76-0.84x the
+        risk (10 big names). Wins +0.63 / losses -0.93 on the 1h, +1.65 / -2.60 on the 4h. And a stop sold at
+        the next open adds ~0.3% past the planned stop on the 1h.
+      - READ BOTH NUMBERS. Here the MIDDLE trade is positive (4h +0.43%, daily +0.69%) while the AVERAGE is
+        near zero (4h +0.09%, daily +0.41% carried by a few): the ordinary trade wins, the losses are bigger.
+        That is the opposite disagreement from #26c's lottery ticket. The page now leads with the AVERAGE
+        (the money) and flags both kinds of disagreement.
+      - The steadiest row: 4h, all out at the lower high, with the daily 50 EMA: average +0.12/+0.17/+0.14 in
+        the three eras, middle +0.47/+0.53/+0.45. Small, but it holds.
+      - Hold for the break with no partial: lottery shape again (middle -0.70 to -2.35, average positive).
+        Rest keeps the stop: middle negative everywhere (a "free" rest stopped out nets about zero minus costs).
+      - 5m/15m: nothing, as always.
+    RESTING LIMIT ORDERS (the same run, 4.0M trade rows, 18 minutes on 20 cores): a buy limit resting at the
+    floor, a quarter up the box, or halfway up, while the EQ is live; stop a wick under the floor; target the
+    lower high. WORSE THAN WAITING FOR THE HIGHER LOW, on every chart size:
+        how often the far line is reached    after the HL confirms 55-65%   halfway up 37-44%   quarter up
+                                             25-31%   at the floor 6-13%
+        average per trade, 4h, all out, with the daily 50 EMA:  after the HL +0.15%   halfway -0.14%
+                                             quarter -0.14%   at the floor -0.20%
+    So the two-bar wait is not a flaw to fix by buying lower. It is the FILTER. When price comes all the way
+    back to the floor, that is usually the EQ breaking (the same thing #26 found for channels), and waiting for
+    the higher low to prove itself is what skips those. The price of the filter is the worse reward-to-risk.
+    THE BEST ROWS, all "after the higher low confirms", with the daily 50 EMA:
+        4h, all out at the lower high         average +0.15%, middle +0.47%, reached 65%, n 1,398; eras
+                                              +0.12 / +0.17 / +0.14 (steady)
+        4h, free ride, rest to breakeven      average +0.17%, middle +0.19%
+        daily, free ride, rest to breakeven   average +1.23%, middle +0.29%, n 438 (the average leans on
+                                              trailed winners; eras +2.29 / -0.62 / +0.63, not steady)
+    Small. Nothing on 5m/15m, again.
+    THE DRAWINGS (/eqfree, 20 trades, with the daily 50 EMA) showed three things the averages cannot:
+      - COIN 4h short, -8.5%: the daily 50 EMA still read "falling" right at a V-shaped bottom (it lags), and
+        price jumped past a -1.7% stop; the sale at the next open took -8.5%.
+      - NVDA 5m: a 6-cent EQ in thin premarket, stop one cent from the entry. Noise (see #20).
+      - ETH daily: a label hung off the plot onto the price scale and the drawing still passed. That exposed a
+        blind spot in pics_ride.overlaps (it never measured tick labels or the plot's own edges). Fixed
+        2026-09-10 with a self-test; every chart set drawn before then was measured with the weaker check.
+26e. HIS GRADING OF /eqfree (2026-09-10, notes in validation/trade_notes_eqfree.csv). His words, and what each
+    one turned out to be:
+      - INJ daily "did this buy, after a HH? wtf?" -> A BUG. The EQ was declared on the bar its last pivot
+        confirmed, but the two bars between that pivot printing and confirming were never checked: INJ had
+        spiked to 28.80 through a 26.37 ceiling there. Fixed in eq_coil.py (the EQ is not declared).
+      - RTY_F 4h "a HL then an LH in the next candle immediately after ... thats an anomaly, not an eq" -> in
+        the first EQ study 78% of EQs had pivots within 2 bars of each other. eq_coil.coils(min_gap=) added.
+      - V 4h "must not be much volume ... was this after hours?" / ORCL 1h "tons of gaps between candles" /
+        NVDA 5m "hideous candles" -> he was right every time: 13 of 17, 18 of 31 and 23 of 23 bars outside
+        regular hours (NVDA at 6% of normal volume). Stocks now also run on regular-hours bars only.
+      - TSM 15m "wtf 91% sold? ... the wins are meaningless if you only have 9% position size" / ETH 1h "sold
+        88%" -> the free-ride sizing (sell whatever makes the rest risk free) sells nearly everything when the
+        far line sits on top of the entry. Partial is now a fixed third or half, rest to breakeven.
+      - SOL 1h / COIN 4h "cant really tell where this is on the daily chart" -> a 30-hour EQ is one daily bar
+        with a hairline. The drawings must mark the EQ's span and price on the bigger chart.
+      - The ones he liked: ETH daily "great!", XRP 4h "reasonable", CL_F daily "not a bad failure", SOL daily
+        "shame a fakeout! was definitely bearish otherwise", SI_F 5m "see how little risk it is".
+    Study after the fixes: studies/eq_freeride2.py -> validation/eq_freeride2.json (spacing 0 vs 3, all hours vs
+    regular hours for stocks, a third / half / all out / hold / the old sizing, far line bucketed by risk).
+26. CHANNELS (was called "EQs" in error until 2026-09-09). His trade: get positioned at an edge to catch the BREAK ("buying the floor
+    or selling the ceiling in order to be positioned for the eq to break one way or the other ... eqs
+    usually break with follow through ... the longer they go on the clearer the breaks"). NOT buy-floor-
+    sell-ceiling. Live scan /eq (eq_scan.py, own server loop, every market 5m-1w, a pass is 10-15 min);
+    study `studies/eq_break.py` (validation/eq_break.json); charts /eqcharts (pics_eq.py).
+    The EQ that matches his eye is the RECTANGLE (30-bar window, high-low box at most 4 normal bars
+    tall, both edges touched twice, dead on a close beyond an edge), not the four-pivot rule from
+    structure.py (that one lives 3-7 bars and is a coil). Findings, 1.2M rectangle breaks:
+    - Direction CAN be called. Three reads agree two-of-three -> UP call breaks up 79% (84% on the
+      60-bar box), DOWN call breaks down 78%: the next chart's trend, lows rising/highs falling inside
+      the box, which edge got tested more. "What came before the EQ" tells nothing (51%).
+    - Follow-through: 61% of breaks run 2+ normal bars; 43% are back at the edge within 20 bars.
+      Old EQs (60+ bars) run further (7 bars vs 4).
+    - The trade that pays WITH the call is buying the break itself (open after the close above the
+      ceiling, out on a close back inside, else chandelier 5): 4h +0.6-0.7%, daily +1.3-1.6%.
+    - Buying the floor when the call is UP LOSES: a box pressing the ceiling rarely revisits the floor,
+      and when it does that is the EQ failing. Buying the floor pays when the call is DOWN or
+      unclear (cheap stop, occasional surprise break): 4h +0.2-0.6%, daily +0.3-2.1%.
+    - The free ride (partial at the far edge so the rest cannot lose) gives up a little vs holding.
+    - Shorting the ceiling / the break down lost everywhere, both boxes, all charts (2022-26 rose).
+    - 5m/15m: nothing pays, again.
+    /eq rows have a "chart" link: the EQ drawn on demand from live data (/api/eq_chart, pics_eq.render_live,
+    5-minute cache, measured for overlap).
+27. How far under the last higher low is a break (2026-09-08, `--tols`, validation/trend_ride_tol.json, table
+    on /trends). Nine readings from "any wick under" to "two normal bars under", wick or close. Looser makes
+    more per trade on the 4h and daily (daily: any wick +0.90%, half a bar as graded +1.11%, one bar +1.37%,
+    two bars +1.86%; edge over drift +0.34 -> +0.52) but holds proportionally longer (16 -> 37 bars) and
+    dips deeper (-2.6% -> -5.5%): per day in the trade it is about even. A close under the line = a wick half
+    a bar under. On the 1h nothing changes. It does NOT explain the loose-trail gap (#22: 3.27% came with
+    giving half back). His choice: he leans to his own line, not the trail.
+28. A live reader sees pivots the study never sees (2026-09-08, owner saw the TradingView floor under
+    "things that shouldn't have been an uptrend"). panel.zigzag REPLACES a pivot when a more extreme one of
+    the same kind follows before an opposite pivot qualifies; the replaced one never appears in the study's
+    list. About 1 pivot in 5 is such a phantom; a bar-by-bar reader that acts on it (the old Pine script)
+    disagrees with the study on 12.6% of bars and spends 27% of the time in an uptrend vs the study's 30%.
+    The Pine (`tradingview/pivots_trend.pine`) now rolls the trend back when a pivot is replaced. The live
+    pages recompute from scratch each tick so they self-correct, but a signal fired off a phantom pivot
+    stays in the log. Open: a "live-honest" study that acts on phantoms too (rides taken off them).
+
+29. TRADES PER YEAR, not per trade (2026-09-08, his words: "the main difference is being able to make
+    multiple trades vs just holding ... the number of trades is everything"). He was right and my earlier
+    framing was wrong. `studies/portfolio.py` -> validation/portfolio.json: every signal in time order into
+    a wallet with N slots, position sized off the running account, 60 runs with a random pick when signals
+    collide. Hold times are in CALENDAR days (weekends counted).
+    - Stocks: 1h holds 2.4 days and makes +0.25% (+0.104% a day held); 4h holds 8.3 days, +0.51% (+0.062%);
+      daily holds 29.8 days, +1.45% (+0.049%). The chart that looks worst per trade is the best per day.
+    - The wallet, stocks and ETFs, 4 years: 1h with 10-20 slots = +35% to +37% a year (1,470 trades a year,
+      10-90% spread +31.6% to +39.1% at 10 slots). SPY buy-and-hold over the same window +17.3%. The 4h is
+      +16% to +19%. The DAILY chart, best per trade, is the worst wallet: -1.4% to +1.4% a year (only 3.5
+      signals per name a year, a month per hold).
+    - Slots matter: 1 slot is a coin flip (-22.7% to +21.2%); 10+ slots is where the spread tightens.
+    - Crypto on fast charts loses (1h -22.9% a year if never idle); futures near flat. This result is
+      STOCKS AND ETFs.
+    - THE CATCH: 1,470 trades a year makes it a cost story. At 0.05% round trip (what the study assumes)
+      +34.8%; at 0.10% +25.4%; at 0.15% +16.7% (about SPY); at 0.25% it is gone. Before trusting the 1h,
+      measure his real all-in cost including the spread and slippage on a market order.
+    - Also open: #28 (phantom pivots) applies to these signals too.
+
+30. WHICH NAMES play best this way (2026-09-08). `studies/portfolio_names.py` ->
+    validation/portfolio_names.json. Judged per DAY held and against just OWNING the same name;
+    "a year" for a name means one unit of money dedicated to it alone, its own trades compounded,
+    idle cash earning nothing (an early version stretched a 1.6-day trade over 365 days: nonsense).
+    - Picking names only carries on the 1h. Rank names on the FIRST two years, measure the NEXT two:
+      stocks 1h link +0.15, top quarter +0.135%/day vs +0.067% for the rest; crypto 1h +0.15, top
+      quarter +0.064%/day vs -0.292% (in crypto picking is mostly about AVOIDING the bad ones).
+      On the 4h, the daily, ETFs and futures the link is about zero or negative: past name performance
+      does not carry there.
+    - The best single filter for stocks is HOW BIG THE NAME'S MOVES ARE, not its past result
+      (link +0.34 vs +0.15). Out of sample, the 142 biggest movers of 567 (picked at the halfway
+      point, 2024-09, then traded for two years, 1h, 10 slots): +83.0% a year (+76.1 to +87.8 across
+      60 runs) vs +40.7% for every name and +26.1% for everything except them. SPY +18.7%. (The
+      +64.0% first reported used trade size to measure "moves"; #32 measures it from price alone,
+      which is both cleaner and better. Numbers on /trends, read from the file, never typed.)
+      Their average move a trade is 2.30% against 1.25%, which is also why they survive costs better.
+      Deployed only 74% of the time (fewer names, more idle) and still ahead.
+    - Cost, movers only (round trip, all in): 0.05% +83%, 0.10% +72%, 0.15% +62%, 0.25% +43%,
+      0.40% +19%, 0.60% negative. Every name: already at the market by 0.15%. Big movers hold up much
+      further because the move is bigger than the friction. The whole curve is on /trends.
+    - Share of trades won is a TRAP for stocks: picking on it made the next two years WORSE
+      (+0.054%/day vs +0.094% for the rest). The trend-study score (steps x travel) did not predict
+      this at all (link -0.04).
+    - Caveat: this is ONE out-of-sample split, on two years that rose. Not the three-era test.
+31. Forex intraday is real for the first time (2026-09-08). `backfill_dukascopy.py` read Dukascopy's
+    time field as MILLISECONDS when it is SECONDS, so a day's 1440 minute bars all landed inside the
+    first 86 seconds and every "1h" file came out with one bar a day -- and those files overwrote the
+    real 2-year Yahoo hourly ones. Fixed; `fix_dukascopy_clock.py` repaired the cached minutes without
+    re-downloading (4 days of pulling saved). Eleven pairs now have 4 years of true hourly bars
+    (~24,000 each): AUDUSD EURCHF EURGBP EURJPY EURUSD GBPJPY GBPUSD NZDUSD USDCAD USDCHF USDJPY
+    (AUDJPY only to 2024-03). The rest still have Yahoo's 2 years and the download is continuing.
+    First result: forex loses under the trend ride -- 1h -0.03% a trade (-0.022% a day held),
+    4h -0.05%, daily +0.18% but only 3.2 signals a name a year. Nothing there as coded.
+
+32. HIS FRAMING TESTED (2026-09-08, his words: "it's not really about how much a stock goes up, it's
+    about how much a name moves, and how predictable its moves can be"). `studies/name_traits.py` ->
+    validation/name_traits.json. Three traits measured on the FIRST two years from PRICE ONLY (nothing
+    about the trading rule), then tested on the next two: goes_up (drift), moves (a normal bar as a
+    share of price), straight (net travel over 20 bars divided by the ground covered), follows (after a
+    higher low confirms, is price higher 10 bars later), and the products.
+    Pick the top quarter on each trait, trade them the next two years, 1h, 10 slots:
+        how much it MOVES              +83.0% a year  (+76.1 to +87.8)
+        moves x straight               +75.5%
+        everything, no pick            +39.6%
+        how much it went UP            +31.0%
+        follow-through after a HL      +30.4%
+        how STRAIGHT its moves are     +29.5%
+        SPY                            +18.7%
+    - He is RIGHT that it is not about going up: drift predicts nothing (link -0.04) and picking on it
+      is WORSE than not picking.
+    - He is RIGHT that it is about how much it moves: link +0.24, and it is the only trait that pays.
+      Big movers average a 2.77% normal bar against 0.67%; +0.45% a trade against +0.13%.
+    - The "predictable" half did NOT survive as I can measure it. Straightness and follow-through both
+      land at or below the no-pick baseline, and follow-through's link is NEGATIVE (-0.14). The reason
+      is that they fight movement: moves vs straight -0.34, moves vs follows -0.32. The biggest movers
+      are the least tidy, and filtering for tidiness throws them away. My reading: the structural exit
+      already handles unpredictability, so paying for it in movement is a bad trade. His definition of
+      "predictable" may be something my two measures do not capture -- worth him saying what he looks at.
+    - The price is pain, not win rate: both groups win 41%, but the movers' worst dip inside a trade is
+      -1.30% against -0.69%. Same odds, bigger swings both ways.
+    - Crypto: NO trait predicted anything (every link within 0.05 of zero). #30's crypto result came
+      from the strategy's own past return, not from a trait.
+    - Same caveat as #30: one out-of-sample split on two rising years. Big movers should hurt more in a
+      falling market and that has not been tested.
+
+## Where things are
+
+- Data: `history/` (crypto), `history/stocks/` (Polygon, all hours, 5y; `SOURCE.json` flags it; old free-feed
+  files in `history/stocks_iex/`; top up with `backfill_polygon.py`, key in livelog/polygon.json), `history/futures/`,
+  `history/forex/` (11 pairs REAL hourly since 2026-09-08, see #31; the rest Yahoo 2y). Focus list: `focus.py` (20 stocks, 10 futures, 10 crypto).
+- BEFORE handing him anything: `python check_pages.py` (server running). Every page loads, every file
+  a page asks for answers, every number in those files is a real number, every chart an index points at
+  is on disk and measured clean. It must say "no problems found". No number may be TYPED into a page:
+  pages read their numbers from the files (2026-09-08, "if im gonna put my energy and eyes on
+  everything, it needs to be aces").
+- Studies: `studies/*.py`, results in `validation/*.json`, logs in `logs/`. Run them with
+  `pythonw studies/<x>.py --procs 20 --log logs/<x>.log` (add `--focus` for the focus list).
+  trend_ride.py flags: `--variants` (trail), `--exits`, `--exits2`, `--tols` (break tolerance).
+  EQ (the coil): `studies/eq_coil.py` (the shape), `eq_coil_study.py` (#26c), `eq_coil_counts.py`
+  (how many there are), `pics_eqcoil.py` -> /eqcoils (the shape), `pics_eqtrade.py` -> /eqtrades
+  (every buy, stop and exit drawn), `eq_freeride.py` + `pics_eqfree.py` -> /eqfree (his trade, #26d). The old flat-box work is `eq_break.py` +
+  `eq_scan.py` -> /eq, and it is a CHANNEL, not an EQ.
+  `studies/portfolio.py` answers "how much a YEAR", not per trade (wallet with N slots; see #29);
+  `--with-forex` adds the repaired pairs. `studies/portfolio_names.py` ranks names (#30).
+  `rerun_portfolio.py` runs both. `studies/name_traits.py` measures moves/straight/follows (#32).
+  `fix_dukascopy_clock.py` repairs forex minute stores (#31).
+- Words: a "normal bar" / "bar-size" = the average height of one bar over the last 14 (high to low, gaps
+  included; the ATR). Never say ATR to him.
+- Live: `/bb` backburners (backburner_log.py), `/rides` trend rides (ride_log.py), both every 15 min.
+- After the backburner study: `studies/name_scorecard.py` AND `studies/split_events.py` (the /name pages read
+  validation/name_events/; forgetting the split leaves them stale or 404).
+- Chart sets: `pics_ride.py` (/ridecharts; `--manager` + `--out` for /exitcharts), `pics_cases.py` (/cases),
+  `pics_trendwin.py` (trend windows on /trendstudy), `pics_eq.py` (/eqcharts),
+  `pics_idea.py` (the five idea pictures on the dashboard: trend ride, exits, backburner, EQ, trend steps;
+  one real trade each, static/ideas/). `rerun_allpics.py` redraws all of them.
+  Flask serves static with NO /static prefix (static_url_path=""): the dashboard links /ideas/x.png.
+- TradingView: `tradingview/pivots_trend.pine` (pivots with prices, trend floor/ceiling, x at death; mirrors the
+  engine). `tradingview/structure.pine` is the old EMA-rider one.
+- Pages: `/` dashboard (focus list shown at the top), `/eq` + `/eqcharts` (EQs), `/trendstudy` + `/trendstudy/<kind>/<sym>` (trend behaviour: pivots per trend, fakeouts; old name /trendnames redirects), `/ridecharts`, `/trends`,
+  `/names` + `/name/<kind>/<sym>`, `/cases`, `/study`, `/rules` (this file), `/paint`.
+  The dashboard review with what each page is for: `REVIEW.md`.
+- He trades on Kraken and Coinbase. Crypto cost is 0.2% round trip at his volume tier.
+- Long-form notes: `PROJECT_STATE.md`. Per-rule memory notes with his exact words:
+  `C:\Users\jayru\.claude\projects\C--Users-jayru-Desktop-AI-Trading-Project\memory\`.

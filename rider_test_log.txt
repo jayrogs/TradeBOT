@@ -1,0 +1,66 @@
+universe...
+  30 names
+fetching 120 series...
+  20/120
+  40/120
+  60/120
+  80/120
+  100/120
+  120/120
+  BTC    782 trades so far
+  ETH    1579 trades so far
+  SOL    2317 trades so far
+  XRP    2988 trades so far
+  ENA    3552 trades so far
+  HYPE   4021 trades so far
+  ZEC    4514 trades so far
+  TRUMP  4743 trades so far
+  BNB    5191 trades so far
+  DOGE   5311 trades so far
+  SUI    5805 trades so far
+  LINK   6125 trades so far
+  TRX    6849 trades so far
+  ADA    7490 trades so far
+  PYTH   7897 trades so far
+  UNI    8586 trades so far
+  PEPE   8899 trades so far
+  PUMP   9410 trades so far
+  AAVE   9897 trades so far
+  TAO    10254 trades so far
+  LTC    10887 trades so far
+  AVAX   11268 trades so far
+  NEAR   11398 trades so far
+  PENGU  11739 trades so far
+  WLD    11972 trades so far
+  BCH    12137 trades so far
+  XLM    12505 trades so far
+  BICO   12736 trades so far
+  ONDO   13286 trades so far
+  DOT    13703 trades so far
+
+==============================================================================
+  EMA 12 RIDER -- 13703 trades, 30 names, crypto
+==============================================================================
+  entry: dip into the EMA while armed
+  exit : the ride dies (body closes under the EMA, or under the HL)
+  costs: 0.1% per side
+
+  tf      trades    median      mean      win%     bars vs random
+  --------------------------------------------------------------------------
+  5m        3682   -0.256%   -0.190%       14%        2   +0.000%
+  15m       3550   -0.310%   -0.183%       17%        2   -0.006%
+  1h        4339   -0.468%   -0.117%       24%        2   +0.021%
+  4h        1019   -0.794%   -0.034%       27%        2   +0.185%
+  12h        335   -1.408%   -0.392%       24%        1   -0.215%
+  1d         778   -1.903%   +0.861%       30%        2   +0.691%
+
+  ALL: 13703 trades   mean -0.099%   median -0.333%   win 20%
+  controls, averaged over every name and timeframe:
+    same holding period from an arbitrary bar : +0.091%
+    same trades, entries drawn at random      : -0.120%
+
+  EDGE OVER THE RANDOM NULL: +0.021% per trade
+  -> the signal beats its own null
+
+  gross, before costs: mean +0.101%  (costs take 0.200%)
+  full table: rider_test_trades.csv

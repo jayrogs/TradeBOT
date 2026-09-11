@@ -1,0 +1,49 @@
+{
+ "5m": {
+  "found": 18419,
+  "tradeable": 12641,
+  "per_name_year": 73.45,
+  "shape_bars": 27,
+  "live_bars": 3
+ },
+ "15m": {
+  "found": 7181,
+  "tradeable": 4927,
+  "per_name_year": 27.98,
+  "shape_bars": 28,
+  "live_bars": 3
+ },
+ "1h": {
+  "found": 1789,
+  "tradeable": 1081,
+  "per_name_year": 5.48,
+  "shape_bars": 24,
+  "live_bars": 3
+ },
+ "4h": {
+  "found": 375,
+  "tradeable": 246,
+  "per_name_year": 1.25,
+  "shape_bars": 25,
+  "live_bars": 2
+ },
+ "1d": {
+  "found": 117,
+  "tradeable": 66,
+  "per_name_year": 0.19,
+  "shape_bars": 23,
+  "live_bars": 2
+ },
+ "1w": {
+  "found": 19,
+  "tradeable": 10,
+  "per_name_year": 0.03,
+  "shape_bars": 23,
+  "live_bars": 1
+ },
+ "meta": {
+  "names": 40,
+  "seconds": 22,
+  "generated": "2026-09-10 00:30"
+ }
+}

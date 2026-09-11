@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desk</title>
+<style>
+  :root{
+    --bg:#0d0f12; --card:#15181d; --card2:#1b1f26; --line:#252a33;
+    --fg:#e7ebf0; --dim:#8b93a1; --faint:#5b6472;
+    --green:#3ddc97; --red:#ff5c72; --amber:#ffb84d; --blue:#5aa9ff;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{position:sticky;top:0;z-index:5;background:rgba(13,15,18,.94);
+         backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+         padding:14px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  h1{margin:0;font-size:15px;letter-spacing:.14em;text-transform:uppercase;
+     font-weight:600}
+  .sub{color:var(--faint);font-size:12px}
+  input{background:var(--card2);border:1px solid var(--line);color:var(--fg);
+        padding:7px 10px;border-radius:7px;font:13px var(--mono);min-width:210px}
+  button{background:var(--card2);border:1px solid var(--line);color:var(--fg);
+         padding:7px 13px;border-radius:7px;cursor:pointer;font-size:13px}
+  button:hover{border-color:var(--faint)}
+  main{padding:20px;display:grid;gap:18px;
+       grid-template-columns:repeat(auto-fit,minmax(430px,1fr));max-width:1700px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+        padding:16px 18px;overflow:hidden}
+  .card.hit{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+  .top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+       margin-bottom:12px}
+  .sym{font-size:19px;font-weight:700;letter-spacing:.04em}
+  .px{font:600 19px var(--mono)}
+  .pl{font:600 13px var(--mono);padding:2px 8px;border-radius:5px}
+  .pl.up{color:var(--green);background:rgba(61,220,151,.12)}
+  .pl.dn{color:var(--red);background:rgba(255,92,114,.12)}
+  .meta{color:var(--faint);font-size:12px;font-family:var(--mono)}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+  th{color:var(--faint);font-weight:500;text-align:right;padding:5px 6px;
+     border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.06em;
+     text-transform:uppercase}
+  th:first-child,td:first-child{text-align:left}
+  td{padding:6px;border-bottom:1px solid rgba(37,42,51,.5);text-align:right}
+  tr.rung td{background:rgba(61,220,151,.07)}
+  .tf{color:var(--dim);font-weight:600}
+  .os{color:var(--green);font-weight:600}
+  .warm{color:var(--amber)}
+  .muted{color:var(--faint)}
+  .lights{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+  .lt{display:flex;align-items:center;gap:7px;background:var(--card2);
+      border:1px solid var(--line);border-radius:20px;padding:5px 11px;font-size:12px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
+  .lt.on .dot{background:var(--green);box-shadow:0 0 7px var(--green)}
+  .lt.on{border-color:rgba(61,220,151,.4)}
+  .lt .d{color:var(--faint);font-family:var(--mono);font-size:11px}
+  .score{margin-top:12px;font-size:12px;color:var(--dim)}
+  .score b{color:var(--fg);font-family:var(--mono)}
+  .rungs{margin-top:9px;font-size:12px;color:var(--dim)}
+  .tag{display:inline-block;background:rgba(90,169,255,.13);color:var(--blue);
+       border-radius:5px;padding:1px 7px;margin-right:5px;font-family:var(--mono)}
+  footer{padding:14px 20px 40px;color:var(--faint);font-size:12px;max-width:900px}
+  .err{color:var(--red);font-family:var(--mono);font-size:12.5px}
+  @media (max-width:520px){main{grid-template-columns:1fr;padding:12px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Desk</h1>
+  <input id="watch" placeholder="MRNA,NVDA  (blank = positions.csv)">
+  <button id="go">Watch</button>
+  <button id="pause">Pause</button>
+  <span class="sub" id="stamp">loading…</span>
+</header>
+
+<main id="grid"></main>
+
+<footer>
+  <b>livelow</b> is the lowest RSI the current candle has shown while still
+  forming — the number the method actually triggers on, not the closed-bar
+  value. <b>bid@N</b> is the price that would print RSI N on the next bar of
+  that timeframe.
+  <br><br>
+  Lights are the conditions as described. They are <b>not validated</b>: the
+  backburner method has never been tested, because testing it needs intrabar
+  readings and free data reaches back seven days. A full green panel means the
+  conditions are present, not that the trade works. This page places no orders.
+</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+let timer = null, paused = false, prevRungs = {};
+
+function fmt(v, d = 2) {
+  return (v === null || v === undefined) ? '<span class="muted">–</span>'
+                                         : Number(v).toFixed(d);
+}
+function bid(v) {
+  return (v === null || v === undefined)
+    ? '<span class="muted">above</span>' : Number(v).toFixed(2);
+}
+
+function card(r) {
+  if (r.error) {
+    return `<div class="card"><div class="top"><span class="sym">${r.sym}</span></div>
+            <div class="err">${r.error}</div></div>`;
+  }
+  const key = r.sym;
+  const nowRungs = (r.rungs || []).join(',');
+  const isNew = prevRungs[key] !== undefined && nowRungs !== prevRungs[key]
+                && (r.rungs || []).length > 0;
+  prevRungs[key] = nowRungs;
+
+  const pl = r.open_pct === null || r.open_pct === undefined ? '' :
+    `<span class="pl ${r.open_pct >= 0 ? 'up' : 'dn'}">
+       ${r.open_pct >= 0 ? '+' : ''}${r.open_pct.toFixed(1)}%</span>`;
+  const avg = r.avg ? `<span class="meta">avg ${r.avg.toFixed(2)}</span>` : '';
+  const vw = r.vwap ? `<span class="meta">vwap ${r.vwap.toFixed(2)}</span>` : '';
+
+  const rows = r.tfs.map(t => {
+    const hot = t.livelow !== null && t.livelow <= 31;
+    const warm = t.livelow !== null && t.livelow > 31 && t.livelow <= 40;
+    const cls = t.today > 0 ? 'rung' : '';
+    const live = hot ? `<span class="os">${fmt(t.livelow, 1)}</span>`
+               : warm ? `<span class="warm">${fmt(t.livelow, 1)}</span>`
+                      : fmt(t.livelow, 1);
+    return `<tr class="${cls}">
+      <td class="tf">${t.tf}</td>
+      <td>${fmt(t.rsi, 1)}</td>
+      <td>${live}</td>
+      <td>${t.today > 0 ? '<span class="os">' + t.today + '</span>' : '<span class="muted">0</span>'}</td>
+      <td>${bid(t.bid40)}</td>
+      <td>${bid(t.bid35)}</td>
+      <td>${bid(t.bid30)}</td>
+      <td>${t.steps}</td></tr>`;
+  }).join('');
+
+  const lights = r.lights.map(l =>
+    `<span class="lt ${l.on ? 'on' : ''}"><span class="dot"></span>${l.name}
+     <span class="d">${l.detail}</span></span>`).join('');
+
+  const rungs = (r.rungs || []).length
+    ? r.rungs.map(x => `<span class="tag">${x}</span>`).join('')
+    : '<span class="muted">none today</span>';
+
+  return `<div class="card ${isNew ? 'hit' : ''}">
+    <div class="top">
+      <span class="sym">${r.sym}</span>
+      <span class="px">${fmt(r.px)}</span>${pl}${avg}${vw}
+    </div>
+    <table>
+      <thead><tr><th>tf</th><th>rsi</th><th>livelow</th><th>rungs</th>
+      <th>bid@40</th><th>bid@35</th><th>bid@30</th><th>steps</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="lights">${lights}</div>
+    <div class="score">conditions <b>${r.green}/${r.total}</b></div>
+    <div class="rungs">printed today: ${rungs}</div>
+  </div>`;
+}
+
+async function tick() {
+  if (paused) return;
+  const w = $('#watch').value.trim();
+  try {
+    const res = await fetch('/api/desk' + (w ? '?watch=' + encodeURIComponent(w) : ''));
+    const d = await res.json();
+    $('#grid').innerHTML = d.rows.map(card).join('');
+    $('#stamp').textContent = d.ts + '  ·  cache ' + d.ttl + 's';
+  } catch (e) {
+    $('#stamp').textContent = 'fetch failed: ' + e.message;
+  }
+}
+
+$('#go').onclick = tick;
+$('#watch').addEventListener('keydown', e => { if (e.key === 'Enter') tick(); });
+$('#pause').onclick = () => {
+  paused = !paused;
+  $('#pause').textContent = paused ? 'Resume' : 'Pause';
+  if (!paused) tick();
+};
+tick();
+timer = setInterval(tick, 20000);
+</script>
+</body>
+</html>

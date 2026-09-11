@@ -1,0 +1,111 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Trend Study</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--card2:#1a1e25;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --amber:#ffb84d;--eq:#5aa9ff;--up:#3ddc97;--dn:#ff5c72;--mono:ui-monospace,Consolas,monospace}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:18px 22px 6px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  h1{font-size:18px;margin:0 14px 0 0}
+  .cat{background:var(--card2);border:1px solid var(--line);color:var(--dim);padding:5px 11px;border-radius:8px;cursor:pointer;font-size:12.5px;user-select:none}
+  .cat.on{background:rgba(255,184,77,.16);border-color:var(--amber);color:var(--amber)}
+  select,input{background:var(--card2);border:1px solid var(--line);color:var(--fg);padding:5px 8px;border-radius:7px;font-size:13px}
+  .note{color:var(--dim);font-size:12.5px}
+  .sub{color:var(--dim);font-size:13px;max-width:1100px;padding:0 22px 8px;line-height:1.55}
+  main{padding:8px 22px 60px}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:12px}
+  th{color:var(--faint);font-weight:500;text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);font-size:11px;cursor:pointer;user-select:none;white-space:nowrap}
+  th:hover{color:var(--fg)} th.on{color:var(--amber)}
+  th.l,td.l{text-align:left}
+  td{padding:5px 8px;text-align:right;border-bottom:1px solid rgba(37,42,51,.6);white-space:nowrap}
+  tr.bench td{background:rgba(90,169,255,.08)}
+  .pos{color:var(--up)} .neg{color:var(--dn)} .faint{color:var(--faint)}
+  .g{display:inline-block;min-width:18px;text-align:center;padding:1px 6px;border-radius:5px;font-weight:700}
+  .gA{background:#1f6f4a;color:#dfffe9} .gB{background:#2c5a86;color:#e3f0ff} .gC{background:#3b4250;color:#e6e9ee} .gD{background:#7a3b2a;color:#ffe6df} .gF{background:#8a2530;color:#ffe3e6} .gQ{background:#2a2e36;color:#8b93a1}
+  a.sym{color:var(--fg);font-weight:700;text-decoration:none;border-bottom:1px dotted var(--faint)} a.sym:hover{color:var(--eq)}
+  .full{color:var(--faint);font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+  td.v{color:var(--dim);white-space:normal;min-width:190px;text-align:left}
+  .bar{display:inline-block;height:8px;border-radius:2px;vertical-align:middle}
+</style></head>
+<body>
+<header>
+  <h1>Trend study: which names trend cleanly</h1>
+  <span class="cat on" data-k="crypto">Crypto</span><span class="cat" data-k="stock">Stocks</span><span class="cat" data-k="etf">ETFs</span><span class="cat" data-k="futures">Futures</span>
+  <select id="tf"></select>
+  <label class="note">at least <input id="minn" type="number" value="30" style="width:55px"> trends</label>
+  <label class="note"><input id="focus" type="checkbox"> focus list only</label>
+  <input id="q" placeholder="symbol…" size="9">
+</header>
+<div class="sub">
+<p style="margin:0 0 6px"><b>What this page answers:</b> which names make clean, long trends, and which ones start a trend and quit.</p>
+<p style="margin:0 0 6px"><b>How it counts.</b> A trend starts when a name makes a higher low and then a higher high (or the mirror for a downtrend). From there we count every extra <b>step</b> it takes: each new higher low or higher high is one step. The trend ends when a wick breaks the last higher low, or a lower high and lower low show up. A trend that ended with <b>zero</b> extra steps is a <b>fakeout</b>: it started and quit.</p>
+<p style="margin:0 0 6px"><b>How to read a row.</b> "3.1 steps, 20% fakeouts, ran 6 bar-sizes" means: once this name starts a trend, it usually takes about 3 more steps, one in five trends quits right away, and the average trend travelled about 6 normal bars from start to top. <b>Score</b> is steps times distance for each trend (counting the two steps that started it), averaged over all its trends, and it is the default order: the top of the list is the names whose trends keep stepping and go far. A <b>bar-size</b> is the average height of one bar on that chart (the last 14 bars, high to low), so 6 bar-sizes on a daily chart is about six normal daily bars stacked up.</p>
+<p style="margin:0"><b>The right side</b> is your trend ride on this name (buy the second higher low, sell when the last higher low breaks): trades, per trade, and a grade against BTC, SPY or ES. <b>A</b> beat the benchmark in both halves of the 4 years, <b>B</b> in one half, <b>C</b> about the same, <b>D</b> worse, <b>F</b> lost money. Click any name to see every trend and every trade drawn. <a href="#" id="more" style="color:var(--eq)">Show all the numbers</a> adds the rest of the measures.</p>
+</div>
+<main><div class="note" id="meta">loading…</div><table><thead id="head"></thead><tbody id="rows"></tbody></table></main>
+<script>
+const $ = s => document.querySelector(s);
+const pct = (x, d=1) => x == null || isNaN(x) ? '<span class="faint">–</span>' : `<span class="${x >= 0 ? 'pos' : 'neg'}">${x >= 0 ? '+' : ''}${(100*x).toFixed(d)}%</span>`;
+const p0 = x => x == null ? '<span class="faint">–</span>' : (100*x).toFixed(0) + '%';
+const f1 = x => x == null ? '<span class="faint">–</span>' : Number(x).toFixed(1);
+const bar = (x, col) => x == null ? '' : `<span class="bar" style="width:${Math.round(60*x)}px;background:${col}"></span> ${(100*x).toFixed(0)}%`;
+// [key, heading, hover explanation, how to draw it, only in the full view?]
+const COLS = [
+  ['sym', 'name', '', null, false],
+  ['trends', 'trends', 'how many trends this name had in 4 years on this chart (up and down both)', r => r.trends ?? '', false],
+  ['piv_per_trend', 'steps per trend', 'once a trend starts, how many more higher lows and higher highs it makes before it ends. more = it keeps going', r => f1(r.piv_per_trend), false],
+  ['fakeout', 'fakeouts', 'share of trends that ended with no extra step at all: started and quit. lower is better', r => bar(r.fakeout, '#ff5c72'), false],
+  ['travel', 'how far it ran', 'average distance from where the trend started to its top (or bottom), in bar-sizes', r => f1(r.travel), false],
+  ['piv_w', 'score', 'for each trend, its steps (counting the two that started it) times how far it ran, then averaged. the default order. high = long, clean trends', r => `<b>${f1(r.piv_w)}</b>`, false],
+  ['grade', 'ride grade', 'your trend ride on this name against BTC, SPY or ES. A best, F lost', r => `<span class="g g${r.grade === '?' ? 'Q' : r.grade}">${r.grade}</span>`, false],
+  ['ride_n', 'ride trades', 'how many trend rides your rule took here', r => r.ride_n, false],
+  ['ride', 'ride per trade', 'what one trend ride made on average, after costs', r => pct(r.ride, 2), false],
+  ['ride_win', 'rides won', 'share of trend rides that made money', r => p0(r.ride_win), false],
+  ['behave_score', 'steps x (1 - fakeouts)', 'the old default score: steps per trend times the share of trends that were not fakeouts', r => r.behave_score == null ? '-' : r.behave_score.toFixed(2), true],
+  ['long_share', 'long trends (3+ steps)', 'share of trends that took 3 or more extra steps', r => bar(r.long_share, '#3ddc97'), true],
+  ['wick_death', 'died on a wick', 'how often the trend ended on a wick through the line rather than a lower high or lower low', r => p0(r.wick_death), true],
+  ['longest_piv', 'longest (steps)', 'the most steps any one trend took', r => r.longest_piv ?? '', true],
+  ['piv_all', 'steps incl. the 2 openers', 'steps per trend, also counting the higher low and higher high that started it', r => f1(r.piv_all), true],
+  ['up_piv', 'up: steps', 'steps per trend, uptrends only', r => f1(r.up_piv), true],
+  ['down_piv', 'down: steps', 'steps per trend, downtrends only', r => f1(r.down_piv), true],
+  ['pct_up', 'time in uptrend', 'share of all bars spent inside an uptrend', r => bar(r.pct_up, '#3ddc97'), true],
+  ['pct_down', 'time in downtrend', 'share of all bars spent inside a downtrend', r => bar(r.pct_down, '#ff5c72'), true],
+  ['up_len_days', 'uptrend length (days)', 'average uptrend length in days', r => r.up_len_days == null ? '' : r.up_len_days.toFixed(1), true],
+  ['up_gain', 'uptrend gain', 'average gain from the start of an uptrend to its top', r => pct(r.up_gain), true],
+  ['beta', 'moves', 'how much this name moves for each 1x move of its benchmark', r => r.beta == null ? '-' : r.beta.toFixed(1) + 'x', true],
+];
+let DATA = null, FOCUS = null, NAMES = {}, KIND = 'crypto', SORT = {k: 'piv_w', dir: -1}, FULL = false;
+fetch('/validation/names_map.json').then(r => r.json()).then(m => { NAMES = m; if (DATA) draw(); }).catch(() => {});
+Promise.all([
+  fetch('/validation/trend_names.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_names_focus.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+]).then(([all, foc]) => {
+  DATA = all || foc; FOCUS = foc;
+  if (!DATA) { $('#meta').textContent = 'no results yet (python studies/trend_names.py)'; return; }
+  if (!all) $('#focus').checked = true;
+  $('#tf').innerHTML = DATA.tfs.map(t => `<option value="${t}">${t === 'all' ? 'all timeframes' : t}</option>`).join('');
+  $('#tf').value = 'all';
+  draw();
+});
+const fullName = (sym, kind) => (NAMES[kind === 'etf' ? 'stock' : kind] || {})[sym] || (NAMES.stock || {})[sym] || '';
+function draw(){
+  const src = ($('#focus').checked && FOCUS) ? FOCUS : DATA;
+  const minn = Number($('#minn').value) || 0, q = $('#q').value.trim().toUpperCase(), tf = $('#tf').value;
+  const bench = src.bench[KIND];
+  let rows = src.rows.filter(r => r.kind === KIND && r.tf === tf && (r.trends || 0) >= minn && (!q || r.sym.includes(q)));
+  const b = src.rows.find(r => r.sym === bench && r.tf === tf);
+  if (b && !rows.some(r => r.sym === bench)) rows.push(b);
+  rows.sort((a, c) => { const x = a[SORT.k], y = c[SORT.k]; if (typeof x === 'string') return SORT.dir * x.localeCompare(y); if (x == null) return 1; if (y == null) return -1; return SORT.dir * (x - y); });
+  const cols = COLS.filter(c => FULL || !c[4]);
+  $('#meta').textContent = `${rows.length} names · ${tf === 'all' ? 'all timeframes pooled' : tf + ' chart'} · generated ${src.generated}${src.focus ? ' · focus list' : ''} · hover a heading for what it means · click a heading to sort`;
+  $('#head').innerHTML = '<tr>' + cols.map(([k, label, tip]) => `<th class="${k === 'sym' || k === 'grade' ? 'l' : ''} ${SORT.k === k ? 'on' : ''}" data-k="${k}" title="${tip}">${label}${SORT.k === k ? (SORT.dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('') + '</tr>';
+  $('#rows').innerHTML = rows.map(r => '<tr class="' + (r.sym === bench ? 'bench' : '') + '">' +
+    `<td class="l"><a class="sym" href="/trendstudy/${r.kind}/${encodeURIComponent(r.sym)}">${r.sym}</a>${r.sym === bench ? ' <span class="faint">benchmark</span>' : ''}<div class="full">${fullName(r.sym, r.kind)}</div></td>` +
+    cols.slice(1).map(([k, , , fn]) => `<td class="${k === 'grade' ? 'l' : ''}">${fn(r)}</td>`).join('') + '</tr>').join('')
+    || `<tr><td colspan="${cols.length}" class="faint">nothing with that many trends</td></tr>`;
+  document.querySelectorAll('th[data-k]').forEach(h => h.onclick = () => { if (SORT.k === h.dataset.k) SORT.dir = -SORT.dir; else SORT = {k: h.dataset.k, dir: -1}; draw(); });
+}
+document.querySelectorAll('.cat').forEach(b => b.onclick = () => { KIND = b.dataset.k; document.querySelectorAll('.cat').forEach(x => x.classList.toggle('on', x === b)); draw(); });
+$('#tf').onchange = draw; $('#minn').oninput = draw; $('#q').oninput = draw; $('#focus').onchange = draw;
+$('#more').onclick = e => { e.preventDefault(); FULL = !FULL; $('#more').textContent = FULL ? 'Show fewer numbers' : 'Show all the numbers'; draw(); };
+</script>
+</body></html>

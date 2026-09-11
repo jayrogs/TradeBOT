@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Paint Your Read</title>
+<style>
+  :root{--bg:#0d0f12;--card:#12151a;--line:#252a33;--fg:#e6e9ee;
+        --mut:#8b93a1;--up:#3ddc97;--dn:#ff5c72}
+  body{background:var(--bg);color:var(--fg);margin:0;
+       font:14px/1.5 -apple-system,'Segoe UI',Roboto,sans-serif}
+  .wrap{max-width:1150px;margin:0 auto;padding:20px 14px 80px}
+  h1{font-size:19px;margin:0 0 4px}
+  .sub{color:var(--mut);font-size:12.5px;margin-bottom:18px;max-width:900px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+        margin-bottom:22px;padding:12px 14px}
+  .head{display:flex;align-items:center;gap:14px;margin-bottom:8px;
+        flex-wrap:wrap}
+  .head b{font-size:14px}
+  .tools{display:flex;gap:6px;align-items:center;margin-left:auto}
+  .tool{border:1px solid var(--line);background:#0f1216;color:var(--mut);
+        border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px}
+  .tool.sel-U{background:#124a2f;color:#3ddc97;border-color:#1d7a4a}
+  .tool.sel-D{background:#4a1220;color:#ff5c72;border-color:#7a1d33}
+  .tool.sel-B{background:#12304a;color:#5aa9ff;border-color:#1d4a7a}
+  .tool.sel-X{background:#2a2e36;color:#e6e9ee}
+  .save{border:1px solid #2c4a6e;background:#1c2f45;color:#cfe3ff;
+        border-radius:7px;padding:5px 14px;cursor:pointer;font-size:12px}
+  .ok{color:var(--up);font-size:11px;opacity:0;transition:opacity .2s}
+  .ok.on{opacity:1}
+  canvas{width:100%;display:block;border-radius:8px;cursor:crosshair;
+         touch-action:none}
+  .legend{color:var(--mut);font-size:11px;margin-top:6px}
+  .noteRow{display:flex;gap:10px;align-items:flex-start;margin-top:8px}
+  textarea{flex:1;background:#0f1216;border:1px solid var(--line);
+           color:var(--fg);border-radius:8px;padding:8px 10px;
+           font:13px/1.5 -apple-system,'Segoe UI',Roboto,sans-serif;
+           resize:vertical;min-height:44px}
+  textarea:focus{outline:none;border-color:#5aa9ff}
+  .nsaved{color:var(--up);font:11px monospace;opacity:0;
+          transition:opacity .2s;padding-top:8px;white-space:nowrap}
+  .nsaved.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Paint your read</h1>
+  <div id="genstamp" style="color:#5b6472;font-size:11px;margin-bottom:8px">generation: loading&hellip;</div>
+<div class="sub">
+    Pick <b style="color:var(--up)">UPTREND</b> or
+    <b style="color:var(--dn)">DOWNTREND</b> on a chart, then click-drag
+    across the candles to highlight what you see. ERASE removes. Your read
+    appears in the bottom lane, the engine's sits in the lane above it, so
+    the disagreements stare right at us. Hit SAVE on each chart when done.
+    You don't have to paint every bar &mdash; just the stretches you're
+    confident about.
+    <br><br>
+    <b>The background is the trend read, your rules:</b>
+    a green block opens when a <b style="color:var(--up)">HL and HH</b> have
+    both formed and runs until the first
+    <b style="color:var(--dn)">LH or LL</b>; red is the mirror;
+    <span style="color:#9aa3b2">EH / EL</span> neither build nor kill; the
+    killing pivot seeds the next pattern. The labels show every pivot so any block can be
+    checked against the pivots that made it.
+    <br><br>
+    <b style="color:#5aa9ff">Blue shading = a range</b> (HL LH HL LH, equal highs and lows
+    count), living beside the trends &mdash; each one stretches
+    back over the four pivots that birthed it, so its evidence is inside the
+    blue. Blue over red reads purple: a range inside a downtrend. The thin
+    "engine" lane at the bottom is the old per-bar machine, kept only for
+    reference.
+  </div>
+  <div id="charts"></div>
+</div>
+<script>
+const ENG={UP:'#1d7a4a',DOWN:'#a33045',BALANCE:'#33608a',FLAT:'#23262d'};
+const YOU={U:'#3ddc97',D:'#ff5c72',B:'#5aa9ff','':'#15181d'};
+let W=[], marks={}, tool={}, drag=null;
+
+function draw(w){
+  const cv=document.getElementById('cv'+w.n), ctx=cv.getContext('2d');
+  const N=w.c.length, cw=cv.width, ch=cv.height;
+  const laneE=ch-40, laneY=ch-22, plotH=laneE-8;
+  ctx.fillStyle='#0d0f12'; ctx.fillRect(0,0,cw,ch);
+  let lo=Math.min(...w.l), hi=Math.max(...w.h);
+  // PIVOT SPANS as the background -- the owner's model: HL+HH opens,
+  // LH/LL closes, nothing else
+  if(w.spans){
+    const SC2={UP:'#12351f',DOWN:'#3a1720'};
+    const bx0=cw/w.c.length;
+    w.spans.forEach(([k2,s0,s1])=>{
+      ctx.fillStyle=SC2[k2]||'#0d0f12';
+      ctx.fillRect(Math.max(0,s0)*bx0,0,(s1-Math.max(0,s0)+1)*bx0,ch-40);
+    });
+  }
+  const y=v=>plotH-(v-lo)/(hi-lo)*(plotH-10)+5, bx=cw/N;
+  for(let i=0;i<N;i++){
+    const up=w.c[i]>=w.o[i];
+    ctx.strokeStyle=ctx.fillStyle=up?'#3ddc97':'#ff5c72';
+    ctx.beginPath();
+    ctx.moveTo(i*bx+bx/2,y(w.h[i])); ctx.lineTo(i*bx+bx/2,y(w.l[i]));
+    ctx.stroke();
+    const a=y(Math.max(w.o[i],w.c[i])), b=y(Math.min(w.o[i],w.c[i]));
+    ctx.fillRect(i*bx+bx*0.18, a, bx*0.64, Math.max(b-a,1));
+  }
+  ctx.strokeStyle='#c9a35d'; ctx.beginPath();
+  for(let i=0;i<N;i++){const yy=y(w.ema[i]);
+    i?ctx.lineTo(i*bx+bx/2,yy):ctx.moveTo(i*bx+bx/2,yy);}
+  ctx.stroke();
+  // the engine's structure: zigzag through its pivots, each labeled
+  if(w.pivots&&w.pivots.length){
+    ctx.strokeStyle='rgba(200,210,230,.45)'; ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    w.pivots.forEach((p,i)=>{const X=p.x*bx+bx/2, Y=y(p.px);
+      i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);});
+    ctx.stroke(); ctx.setLineDash([]);
+    const LC={HH:'#3ddc97',HL:'#3ddc97',LL:'#ff5c72',LH:'#ff5c72',
+              EH:'#9aa3b2',EL:'#9aa3b2',H:'#9aa3b2',L:'#9aa3b2'};
+    ctx.font='bold 11px sans-serif'; ctx.textAlign='center';
+    w.pivots.forEach(p=>{
+      const X=p.x*bx+bx/2, Y=y(p.px), lo=(p.kind==='low');
+      ctx.fillStyle=LC[p.lab]||'#9aa3b2';
+      ctx.beginPath();
+      if(lo){ctx.moveTo(X,Y+3);ctx.lineTo(X-4,Y+9);ctx.lineTo(X+4,Y+9);}
+      else{ctx.moveTo(X,Y-3);ctx.lineTo(X-4,Y-9);ctx.lineTo(X+4,Y-9);}
+      ctx.closePath(); ctx.fill();
+      ctx.fillText(p.lab, X, lo?Y+21:Y-13);
+    });
+    ctx.textAlign='start';
+  }
+  for(let i=0;i<N;i++){
+    ctx.fillStyle=ENG[w.state[i]]||'#23262d';
+    ctx.fillRect(i*bx,laneE,bx+0.5,12);
+    ctx.fillStyle=YOU[marks[w.n][i]]||'#15181d';
+    ctx.fillRect(i*bx,laneY,bx+0.5,16);
+  }
+  // the RANGE OVERLAY: the owner's EQ living BESIDE the trend engine --
+  // a translucent blue wash over the candles wherever a range is alive
+  if(w.eq){
+    for(let i=0;i<N;i++){
+      if(+w.eq[i]){
+        ctx.fillStyle='rgba(90,169,255,.13)';
+        ctx.fillRect(i*bx,0,bx+0.5,laneE);
+      }
+    }
+  }
+  if(drag&&drag.n===w.n){
+    ctx.fillStyle=(tool[w.n]==='U'?'rgba(61,220,151,.15)':
+                   tool[w.n]==='D'?'rgba(255,92,114,.15)':
+                   tool[w.n]==='B'?'rgba(90,169,255,.15)':'rgba(200,200,200,.12)');
+    const a=Math.min(drag.a,drag.b), b=Math.max(drag.a,drag.b);
+    ctx.fillRect(a*bx,0,(b-a+1)*bx,laneE);
+  }
+  ctx.fillStyle='#5b6472'; ctx.font='10px sans-serif';
+  ctx.fillText('engine',4,laneE+10);
+  ctx.fillStyle='#8b93a1';
+  ctx.fillText('you',4,laneY+12);
+}
+
+function bar(w,ev){
+  const cv=document.getElementById('cv'+w.n);
+  const r=cv.getBoundingClientRect();
+  const x=(ev.clientX-r.left)/r.width*w.c.length;
+  return Math.max(0,Math.min(w.c.length-1,Math.floor(x)));
+}
+
+function setTool(n,t){
+  tool[n]=t;
+  document.querySelectorAll('#tools'+n+' .tool').forEach(b=>{
+    b.className='tool'+(b.dataset.t===t?' sel-'+t:'');});
+}
+
+function save(n){
+  fetch('/api/trendmark',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({n:n,marks:marks[n]})}).then(()=>{
+      const el=document.getElementById('ok'+n);
+      el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),1200);
+    });
+}
+
+let ntimer=null;
+document.addEventListener('input',e=>{
+  const a=e.target;
+  if(a.tagName!=='TEXTAREA')return;
+  clearTimeout(ntimer);
+  ntimer=setTimeout(()=>{
+    fetch('/api/tradenote',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({n:Number(a.dataset.n),note:a.value})})
+     .then(()=>{const s=document.getElementById('ns'+a.dataset.n);
+       s.classList.add('on');setTimeout(()=>s.classList.remove('on'),1200);});
+  },600);
+});
+
+fetch('/api/trendwin').then(r=>r.json()).then(ws=>{
+ W=ws;
+ fetch('/api/trendmark').then(r=>r.json()).then(saved=>{
+  const root=document.getElementById('charts');
+  ws.forEach(w=>{
+    marks[w.n]=(saved[w.n]&&saved[w.n].length===w.c.length)
+               ?saved[w.n]:new Array(w.c.length).fill('');
+    tool[w.n]='U';
+    const div=document.createElement('div'); div.className='card';
+    div.innerHTML=`<div class="head"><b>${w.n}. ${w.sym} ${w.tf}</b>
+      <span style="color:var(--mut);font-size:12px">
+        ${w.dates[0].slice(0,10)} &rarr; ${w.dates[w.dates.length-1].slice(0,10)}</span>
+      <div class="tools" id="tools${w.n}">
+        <button class="tool sel-U" data-t="U" onclick="setTool(${w.n},'U')">UPTREND</button>
+        <button class="tool" data-t="D" onclick="setTool(${w.n},'D')">DOWNTREND</button>
+        <button class="tool" data-t="B" onclick="setTool(${w.n},'B')">EQ</button>
+        <button class="tool" data-t="X" onclick="setTool(${w.n},'X')">ERASE</button>
+        <button class="save" onclick="save(${w.n})">SAVE</button>
+        <span class="ok" id="ok${w.n}">saved</span>
+      </div></div>
+      <canvas id="cv${w.n}" width="1100" height="330"></canvas>
+      <div class="legend">drag across the candles to paint &middot; engine
+      lane: green UP, red DOWN, blue BALANCE, dark = no call</div>
+      <div class="noteRow">
+        <textarea data-n="${w.n}" placeholder="what's wrong with this one? (saves itself)"></textarea>
+        <span class="nsaved" id="ns${w.n}">saved</span>
+      </div>`;
+    root.appendChild(div);
+    const cv=div.querySelector('canvas');
+    cv.addEventListener('pointerdown',ev=>{
+      drag={n:w.n,a:bar(w,ev),b:bar(w,ev)}; cv.setPointerCapture(ev.pointerId);
+      draw(w);});
+    cv.addEventListener('pointermove',ev=>{
+      if(drag&&drag.n===w.n){drag.b=bar(w,ev); draw(w);}});
+    cv.addEventListener('pointerup',ev=>{
+      if(drag&&drag.n===w.n){
+        const a=Math.min(drag.a,drag.b), b=Math.max(drag.a,drag.b);
+        const v=tool[w.n]==='X'?'':tool[w.n];
+        for(let i=a;i<=b;i++) marks[w.n][i]=v;
+        drag=null; draw(w);
+      }});
+    draw(w);
+  });
+  fetch('/api/tradenote').then(r=>r.json()).then(d=>{
+    document.querySelectorAll('textarea').forEach(a=>{
+      if(d[a.dataset.n]) a.value=d[a.dataset.n];
+    });
+  });
+ });
+});
+fetch('/api/gen').then(r=>r.json()).then(g=>{document.getElementById('genstamp').textContent='charts generated: '+g['windows']+' -- hard-refresh (Ctrl+F5) if this looks old';});
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+  universe: 10968 symbols (cached)
+  tier1: 4474 liquid names (cached)
+
+1 Failed download:
+['ADV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['JBSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+  5m: 3951/3960 symbols in 108s
+$LBTYK: possibly delisted; no price data found  (period=1mo)
+
+1 Failed download:
+['LBTYK']: possibly delisted; no price data found  (period=1mo)
+$ATR: possibly delisted; no price data found  (period=1mo)
+$AMN: possibly delisted; no price data found  (period=1mo)
+$AWI: possibly delisted; no price data found  (period=1mo)
+$ATI: possibly delisted; no price data found  (period=1mo)
+$AWR: possibly delisted; no price data found  (period=1mo)
+$ARI: possibly delisted; no price data found  (period=1mo)
+$AMX: possibly delisted; no price data found  (period=1mo)
+$ARX: possibly delisted; no price data found  (period=1mo)
+$ARKX: possibly delisted; no price data found  (period=1mo)
+$AVLV: possibly delisted; no price data found  (period=1mo)
+$ASTN: possibly delisted; no price data found  (period=1mo)
+$ANF: possibly delisted; no price data found  (period=1mo)
+
+12 Failed downloads:
+['ATR', 'AMN', 'AWI', 'ATI', 'AWR', 'ARI', 'AMX', 'ARX', 'ARKX', 'AVLV', 'ASTN', 'ANF']: possibly delisted; no price data found  (period=1mo)
+  15m: 3947/3960 symbols in 131s
+$EIKN: possibly delisted; no price data found  (period=3mo)
+$EVGO: possibly delisted; no price data found  (period=3mo)
+$DMLP: possibly delisted; no price data found  (period=3mo)
+$ETON: possibly delisted; no price data found  (period=3mo)
+$ESEA: possibly delisted; no price data found  (period=3mo)
+$EYE: possibly delisted; no price data found  (period=3mo)
+$FANG: possibly delisted; no price data found  (period=3mo)
+$ESGU: possibly delisted; no price data found  (period=3mo)
+
+8 Failed downloads:
+['EIKN', 'EVGO', 'DMLP', 'ETON', 'ESEA', 'EYE', 'FANG', 'ESGU']: possibly delisted; no price data found  (period=3mo)
+$VVV: possibly delisted; no price data found  (period=3mo)
+
+1 Failed download:
+['VVV']: possibly delisted; no price data found  (period=3mo)
+  1h: 3949/3960 symbols in 126s
+
+  scanned in 3414s -- 1724 names firing something
+  wrote bigscan_latest.json
+
+========================================================================================================
+  ALL-MARKET SCAN  2026-08-27 23:04   5m/15m/1h
+========================================================================================================
+  sym      kind         price    $vol/day  5m 15m 1h  firing
+  ----------------------------------------------------------------------------------------------------
+  XTWLO    crypto           -          -  U U U      trend-up, rider-15m, riding-1h, stair-5m
+  XALAB    crypto           -          -  U U U      trend-up, rider-1h, stair-5m, stair-15m
+  XTQQQ    crypto           -          -  U U U      trend-up, rider-15m, riding-1h, stair-5m
+  XUNH     crypto           -          -  D D D      trend-down, stair-5m, stair-15m, stair-1h
+  CIB      equity       98.63         26M  D D D      trend-down, stair-15m, stair-1h, hist-os
+  FTA      etf          103.3          2M  D D D      trend-down, stair-5m, stair-15m, hist-os
+  AST      crypto           -          -  U U U      trend-up, rider-5m, rider-15m, riding-1h
+  AUDF     crypto           -          -  . U U      trend-up, stair-5m, stair-15m, stair-1h
+  USAT     crypto           -          -  U U D      rider-15m, stair-5m, stair-15m, stair-1h
+  XCIEN    crypto           -          -  . D D      trend-down, stair-5m, stair-15m, stair-1h
+  XQCOM    crypto           -          -  U U U      trend-up, riding-1h, stair-5m, stair-15m
+  XRDDT    crypto           -          -  U D D      trend-down, stair-5m, stair-15m, stair-1h
+  XRIVN    crypto           -          -  . D D      trend-down, stair-5m, stair-15m, stair-1h
+  XROK     crypto           -          -  U U D      backburner, stair-5m, stair-15m, stair-1h
+  XUSAR    crypto           -          -  D U U      trend-up, stair-5m, stair-15m, stair-1h
+  XXLE     crypto           -          -  U U .      riding-1h, stair-5m, stair-15m, stair-1h
+  MNQ=F    future   2.967e+04      73606M  U U U      trend-up, rider-15m, riding-1h
+  USO      etf            130        644M  . U U      trend-up, rider-15m, riding-1h
+  TPR      equity       123.2        345M  D D D      trend-down, stair-1h, hist-os
+  QLD      etf          91.38        341M  . U U      trend-up, riding-1h, stair-5m
+  MP       equity       59.03        320M  . U U      trend-up, rider-15m, rider-1h
+  TYL      equity       369.9        228M  D U U      trend-up, rider-15m, riding-1h
+  XME      etf            123        218M  U U U      trend-up, rider-5m, riding-1h
+  IP       equity       39.88        159M  D D D      trend-down, stair-15m, hist-os
+  SJM      equity       131.8        143M  D . U      rider-1h, backburner, stair-5m
+  ALM      equity       18.89         89M  D U U      trend-up, rider-15m, riding-1h
+  BULL     equity        9.57         75M  U U U      trend-up, riding-1h, stair-1h
+  BTE      equity        4.82         62M  . U U      trend-up, rider-15m, riding-1h
+  FSM      equity       12.81         56M  U U U      trend-up, rider-15m, riding-1h
+  CNR      equity       101.7         47M  U U U      trend-up, riding-1h, stair-15m
+  KMT      equity       30.21         47M  D U U      trend-up, rider-15m, riding-1h
+  ATRC     equity       49.27         37M  . . U      riding-1h, stair-5m, stair-15m
+  LAUR     equity       39.04         32M  . U U      trend-up, rider-15m, riding-1h
+  TFII     equity       136.3         32M  . U U      trend-up, rider-15m, riding-1h
+  ARIS     equity       21.26         24M  U U U      trend-up, riding-1h, stair-1h
+  APPN     equity        41.4         23M  . U U      trend-up, rider-15m, riding-1h
+  DXPE     equity       192.8         22M  U U U      trend-up, rider-15m, riding-1h
+  FEIM     equity        63.9         20M  . U U      trend-up, rider-15m, riding-1h
+  RECS     etf          45.57         17M  U U U      trend-up, rider-15m, riding-1h
+  ROBO     etf          82.19         11M  U U U      trend-up, rider-15m, riding-1h
+  CTS      equity       57.67         10M  U U U      trend-up, rider-15m, riding-1h
+  BATL     equity        1.33          7M  U U U      trend-up, rider-15m, rider-1h
+  INFL     etf             56          7M  U U U      trend-up, riding-1h, stair-15m
+  MSLC     etf          60.99          4M  U U U      trend-up, riding-1h, stair-5m
+  CMDY     etf          62.69          3M  . U U      trend-up, rider-5m, riding-1h
+  IYY      etf            188          3M  U U U      trend-up, riding-1h, stair-5m
+  XHS      etf          136.6          2M  . D D      trend-down, stair-5m, stair-1h
+  IMCV     etf          97.89          2M  . D D      trend-down, stair-5m, stair-15m
+  QDF      etf          92.75          2M  U U U      trend-up, riding-1h, stair-5m
+  ALI=F    future        3371          -  D D .      stair-5m, stair-15m, stair-1h
+  EURCHF=X forex        0.937          -  D U U      trend-up, rider-15m, rider-1h
+  AUDM     crypto           -          -  . U U      trend-up, riding-1h, stair-5m
+  BRL1     crypto           -          -  U . .      stair-5m, stair-15m, stair-1h
+  BTRST    crypto           -          -  U U U      trend-up, rider-15m, rider-1h
+  COTI     crypto           -          -  U U U      trend-up, rider-5m, riding-1h
+  DORA     crypto           -          -  . U U      trend-up, stair-5m, stair-1h
+  FIGHT    crypto           -          -  . . U      stair-5m, stair-15m, stair-1h
+  KARRAT   crypto           -          -  . U U      trend-up, rider-15m, riding-1h
+  PYUSD    crypto           -          -  . . .      stair-5m, stair-15m, stair-1h
+  SPURS    crypto           -          -  . . .      stair-5m, stair-15m, stair-1h

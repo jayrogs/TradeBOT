@@ -1,0 +1,77 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Backburners</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;
+        --faint:#5b6472;--amber:#ffb84d;--eq:#5aa9ff;--up:#3ddc97;--dn:#ff5c72}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:18px 22px 6px}
+  h1{font-size:18px;margin:0 0 6px}
+  .sub{color:var(--dim);font-size:13px;max-width:980px}
+  .rules{color:var(--faint);font-size:12px;margin-top:6px;font-family:ui-monospace,Consolas,monospace}
+  main{padding:8px 22px 60px}
+  .t{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:14px 0;padding:12px}
+  .hd{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+  .s{font-weight:700;font-size:15px}
+  .b{color:var(--dim);font-size:12.5px}
+  .live{color:var(--amber);font-weight:700}
+  .bids{color:var(--eq);font-family:ui-monospace,Consolas,monospace;font-size:12px}
+  img{width:100%;display:block;border-radius:8px}
+  .noteRow{display:flex;gap:10px;align-items:flex-start;margin-top:8px}
+  textarea{flex:1;min-height:54px;background:#0f1216;border:1px solid var(--line);color:var(--fg);
+           border-radius:8px;padding:8px;font:13px/1.4 inherit;resize:vertical}
+  .saved{color:var(--faint);font-size:11px;opacity:0;transition:opacity .3s}
+  .saved.on{opacity:1}
+  .empty{color:var(--faint);padding:30px 0}
+</style></head>
+<body>
+<header>
+  <h1>Backburners &mdash; the method in code, first pass</h1>
+  <div class="sub">
+    Strip at the top = the 1-hour, 4-hour and daily trend (green up, red down). <b>Numbered circles</b> = the 5-minute RSI hit 30 or lower, in order. Blue circle = the 15-minute RSI hit 30 or lower. Middle panel = 5-minute RSI, red line = 30.
+    <br>Tell me what's wrong under each one.
+  </div>
+  <div class="rules" id="rules">loading&hellip;</div>
+</header>
+<main id="list"><div class="empty">loading&hellip;</div></main>
+<script>
+const $ = s => document.querySelector(s);
+const fmt = x => (x == null ? '' : (x >= 0 ? '+' : '') + (100 * x).toFixed(1) + '%');
+Promise.all([
+  fetch('/validation/backburner_index.json?v=' + Date.now()).then(r => r.json()),
+  fetch('/api/tradenote?set=backburner').then(r => r.json())
+]).then(([d, notes]) => {
+  const r = d.rules || {};
+  $('#rules').textContent = `generated ${d.generated} · oversold = RSI at or under ${r.os} · running = ${r.wind} span up · escalation ${(r.escalate||[]).join(' → ')} · ${d.candidates} runs found in the last week, ${d.live} live`;
+  if (!d.items || !d.items.length){ $('#list').innerHTML = '<div class="empty">no runs found</div>'; return; }
+  $('#list').innerHTML = d.items.map(t => {
+    const p = t.prints || {};
+    const counts = ['5m','15m','30m','1h'].filter(k => (p[k]||[]).length).map(k => `${k} x${p[k].length}`).join(' · ');
+    const now = t.now || {};
+    return `
+    <div class="t">
+      <div class="hd">
+        <span class="s">${t.n}. ${t.sym} 5m</span>
+        <span class="b">running from ${t.start} · backburners: ${counts || 'none'}${t.chg24 != null ? ' · 24h at start ' + fmt(t.chg24) : ''}</span>
+        ${t.live ? '<span class="live">LIVE NOW</span>' : `<span class="b">1h span died ${t.end} · first 5m print: best ${fmt(t.first_best)}, 3h later ${fmt(t.first_after)}</span>`}
+        ${t.live && now.os_price ? `<span class="bids">next 5m OS prints at ${Number(now.os_price).toPrecision(6)} · 5m RSI now ${Number(now.rsi5).toFixed(0)}</span>` : ''}
+      </div>
+      <img src="/validation/backburner_${String(t.n).padStart(2,'0')}.png?v=${Date.now()}" alt="backburner ${t.n}">
+      <div class="noteRow">
+        <textarea data-n="${t.n}" placeholder="would this be on your backburner? which prints would you buy? when step up to 15m? when is it over?">${notes[String(t.n)] || ''}</textarea>
+        <span class="saved">saved</span>
+      </div>
+    </div>`; }).join('');
+  document.querySelectorAll('textarea').forEach(ta => {
+    let timer = null;
+    ta.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({n: Number(ta.dataset.n), note: ta.value, set: 'backburner'})})
+          .then(() => { const s = ta.nextElementSibling; s.classList.add('on'); setTimeout(() => s.classList.remove('on'), 1200); });
+      }, 500);
+    });
+  });
+}).catch(e => { $('#list').innerHTML = '<div class="empty">could not load: ' + e.message + ' (run python pics_backburner.py)</div>'; });
+</script>
+</body></html>

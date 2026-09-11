@@ -1,0 +1,77 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Name Scorecard</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--card2:#1a1e25;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --amber:#ffb84d;--eq:#5aa9ff;--up:#3ddc97;--dn:#ff5c72;--mono:ui-monospace,Consolas,monospace}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:18px 22px 6px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  h1{font-size:18px;margin:0 14px 0 0}
+  .sub{color:var(--dim);font-size:13px;max-width:900px;padding:0 22px 8px}
+  .cat{background:var(--card2);border:1px solid var(--line);color:var(--dim);padding:5px 11px;border-radius:8px;cursor:pointer;font-size:12.5px;user-select:none}
+  .cat.on{background:rgba(90,169,255,.16);border-color:var(--eq);color:var(--eq)}
+  select,input{background:var(--card2);border:1px solid var(--line);color:var(--fg);padding:5px 8px;border-radius:7px;font-size:13px}
+  main{padding:8px 22px 60px;max-width:1000px}
+  table{border-collapse:collapse;font-size:13px;width:100%}
+  th{color:var(--faint);font-weight:500;text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);font-size:11px;cursor:pointer;user-select:none}
+  th.on{color:var(--eq)}
+  td{padding:7px 10px;border-bottom:1px solid rgba(37,42,51,.6);vertical-align:middle}
+  td.num{font-family:var(--mono);text-align:right} th.num{text-align:right}
+  tr.bench td{background:rgba(255,184,77,.08)}
+  .g{display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;border-radius:6px;font-weight:700;font-family:var(--mono)}
+  .gA{background:var(--up);color:#0d0f12} .gB{background:rgba(61,220,151,.35);color:var(--up)} .gC{background:var(--card2);color:var(--dim)}
+  .gD{background:rgba(255,92,114,.3);color:var(--dn)} .gF{background:var(--dn);color:#0d0f12} .gQ{background:var(--card2);color:var(--faint)}
+  .pos{color:var(--up)} .neg{color:var(--dn)} .faint{color:var(--faint)} .v{color:var(--dim);font-size:12.5px}
+  .note{color:var(--faint);font-size:12px;margin:8px 0}
+  a.sym{color:var(--fg);font-weight:700;text-decoration:none;border-bottom:1px dotted var(--faint)} a.sym:hover{color:var(--eq)}
+  .full{color:var(--faint);font-size:11px;margin-top:1px;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+</style></head>
+<body>
+<header>
+  <h1>Which names obey the rules</h1>
+  <span class="cat on" data-k="crypto">Crypto</span><span class="cat" data-k="stock">Stocks</span><span class="cat" data-k="etf">ETFs</span><span class="cat" data-k="futures">Futures</span><span class="cat" data-k="forex">Forex</span>
+  <select id="tf"></select>
+  <label class="note">at least <input id="minn" type="number" value="30" style="width:55px"> trades</label>
+  <input id="q" placeholder="symbol…" size="9">
+</header>
+<div class="sub">Each name run through the same backburner rules for 4 years. <b>Grade</b>: A beats the benchmark and did so in both halves of the period; B beats it in one half; C is about the same; D is worse; F loses money outright. The benchmark is BTC for crypto, SPY for stocks and ETFs (highlighted row). "Moves" is how far the name travels per 1% move in the benchmark. Click a name to see every trade it had, by year, with a chart for each.</div>
+<main><div class="note" id="meta">loading…</div><table><thead id="head"></thead><tbody id="rows"></tbody></table></main>
+<script>
+const $ = s => document.querySelector(s);
+const pct = x => x == null || isNaN(x) ? '<span class="faint">–</span>' : `<span class="${x >= 0 ? 'pos' : 'neg'}">${x >= 0 ? '+' : ''}${(100*x).toFixed(1)}%</span>`;
+const COLS = [['grade','grade',''],['sym','name',''],['verdict','verdict',''],['n','trades','num'],['dw','made per $','num'],['win','won','num'],['avg_win','typical win','num'],['avg_loss','typical loss','num'],['beta','moves','num']];
+let DATA = null, NAMES = {}, KIND = 'crypto', SORT = {k: 'dw', dir: -1};
+fetch('/validation/names_map.json?v=' + Date.now()).then(r => r.json()).then(m => { NAMES = m; if (DATA) draw(); }).catch(() => {});
+const fullName = (sym, kind) => (NAMES[kind === 'etf' ? 'stock' : kind] || {})[sym] || (NAMES.stock || {})[sym] || '';
+fetch('/validation/name_scores.json?v=' + Date.now()).then(r => r.json()).then(d => {
+  DATA = d;
+  $('#tf').innerHTML = d.tfs.map(t => `<option value="${t}" ${t === 'all' ? 'selected' : ''}>${t === 'all' ? 'all timeframes' : t}</option>`).join('');
+  $('#meta').textContent = `generated ${d.generated}`;
+  $('#head').innerHTML = '<tr>' + COLS.map(([k, l, c]) => `<th data-k="${k}" class="${c}">${l}</th>`).join('') + '</tr>';
+  document.querySelectorAll('th').forEach(th => th.onclick = () => { const k = th.dataset.k; if (SORT.k === k) SORT.dir = -SORT.dir; else SORT = {k, dir: (k === 'sym' || k === 'grade' || k === 'verdict') ? 1 : -1}; draw(); });
+  draw();
+});
+function draw(){
+  if (!DATA) return;
+  document.querySelectorAll('th').forEach(th => th.classList.toggle('on', th.dataset.k === SORT.k));
+  const minn = Number($('#minn').value) || 0, q = $('#q').value.trim().toUpperCase(), tf = $('#tf').value;
+  const bench = DATA.bench[KIND];
+  let rows = DATA.rows.filter(r => r.kind === KIND && r.tf === tf && r.n >= minn && (!q || r.sym.includes(q)));
+  if (rows.length < 3 && tf !== 'all' && !q){   // this class has too few trades here: fall back to all timeframes
+    $('#tf').value = 'all'; return draw();
+  }
+  const b = DATA.rows.find(r => r.sym === bench && r.tf === tf);
+  if (b && !rows.some(r => r.sym === bench)) rows.push(b);
+  rows.sort((a, c) => { const x = a[SORT.k], y = c[SORT.k]; if (typeof x === 'string') return SORT.dir * x.localeCompare(y); if (x == null) return 1; if (y == null) return -1; return SORT.dir * (x - y); });
+  $('#rows').innerHTML = rows.map(r => `<tr class="${r.sym === bench ? 'bench' : ''}">
+    <td><span class="g g${r.grade === '?' ? 'Q' : r.grade}">${r.grade}</span></td>
+    <td><a class="sym" href="/name/${r.kind}/${encodeURIComponent(r.sym)}" title="every trade this name had, with charts">${r.sym}</a>${r.sym === bench ? ' <span class="faint">benchmark</span>' : ''}<div class="full">${fullName(r.sym, r.kind)}</div></td>
+    <td class="v">${r.verdict}</td>
+    <td class="num">${r.n}</td><td class="num">${pct(r.dw)}</td><td class="num">${(100*r.win).toFixed(0)}%</td>
+    <td class="num">${pct(r.avg_win)}</td><td class="num">${pct(r.avg_loss)}</td>
+    <td class="num">${r.beta == null ? '–' : r.beta.toFixed(1) + 'x'}</td></tr>`).join('')
+    || '<tr><td colspan="9" class="faint">nothing with that many trades</td></tr>';
+}
+document.querySelectorAll('.cat').forEach(b => b.onclick = () => { KIND = b.dataset.k; document.querySelectorAll('.cat').forEach(x => x.classList.toggle('on', x === b)); draw(); });
+$('#tf').onchange = draw; $('#minn').oninput = draw; $('#q').oninput = draw;
+</script>
+</body></html>

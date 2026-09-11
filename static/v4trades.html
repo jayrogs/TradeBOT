@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rider v4 trades</title>
+<style>
+  :root{--bg:#0d0f12;--card:#15181d;--line:#252a33;--fg:#e7ebf0;
+        --dim:#8b93a1;--faint:#5b6472;--up:#3ddc97;--dn:#ff5c72;
+        --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:16px 22px;border-bottom:1px solid var(--line)}
+  h1{margin:0;font-size:15px;letter-spacing:.14em;text-transform:uppercase}
+  .sub{color:var(--faint);font-size:12.5px;margin-top:6px;max-width:900px}
+  .key{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12.5px;
+       color:var(--dim)}
+  .sw{display:flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:2px}
+  main{padding:18px 22px 60px;max-width:1550px}
+  .t{background:var(--card);border:1px solid var(--line);border-radius:12px;
+     margin-bottom:22px;overflow:hidden}
+  .hd{padding:11px 16px;display:flex;gap:14px;align-items:baseline;
+      border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .hd .s{font:700 15px var(--mono)}
+  .hd .b{color:var(--dim);font-family:var(--mono);font-size:12.5px}
+  .pl{font:700 15px var(--mono);margin-left:auto}
+  .pl.up{color:var(--up)} .pl.dn{color:var(--dn)}
+  img{width:100%;display:block}
+  .noteRow{padding:10px 16px;border-top:1px solid var(--line);
+           display:flex;gap:10px;align-items:flex-start}
+  textarea{flex:1;background:#0f1216;border:1px solid var(--line);
+           color:var(--fg);border-radius:8px;padding:9px 11px;font:13px/1.5
+           -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+           resize:vertical;min-height:54px}
+  textarea:focus{outline:none;border-color:#5aa9ff}
+  .saved{color:#3ddc97;font:11px var(--mono);opacity:0;transition:opacity .2s;
+         padding-top:10px;white-space:nowrap}
+  .saved.on{opacity:1}
+</style></head><body>
+<header>
+  <h1>Intraday round &mdash; the same read on the 15m and 5m</h1>
+  <div id="genstamp" style="color:#5b6472;font-size:11px;margin-bottom:8px">generation: loading&hellip;</div>
+<div class="sub">
+    First time the backbone meets your backburner timeframes: the last 200 bars of 15m (BTC, SOL, ETH) and 5m (XRP, DOGE), live from the exchange, the full read (trends shaded, EQs shaded, labelled pivots). Same windows on /paint. The question: at these speeds, do the pivots and spans still read like your eye, or does the leg-size filter behave differently down here?
+    <div class="key">
+      <span class="sw"><span class="dot" style="background:#5aa9ff"></span>touches (the gate)</span>
+      <span class="sw"><span class="dot" style="background:#ffb84d"></span>12 EMA while armed</span>
+      <span class="sw"><span class="dot" style="background:#3ddc97"></span>entry</span>
+      <span class="sw"><span class="dot" style="background:#ff5c72"></span>trailing stop and exit</span>
+      <span class="sw">top-left strip = trend on every timeframe at the moment of entry</span>
+    </div>
+  </div>
+</header>
+<main id="list"></main>
+<script>
+const T = [
+  {n:1, sym:'BTC', tf:'15m', touches:0, bars:200, net:0},
+  {n:2, sym:'SOL', tf:'15m', touches:0, bars:200, net:0},
+  {n:3, sym:'ETH', tf:'15m', touches:0, bars:200, net:0},
+  {n:4, sym:'XRP', tf:'5m', touches:0, bars:200, net:0},
+  {n:5, sym:'DOGE', tf:'5m', touches:0, bars:200, net:0}
+];
+document.querySelector('#list').innerHTML = T.map(t => `
+  <div class="t">
+    <div class="hd">
+      <span class="s">${t.sym} ${t.tf}</span>
+      <span class="b">${t.touches} touches before entry &middot; held ${t.bars} bars</span>
+      <span class="pl ${t.net>0?'up':'dn'}">${t.net>0?'+':''}${t.net.toFixed(2)}%</span>
+    </div>
+    <img src="/validation/v4_${String(t.n).padStart(2,'0')}.png?v=${Date.now()}" alt="v4 trade">
+    <div class="noteRow">
+      <textarea data-n="${t.n}" placeholder="what's wrong with this one? would you have taken it?"></textarea>
+      <span class="saved">saved</span>
+    </div>
+  </div>`).join('');
+
+fetch('/api/tradenote').then(r => r.json()).then(d => {
+  document.querySelectorAll('textarea').forEach(a => {
+    if (d[a.dataset.n]) a.value = d[a.dataset.n];
+  });
+});
+
+let timer = null;
+document.addEventListener('input', e => {
+  const a = e.target;
+  if (a.tagName !== 'TEXTAREA') return;
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    fetch('/api/tradenote', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({n: Number(a.dataset.n), note: a.value})
+    }).then(() => {
+      const s = a.parentNode.querySelector('.saved');
+      s.classList.add('on');
+      setTimeout(() => s.classList.remove('on'), 1200);
+    });
+  }, 600);
+});
+fetch('/api/gen').then(r=>r.json()).then(g=>{document.getElementById('genstamp').textContent='charts generated: '+g['charts']+' -- hard-refresh (Ctrl+F5) if this looks old';});
+</script></body></html>

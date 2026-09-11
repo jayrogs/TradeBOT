@@ -1,0 +1,70 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Backburner Cases</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --amber:#ffb84d;--eq:#5aa9ff;--up:#3ddc97;--dn:#ff5c72}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:18px 22px 6px}
+  h1{font-size:18px;margin:0 0 6px}
+  .sub{color:var(--dim);font-size:13px;max-width:980px}
+  .rules{color:var(--faint);font-size:12px;margin-top:6px;font-family:ui-monospace,Consolas,monospace}
+  main{padding:8px 22px 60px}
+  .t{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:14px 0;padding:12px}
+  .hd{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+  .s{font-weight:700;font-size:15px}
+  .b{color:var(--dim);font-size:12.5px}
+  .won{color:var(--up);font-weight:700} .lost{color:var(--dn);font-weight:700}
+  .v{color:var(--amber);font-size:12.5px}
+  img{width:100%;display:block;border-radius:8px}
+  .noteRow{display:flex;gap:10px;align-items:flex-start;margin-top:8px}
+  textarea{flex:1;min-height:54px;background:#0f1216;border:1px solid var(--line);color:var(--fg);
+           border-radius:8px;padding:8px;font:13px/1.4 inherit;resize:vertical}
+  .saved{color:var(--faint);font-size:11px;opacity:0;transition:opacity .3s}
+  .saved.on{opacity:1}
+  .empty{color:var(--faint);padding:30px 0}
+</style></head>
+<body>
+<header>
+  <h1>Backburner cases &mdash; where it lost, where the filter's picks worked</h1>
+  <div class="sub">
+    Left: the campaign chart. Numbered circles = your buys (one per oversold close). Dashed amber = average cost. Dotted red = the "really bad" stop, 3 times a normal bar's move under your average. Blue dot = the bounce and how much was sold to make the rest breakeven; dashed blue = that breakeven stop at the low. X = where it got out and why. Right: the two higher timeframes with the trend colours and the 12 EMA; the amber band is when the trade was on.
+    <br>Say under each one whether you'd have taken it, and what you see that the numbers don't.
+  </div>
+  <div class="rules" id="rules">loading&hellip;</div>
+</header>
+<main id="list"><div class="empty">loading&hellip;</div></main>
+<script>
+const $ = s => document.querySelector(s);
+Promise.all([
+  fetch('/validation/cases_index.json?v=' + Date.now()).then(r => r.json()),
+  fetch('/api/tradenote?set=cases').then(r => r.json())
+]).then(([d, notes]) => {
+  $('#rules').textContent = `generated ${d.generated} · ${d.items.length} cases · stocks and ETFs, hot names (up 10%+ on the day or 20%+ in 3 days), 15m and 5m`;
+  $('#list').innerHTML = d.items.map(t => `
+    <div class="t">
+      <div class="hd">
+        <span class="s">${t.n}. ${t.sym} ${t.tf}</span>
+        <span class="${t.net > 0.005 ? 'won' : 'lost'}">${t.net >= 0 ? '+' : ''}${(100*t.net).toFixed(1)}%</span>
+        <span class="v">${t.verdict}</span>
+        <span class="b">${t.tag} · ${t.units} buy${t.units > 1 ? 's' : ''} · out: ${t.ended}${t.part ? ' · sold ' + (100*t.part).toFixed(0) + '% at the bounce' : ''} · ${t.t}</span>
+      </div>
+      <img src="/validation/case_${String(t.n).padStart(2,'0')}.png?v=${Date.now()}" alt="case ${t.n}">
+      <div class="noteRow">
+        <textarea data-n="${t.n}" placeholder="would you have taken this? what do you see?">${notes[String(t.n)] || ''}</textarea>
+        <span class="saved">saved</span>
+      </div>
+    </div>`).join('');
+  document.querySelectorAll('textarea').forEach(ta => {
+    let timer = null;
+    ta.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({n: Number(ta.dataset.n), note: ta.value, set: 'cases'})})
+          .then(() => { const s = ta.nextElementSibling; s.classList.add('on'); setTimeout(() => s.classList.remove('on'), 1200); });
+      }, 500);
+    });
+  });
+}).catch(e => { $('#list').innerHTML = '<div class="empty">could not load: ' + e.message + '</div>'; });
+</script>
+</body></html>

@@ -1,0 +1,74 @@
+[
+ {
+  "sym": "DG",
+  "tf": "W",
+  "start": "2015-02-20",
+  "end": "2016-11-04",
+  "armed": 0.3,
+  "holds": 51,
+  "wick_holds": 9,
+  "entries": 13,
+  "entries_pre_wicktouch": 3,
+  "refrozen": "2026-08-29: pullback redefined from close-near-EMA to low-touches-EMA-body-holds (user rule: wick belows are holds), validated across v4 grading rounds"
+ },
+ {
+  "sym": "XOM",
+  "tf": "W",
+  "start": "2021-09-17",
+  "end": "2023-06-02",
+  "armed": 0.3,
+  "holds": 56,
+  "wick_holds": 14,
+  "entries": 18,
+  "entries_pre_wicktouch": 3,
+  "refrozen": "2026-08-29: pullback redefined from close-near-EMA to low-touches-EMA-body-holds (user rule: wick belows are holds), validated across v4 grading rounds"
+ },
+ {
+  "sym": "MOS",
+  "tf": "D",
+  "start": "2012-04-03",
+  "end": "2012-08-09",
+  "armed": 0.389,
+  "holds": 50,
+  "wick_holds": 16,
+  "entries": 19,
+  "entries_pre_wicktouch": 6,
+  "refrozen": "2026-08-29: pullback redefined from close-near-EMA to low-touches-EMA-body-holds (user rule: wick belows are holds), validated across v4 grading rounds"
+ },
+ {
+  "sym": "JBHT",
+  "tf": "W",
+  "start": "2024-08-30",
+  "end": "2026-05-15",
+  "armed": 0.233,
+  "holds": 41,
+  "wick_holds": 6,
+  "entries": 5,
+  "entries_pre_wicktouch": 2,
+  "refrozen": "2026-08-29: pullback redefined from close-near-EMA to low-touches-EMA-body-holds (user rule: wick belows are holds), validated across v4 grading rounds"
+ },
+ {
+  "sym": "PWR",
+  "tf": "D",
+  "start": "2023-04-27",
+  "end": "2023-09-05",
+  "armed": 0.5,
+  "holds": 65,
+  "wick_holds": 13,
+  "entries": 17,
+  "entries_pre_wicktouch": 8,
+  "refrozen": "2026-08-29: pullback redefined from close-near-EMA to low-touches-EMA-body-holds (user rule: wick belows are holds), validated across v4 grading rounds"
+ },
+ {
+  "sym": "HD",
+  "tf": "D",
+  "start": "2017-08-29",
+  "end": "2018-01-05",
+  "armed": 0.289,
+  "holds": 78,
+  "wick_holds": 10,
+  "entries": 6,
+  "entries_pre_wicktouch": 3,
+  "refrozen": "2026-08-29: pullback redefined from close-near-EMA to low-touches-EMA-body-holds (user rule: wick belows are holds), validated across v4 grading rounds"
+ }
+]

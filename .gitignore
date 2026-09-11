@@ -1,0 +1,26 @@
+# keys: never on GitHub
+livelog/
+*.env
+.env*
+*secret*
+*credential*
+
+# market data and caches (about 9 GB, rebuilt from the backfill scripts)
+history/
+cache/
+backups/
+logs/
+
+# study output: big tables and chart pictures stay local; small result files are added by hand
+validation/
+*.csv
+*.csv.gz
+*.parquet
+*.pkl
+bigscan_latest.json
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/

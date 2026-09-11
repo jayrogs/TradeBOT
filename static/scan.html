@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scanner</title>
+<style>
+  :root{
+    --bg:#0d0f12; --card:#15181d; --card2:#1b1f26; --line:#252a33;
+    --fg:#e7ebf0; --dim:#8b93a1; --faint:#5b6472;
+    --up:#3ddc97; --dn:#ff5c72; --eq:#5aa9ff; --amber:#ffb84d;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{position:sticky;top:0;z-index:10;background:rgba(13,15,18,.96);
+         backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+         padding:13px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  h1{margin:0;font-size:15px;letter-spacing:.14em;text-transform:uppercase}
+  .stamp{color:var(--faint);font-size:12px;font-family:var(--mono)}
+  .live{display:inline-block;width:8px;height:8px;border-radius:50%;
+        background:var(--faint);margin-right:6px}
+  .live.on{background:var(--up);box-shadow:0 0 8px var(--up);
+           animation:pulse 1.4s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  button{background:var(--card2);border:1px solid var(--line);color:var(--fg);
+         padding:6px 12px;border-radius:7px;cursor:pointer;font-size:13px}
+  button:hover{border-color:var(--faint)}
+  select{background:var(--card2);border:1px solid var(--line);color:var(--fg);
+         padding:6px 8px;border-radius:7px;font-size:13px;cursor:pointer}
+  main{display:grid;grid-template-columns:1fr 320px;gap:16px;padding:16px 20px 60px;
+       max-width:1500px}
+  @media (max-width:900px){main{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{color:var(--faint);text-align:left;font-weight:500;font-size:11px;
+     letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;
+     border-bottom:1px solid var(--line);position:sticky;top:52px;
+     background:var(--bg)}
+  td{padding:8px;border-bottom:1px solid rgba(37,42,51,.6);vertical-align:top}
+  tr:hover td{background:rgba(27,31,38,.5)}
+  .sym{font-weight:700;font-family:var(--mono);font-size:14px}
+  .num{font-family:var(--mono);text-align:right}
+  .pos{color:var(--up)} .neg{color:var(--dn)}
+  .tfs{font-family:var(--mono);letter-spacing:3px;font-size:13px}
+  .U{color:var(--up)} .D{color:var(--dn)} .E{color:var(--eq)} .F{color:var(--faint)}
+  .tag{display:inline-block;font-size:11px;font-family:var(--mono);
+       padding:2px 7px;border-radius:5px;margin:2px 3px 2px 0;
+       background:var(--card2);border:1px solid var(--line);color:var(--dim)}
+  .tag.rider{color:var(--amber);border-color:rgba(255,184,77,.4)}
+  .tag.back{color:var(--up);border-color:rgba(61,220,151,.4)}
+  .tag.trend{color:var(--eq);border-color:rgba(90,169,255,.35)}
+  .tag.stair{color:var(--dim)}
+  aside{background:var(--card);border:1px solid var(--line);border-radius:12px;
+        padding:14px 16px;align-self:start;position:sticky;top:70px}
+  aside h2{margin:0 0 10px;font-size:12px;letter-spacing:.1em;
+           text-transform:uppercase;color:var(--dim)}
+  .chg{padding:7px 0;border-bottom:1px solid rgba(37,42,51,.6);font-size:12.5px}
+  .chg:last-child{border:0}
+  .chg b{font-family:var(--mono)}
+  .chg .t{color:var(--faint);font-family:var(--mono);font-size:11px;float:right}
+  .empty{color:var(--faint);font-size:12.5px}
+  th.s{cursor:pointer;user-select:none}
+  th.s:hover{color:var(--fg)}
+  th.s .a{color:var(--eq);font-size:12px;margin-left:5px;font-weight:700;
+          text-transform:none;letter-spacing:0}
+  th.s.on{color:var(--eq)}
+  .rank{display:inline-flex;align-items:center;gap:7px;margin-left:10px}
+  .rlbl{color:var(--dim);font-size:12px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card2)}
+  .seg .opt{padding:5px 11px;font-size:12px;color:var(--dim);cursor:pointer;user-select:none}
+  .seg .opt+.opt{border-left:1px solid var(--line)}
+  .seg .opt:hover{color:var(--fg)}
+  .seg .opt.on{background:rgba(255,184,77,.16);color:var(--amber);font-weight:700}
+  .src{color:var(--faint);font-size:9.5px;margin-left:6px;font-family:var(--mono);
+       border:1px solid var(--line);border-radius:4px;padding:0 4px;vertical-align:middle}
+  .sortbar{color:var(--dim);font-size:12px;margin:0 0 8px;font-family:var(--mono)}
+  .sortbar b{color:var(--eq);font-weight:700}
+  .sortbar .hint{color:var(--faint)}
+  .tfhead{display:flex;gap:2px}
+  .tfhead span{width:26px;text-align:center;font-size:9.5px;color:var(--faint);
+               letter-spacing:0}
+  .tfrow{display:flex;gap:2px}
+  .tfc{width:26px;height:18px;border-radius:3px;display:flex;align-items:center;
+       justify-content:center;font:700 10px var(--mono);color:#0d0f12}
+  .tfc.u{background:var(--up)}
+  .tfc.d{background:var(--dn)}
+  .tfc.e{background:var(--eq)}
+  .tfc.n{background:#1b1f26;color:#3a4150}
+
+  .cat{background:var(--card2);border:1px solid var(--line);color:var(--dim);
+       padding:5px 13px;border-radius:16px;cursor:pointer;font-size:12.5px}
+  .cat:hover{border-color:var(--faint)}
+  .cat.on{background:rgba(90,169,255,.16);border-color:var(--eq);color:var(--eq);
+          font-weight:600}
+  #q{background:var(--card2);border:1px solid var(--line);color:var(--fg);
+     padding:5px 10px;border-radius:7px;font-size:13px}
+  .mname{color:var(--dim);font-size:13px}
+  tbody tr{cursor:pointer}
+  .modal{position:fixed;inset:0;background:rgba(6,8,10,.86);z-index:50;
+         display:none;align-items:flex-start;justify-content:center;padding:26px}
+  .modal.on{display:flex}
+  .sheet{background:var(--card);border:1px solid var(--line);border-radius:14px;
+         max-width:1420px;width:100%;overflow:hidden}
+  .shead{display:flex;gap:10px;align-items:center;padding:12px 16px;
+         border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .shead .s{font:700 17px var(--mono)}
+  .tfbtn{background:var(--card2);border:1px solid var(--line);color:var(--dim);
+         padding:5px 12px;border-radius:7px;cursor:pointer;font:12.5px var(--mono)}
+  .tfbtn.on{background:rgba(90,169,255,.16);border-color:var(--eq);color:var(--eq)}
+  .tv{margin-left:auto;background:#2962ff;border:0;color:#fff;padding:7px 14px;
+      border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;
+      text-decoration:none}
+  .x{background:var(--card2);border:1px solid var(--line);color:var(--fg);
+     padding:6px 12px;border-radius:7px;cursor:pointer}
+  .sbody{padding:10px}
+  .sbody img{width:100%;display:block;border-radius:8px}
+  .why{padding:0 16px 14px;color:var(--dim);font-size:12.5px}
+  footer{grid-column:1/-1;color:var(--faint);font-size:12px;max-width:820px;
+         padding-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Scanner</h1>
+  <span class="cat on" data-c="crypto">Crypto</span>
+  <span class="cat" data-c="stocks">Stocks</span>
+  <span class="cat" data-c="futures">Futures</span>
+  <span class="cat" data-c="forex">Forex</span>
+  <label for="size" style="color:var(--dim);font-size:12px;margin-left:6px">names:</label>
+  <select id="size" title="how many names to scan, ranked by volume (or by 24h change in Movers mode)">
+    <option value="400">all names</option>
+    <option value="200">top 200</option>
+    <option value="100">top 100</option>
+    <option value="50">top 50</option>
+    <option value="30">top 30 (fast)</option>
+  </select>
+  <span class="rank" title="what 'top N' means: the most-traded names, or every tradable name ranked by 24h change (biggest gainers first)">
+    <span class="rlbl">ranked by</span>
+    <span class="seg" id="rank">
+      <span class="opt on" data-r="volume">most traded</span>
+      <span class="opt" data-r="movers">biggest movers 24h</span>
+    </span>
+  </span>
+  <span class="stamp"><span class="live" id="live"></span><span id="stamp">loading…</span></span>
+  <input id="q" placeholder="search…" size="9">
+  <button id="refresh">Rescan</button>
+</header>
+
+<main>
+  <div>
+    <div class="sortbar" id="sortbar"></div>
+    <table>
+      <thead><tr>
+        <th class="s" data-k="sym">sym<span class="a"></span></th>
+        <th class="s num" data-k="price">price<span class="a"></span></th>
+        <th class="s num" data-k="chg24">24h<span class="a"></span></th>
+        <th class="s" data-k="trend" id="thTrend"><span id="thLbl"><div class="tfhead"><span>5m</span><span>15m</span><span>1h</span><span>4h</span><span>12h</span><span>D</span><span>W</span><span>M</span></div></span><span class="a"></span></th>
+        <th class="s" data-k="score">what is firing<span class="a"></span></th>
+      </tr></thead>
+      <tbody id="rows"><tr><td colspan="5" class="empty">scanning…</td></tr></tbody>
+    </table>
+  </div>
+
+  <aside>
+    <h2>Just started firing</h2>
+    <div id="changes"><div class="empty">nothing yet — needs two completed scans to compare</div></div>
+  </aside>
+
+  <footer>
+    Ranked by how many behaviors are firing, which sorts attention, not
+    probability. The trend engine and the 12 EMA rider were each graded against
+    blind chart samples; the backburner marks and stair-step counts are
+    detectors only and have not been shown to be profitable. Candles from
+    Coinbase, ranking by real cross-exchange volume. This page places no orders.
+  </footer>
+</main>
+
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="shead">
+      <span class="s" id="mSym">-</span>
+      <span class="mname" id="mName"></span>
+      <span class="tfbtn" data-tf="5m">5m</span>
+      <span class="tfbtn" data-tf="15m">15m</span>
+      <span class="tfbtn" data-tf="1h">1h</span>
+      <span class="tfbtn" data-tf="4h">4h</span>
+      <span class="tfbtn" data-tf="12h">12h</span>
+      <span class="tfbtn" data-tf="1d">D</span>
+      <span class="tfbtn" data-tf="1w">W</span>
+      <span class="tfbtn" data-tf="1mo">M</span>
+      <a class="tv" id="mTV" target="_blank" rel="noopener">Open in TradingView</a>
+      <button class="x" id="mX">Close</button>
+    </div>
+    <div class="sbody"><img id="mImg" alt="chart"></div>
+    <div class="why" id="mWhy"></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const SHORT = {UP:'U', DOWN:'D', BALANCE:'E', FLAT:'.'};
+const TFS = ['5m','15m','1h','4h','12h','1d','1w','1mo'];
+
+function cls(k){
+  if (k.startsWith('rider') || k.startsWith('riding')) return 'rider';
+  if (k === 'backburner' || k.startsWith('dip')) return 'back';
+  if (k.startsWith('trend') || k.startsWith('eq')) return 'trend';
+  return 'stair';
+}
+
+let SORT = {k: 'score', dir: -1, trendMode: 'ups'};
+let LAST = null;
+
+function tfCells(r){
+  return '<div class="tfrow">' + TFS.map(t => {
+    const s = (r.tfs[t] || {}).trend;
+    const k = s === 'UP' ? 'u' : s === 'DOWN' ? 'd' : s === 'BALANCE' ? 'e' : 'n';
+    const ch = s === 'UP' ? 'U' : s === 'DOWN' ? 'D' : s === 'BALANCE' ? 'E' : '·';
+    const v = r.tfs[t];
+    const tip = v ? `${t}: ${v.trend} · RSI ${v.rsi.toFixed(0)}` : `${t}: no data`;
+    return `<span class="tfc ${k}" title="${tip}">${ch}</span>`;
+  }).join('') + '</div>';
+}
+
+// which exchange the candles came from (crypto only): CB = Coinbase,
+// KR = Kraken, OKX = OKX (deep history for Kraken-only names)
+const SRC = {coinbase: 'CB', kraken: 'KR', okx: 'OKX'};
+function srcTag(r){
+  if (!r.source || !SRC[r.source]) return '';
+  const feeds = (r.feeds || []).filter(f => f !== r.source).map(f => SRC[f] || f);
+  const label = SRC[r.source] + (feeds.length ? '+' + feeds.join('+') : '');
+  const title = 'listed on ' + r.source + (feeds.length ? '; some frames from ' + feeds.join(', ') : '');
+  return `<span class="src" title="${title}">${label}</span>`;
+}
+
+function counts(r){
+  let u = 0, dn = 0, e = 0;
+  TFS.forEach(t => {
+    const s = (r.tfs[t] || {}).trend;
+    if (s === 'UP') u++; else if (s === 'DOWN') dn++; else if (s === 'BALANCE') e++;
+  });
+  return {ups: u, downs: dn, eqs: e};
+}
+
+function sortRows(rows){
+  const k = SORT.k, dir = SORT.dir;
+  const val = r => {
+    if (k === 'sym')   return r.sym;
+    if (k === 'price') return Number(r.price) || 0;
+    if (k === 'chg24') return Number(r.chg24) || 0;
+    if (k === 'score') return r.score || 0;
+    if (k === 'trend') return counts(r)[SORT.trendMode];
+    return 0;
+  };
+  return rows.slice().sort((a, b) => {
+    const x = val(a), y = val(b);
+    if (typeof x === 'string') return dir * x.localeCompare(y);
+    if (x === y) return (b.score||0) - (a.score||0);
+    return dir * (x - y);
+  });
+}
+
+// what the current sort means, in words (the arrow alone was too easy to miss)
+const SORT_NAME  = {sym: 'sym', price: 'price', chg24: '24h change',
+                    score: 'what is firing', trend: 'trend'};
+const SORT_WORDS = {sym:   ['A → Z', 'Z → A'],
+                    price: ['lowest first', 'highest first'],
+                    chg24: ['lowest first', 'highest first'],
+                    score: ['fewest firing first', 'most firing first']};
+const TREND_WORDS = {ups: 'most UP first', downs: 'most DOWN first',
+                     eqs: 'most EQ first'};
+function sortWords(){
+  if (SORT.k === 'trend') return TREND_WORDS[SORT.trendMode];
+  const w = SORT_WORDS[SORT.k] || ['ascending', 'descending'];
+  return SORT.dir < 0 ? w[1] : w[0];
+}
+
+function headers(){
+  const arrow = SORT.dir < 0 ? '▼' : '▲';
+  document.querySelectorAll('th.s').forEach(th => {
+    const on = th.dataset.k === SORT.k;
+    th.classList.toggle('on', on);
+    th.querySelector('.a').textContent = !on ? ''
+      : SORT.k === 'trend'
+        ? arrow + ' ' + {ups: 'up', downs: 'down', eqs: 'eq'}[SORT.trendMode]
+        : arrow;
+  });
+  const bar = $('#sortbar');
+  if (bar) bar.innerHTML = 'sorted by <b>' + (SORT_NAME[SORT.k] || SORT.k)
+    + '</b> · ' + sortWords()
+    + (SORT.k === 'trend'
+        ? ' <span class="hint">(click again: up → down → eq)</span>'
+        : ' <span class="hint">(click again to flip)</span>');
+  const lbl = document.querySelector('#thLbl');
+  if (lbl) lbl.title = SORT.k === 'trend' ? 'sorting by ' + sortWords()
+                                          : 'click to sort by most up/down/eq';
+}
+
+document.querySelectorAll('th.s').forEach(th => th.onclick = () => {
+  const k = th.dataset.k;
+  if (k === 'trend'){
+    if (SORT.k !== 'trend'){ SORT.k = 'trend'; SORT.trendMode = 'ups'; SORT.dir = -1; }
+    else SORT.trendMode = SORT.trendMode === 'ups' ? 'downs'
+                        : SORT.trendMode === 'downs' ? 'eqs' : 'ups';
+  } else if (SORT.k === k){ SORT.dir = -SORT.dir; }
+  else { SORT.k = k; SORT.dir = (k === 'sym') ? 1 : -1; }
+  headers();
+  if (LAST) render(LAST);
+});
+
+function render(d){
+  LAST = d;
+  $('#live').className = 'live' + (d.running ? ' on' : '');
+  $('#stamp').textContent = d.err ? ('error: ' + d.err)
+    : (d.at ? `last scan ${d.at}` + (d.age !== null ? ` · ${d.age}s ago` : '')
+              + (d.rows.length ? ` · ${d.rows.length} names` : '')
+            : 'first scan running…')
+      + (d.rank === 'movers' ? ' · biggest 24h movers' : '')
+      + (d.running ? (d.n && d.n < N ? ` · scanning ${N === 400 ? 'all' : 'top ' + N} ${CAT}, showing top ${d.n} meanwhile`
+                                     : ` · scanning ${CAT}`) : '');
+
+  if (!d.rows.length){
+    $('#rows').innerHTML = '<tr><td colspan="5" class="empty">'
+      + (d.running ? `scanning ${CAT}, this takes a few minutes…`
+                   : 'no results') + '</td></tr>';
+  } else {
+    const q = ($('#q').value || '').trim().toUpperCase();
+    const shown = sortRows(d.rows).filter(r => !q || r.sym.includes(q));
+    if (!shown.length){
+      $('#rows').innerHTML = '<tr><td colspan="5" class="empty">nothing matches "'
+        + q + '"</td></tr>';
+      return;
+    }
+    $('#rows').innerHTML = shown.map(r => {
+      const seq = tfCells(r);
+      const tags = r.flags.map(f =>
+        `<span class="tag ${cls(f.key)}" title="${f.why}">${f.why}</span>`).join('');
+      const chg = r.chg24 >= 0 ? 'pos' : 'neg';
+      const chgCell = CAT === 'crypto'
+        ? `<td class="num ${chg}">${r.chg24>=0?'+':''}${r.chg24.toFixed(1)}%</td>`
+        : '<td class="num F">–</td>';
+      const why = r.flags.map(f=>f.why).join(' · ');
+      return `<tr data-sym="${r.sym}" data-why="${why.replace(/"/g,'&quot;')}">
+        <td class="sym">${r.sym}${srcTag(r)}</td>
+        <td class="num">${Number(r.price).toPrecision(5)}</td>
+        ${chgCell}
+        <td class="tfs">${seq}</td>
+        <td>${tags || '<span class="empty">—</span>'}</td></tr>`;
+    }).join('');
+  }
+
+  $('#changes').innerHTML = d.changes.length
+    ? d.changes.map(c => `<div class="chg"><span class="t">${c.at}</span>
+        <b>${c.sym}</b> ${c.why}</div>`).join('')
+    : '<div class="empty">nothing yet — needs two completed scans to compare</div>';
+}
+
+let CAT = 'crypto';
+document.querySelectorAll('.cat').forEach(b => b.onclick = () => {
+  if (CAT === b.dataset.c) return;
+  CAT = b.dataset.c;
+  document.querySelectorAll('.cat').forEach(x => x.classList.toggle('on', x === b));
+  $('#rows').innerHTML = '<tr><td colspan="5" class="empty">scanning '
+    + CAT + '…</td></tr>';
+  tick(true);
+});
+
+// how many names to scan; remembered per browser. Default = everything:
+// "i need to scan a ton of names to make sure im not missing a great mover"
+let N = 400;
+try { N = parseInt(localStorage.getItem('scanN')) || 400; } catch(e) {}
+if (![400, 200, 100, 50, 30].includes(N)) N = 400;
+$('#size').value = String(N);
+$('#size').onchange = () => {
+  N = parseInt($('#size').value) || 400;
+  try { localStorage.setItem('scanN', String(N)); } catch(e) {}
+  $('#rows').innerHTML = '<tr><td colspan="5" class="empty">scanning top '
+    + N + ' ' + CAT + '…</td></tr>';
+  tick(true);
+};
+
+// movers mode: same scan, but the universe is every tradable name ranked by
+// 24h change instead of the most-traded names
+let RANK = 'volume';
+try { RANK = localStorage.getItem('scanRank') === 'movers' ? 'movers' : 'volume'; } catch(e) {}
+function paintRank(){
+  document.querySelectorAll('#rank .opt').forEach(o => o.classList.toggle('on', o.dataset.r === RANK));
+}
+paintRank();
+document.querySelectorAll('#rank .opt').forEach(o => o.onclick = () => {
+  if (o.dataset.r === RANK) return;
+  RANK = o.dataset.r;
+  try { localStorage.setItem('scanRank', RANK); } catch(e) {}
+  paintRank();
+  SORT = RANK === 'movers' ? {k: 'chg24', dir: -1, trendMode: 'ups'}
+                           : {k: 'score', dir: -1, trendMode: 'ups'};
+  headers();
+  $('#rows').innerHTML = '<tr><td colspan="5" class="empty">scanning '
+    + (RANK === 'movers' ? 'the biggest movers in ' : 'top ' + N + ' ') + CAT + '…</td></tr>';
+  tick(true);
+});
+
+async function tick(force){
+  try {
+    const r = await fetch(`/api/scan?cat=${CAT}&n=${N}&rank=${RANK}` + (force ? '&refresh=1' : ''));
+    render(await r.json());
+  } catch(e){ $('#stamp').textContent = 'fetch failed: ' + e.message; }
+}
+let cur = {sym:null, tf:'5m'};
+function openChart(sym, tf, why){
+  cur = {sym, tf: tf || cur.tf};
+  $('#mSym').textContent = sym;
+  $('#mWhy').innerHTML = why || '';
+  document.querySelectorAll('.tfbtn').forEach(b =>
+    b.classList.toggle('on', b.dataset.tf === cur.tf));
+  const kind = CAT === 'stocks' ? 'equity' : CAT === 'futures' ? 'future'
+             : CAT === 'forex' ? 'forex' : 'crypto';
+  $('#mImg').src = `/api/chart.png?sym=${encodeURIComponent(sym)}&kind=${kind}&tf=${cur.tf}&_=${Date.now()}`;
+  $('#mName').textContent = '';
+  fetch(`/api/tvlink?sym=${encodeURIComponent(sym)}&kind=${kind}&tf=${cur.tf}`)
+    .then(r => r.json()).then(d => {
+      $('#mTV').href = d.url;
+      $('#mName').textContent = d.name || '';
+    });
+  $('#modal').classList.add('on');
+}
+document.querySelectorAll('.tfbtn').forEach(b =>
+  b.onclick = () => openChart(cur.sym, b.dataset.tf, $('#mWhy').innerHTML));
+$('#mX').onclick = () => $('#modal').classList.remove('on');
+$('#modal').onclick = e => { if (e.target.id==='modal') $('#modal').classList.remove('on'); };
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') $('#modal').classList.remove('on'); });
+$('#rows').onclick = e => {
+  const tr = e.target.closest('tr');
+  if (!tr || !tr.dataset.sym) return;
+  openChart(tr.dataset.sym, cur.tf, tr.dataset.why);
+};
+
+$('#q').oninput = () => { if (LAST) render(LAST); };
+$('#refresh').onclick = () => tick(true);
+headers();
+tick();
+setInterval(() => tick(false), 15000);
+</script>
+</body>
+</html>

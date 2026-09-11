@@ -1,0 +1,129 @@
+preparing 560 markets...
+  559 ready in 195s
+grid: 6 x 8 x 7 x 3 = 1008 combinations
+  100/1008 combos  (29s)
+  200/1008 combos  (66s)
+  300/1008 combos  (103s)
+  400/1008 combos  (142s)
+  500/1008 combos  (181s)
+  600/1008 combos  (209s)
+  700/1008 combos  (240s)
+  800/1008 combos  (267s)
+  900/1008 combos  (307s)
+  1000/1008 combos  (349s)
+
+1008 combinations produced enough trades in both windows
+
+running the null (same grid, broken data)...
+  200/1008  (28s)
+  400/1008  (63s)
+  600/1008  (95s)
+  800/1008  (122s)
+  1000/1008  (160s)
+
+================================================================================
+  1. THE DISTRIBUTION -- all 1008 combinations, holdout 2018-2026
+================================================================================
+  mean return per trade:  5th +0.19%  25th +2.53%  median +7.47%  75th +12.84%  95th +19.83%
+  best +45.45%   worst -4.01%   share profitable 98%
+
+  THE NUMBER THAT MATTERS -- return per DAY the money was at risk
+  (mean-per-trade rewards holding longer; per-day does not)
+    SPY buy-and-hold, same window:  +0.0485%/day
+    combos:  5th +0.0130%   median +0.0396%   95th +0.0726%   best +0.2312%
+    share of the 1008 combinations that beat SPY per day: 31% (315)
+
+  THE HARDER TEST -- compounded per market, cash charged for idle days,
+  measured against simply OWNING each market over the same window.
+    combos with enough markets to judge: 969
+    median annual return of the system:  +2.5%/yr
+    median EXCESS over buy-and-hold:     -6.0%/yr
+    best combo's excess:                 +0.3%/yr
+    combos beating buy-and-hold at all:  6 of 969 (1%)
+    within the best combo, share of individual markets beaten: 54%
+
+================================================================================
+  2. THE NULL -- same grid on broken data (999 combos)
+================================================================================
+  best REAL combo, holdout   +45.45%
+  best NULL combo            +32.56%
+  median real +7.47%   median null +6.54%
+
+  per-day, which is the fair comparison:
+    best real +0.2312%/day    best null +0.1096%/day    SPY +0.0485%/day
+    median real +0.0396%/day  median null +0.0351%/day
+    0.0% of NULL combos matched or beat the BEST real one
+  -> REAL WINS
+
+================================================================================
+  3. DOES THE SEARCH PREDICT THE HOLDOUT?
+================================================================================
+  This is the whole question. If picking the best in 2005-2017 tells
+  you nothing about 2018-2026, then no amount of searching helps.
+
+  correlation, mean per trade:   +0.867
+  correlation, return per day:   +0.577
+
+  top 50 chosen by SEARCH per-day:
+    search  +0.0717%/day  ->  holdout +0.0625%/day
+    all 1008 combos average holdout: +0.0402%/day
+    of those 50, beat SPY in holdout: 32 of 50
+
+================================================================================
+  4. COMPONENT EFFECTS -- averaged over every combo containing them
+================================================================================
+
+  CONTEXT
+    any             168 combos    +4.3%/yr  vs own   -3.4%/yr    +9.77%/trade   190 days  win  60%
+    W               168 combos    +2.3%/yr  vs own   -5.3%/yr    +8.22%/trade   190 days  win  59%
+    M               168 combos    +2.6%/yr  vs own   -5.7%/yr    +8.13%/trade   189 days  win  60%
+    M_notWdn        168 combos    +2.2%/yr  vs own   -6.3%/yr    +7.70%/trade   189 days  win  59%
+    D+W             129 combos    +1.5%/yr  vs own   -7.5%/yr    +7.56%/trade   190 days  win  58%
+    W+M             168 combos    +1.6%/yr  vs own   -7.8%/yr    +7.09%/trade   188 days  win  59%
+
+  TRIGGER
+    hl_confirm      126 combos    +3.0%/yr  vs own   -5.3%/yr    +8.11%/trade   193 days  win  58%
+    ema12_reclaim   126 combos    +3.0%/yr  vs own   -5.3%/yr    +8.24%/trade   191 days  win  56%
+    wrsi40          108 combos    +2.5%/yr  vs own   -5.5%/yr   +10.09%/trade   176 days  win  62%
+    rsi40           126 combos    +2.5%/yr  vs own   -6.0%/yr    +7.51%/trade   187 days  win  60%
+    ma50_dip        126 combos    +2.5%/yr  vs own   -6.2%/yr    +7.26%/trade   192 days  win  60%
+    rsi35           126 combos    +2.0%/yr  vs own   -6.4%/yr    +7.80%/trade   189 days  win  61%
+    rsi30           105 combos    +1.9%/yr  vs own   -6.8%/yr    +7.88%/trade   190 days  win  62%
+    eq_up           126 combos    +2.3%/yr  vs own   -6.9%/yr    +8.14%/trade   195 days  win  56%
+
+  EXIT
+    HL_d            138 combos    +4.4%/yr  vs own   -4.3%/yr   +14.39%/trade   293 days  win  65%
+    target20        138 combos    +4.5%/yr  vs own   -4.3%/yr    +7.85%/trade   209 days  win  77%
+    HL_w            138 combos    +3.2%/yr  vs own   -5.0%/yr   +12.15%/trade   261 days  win  54%
+    HL_m            138 combos    +3.1%/yr  vs own   -5.4%/yr   +14.43%/trade   320 days  win  60%
+    trail20         138 combos    +1.4%/yr  vs own   -6.8%/yr    +5.34%/trade   174 days  win  46%
+    time60          138 combos    +1.3%/yr  vs own   -7.0%/yr    +2.28%/trade    59 days  win  62%
+    ema12           141 combos    +0.4%/yr  vs own   -7.9%/yr    +0.41%/trade    12 days  win  52%
+
+  MANAGEMENT
+    allin           323 combos    +3.5%/yr  vs own   -5.0%/yr   +10.65%/trade   189 days  win  57%
+    scale           323 combos    +3.1%/yr  vs own   -5.5%/yr    +8.56%/trade   189 days  win  63%
+    scale_rsi       323 combos    +1.9%/yr  vs own   -6.7%/yr    +5.09%/trade   189 days  win  59%
+
+================================================================================
+  5. TOP 15 BY HOLDOUT  (for information -- NOT a recommendation)
+================================================================================
+  context    trigger       exit      mgmt       trades    ann/yr    vs own   days   win
+  any        rsi35         HL_w      allin        3934     +7.7%     +0.3%    268   54%
+  any        rsi40         HL_w      allin        4386     +7.7%     +0.3%    258   52%
+  any        wrsi40        HL_w      allin        3049     +7.1%     +0.2%    284   57%
+  any        rsi40         HL_d      allin        3817     +8.1%     +0.2%    294   63%
+  any        rsi40         target20  allin        4878     +7.5%     +0.0%    207   76%
+  any        rsi40         HL_w      scale        4386     +7.6%     +0.0%    258   57%
+  any        ma50_dip      target20  allin        5038     +7.9%     -0.0%    207   75%
+  any        rsi40         HL_d      scale        3817     +7.7%     -0.1%    294   71%
+  any        rsi35         HL_d      allin        3481     +7.5%     -0.2%    299   63%
+  any        rsi35         HL_w      scale        3934     +7.1%     -0.3%    268   59%
+  any        ema12_reclaim target20  allin        5493     +7.8%     -0.4%    207   74%
+  any        ema12_reclaim HL_w      allin        4121     +8.0%     -0.4%    286   55%
+  any        ema12_reclaim HL_w      scale        4121     +7.4%     -0.4%    286   60%
+  any        ma50_dip      target20  scale        5038     +7.7%     -0.4%    207   80%
+  any        hl_confirm    target20  scale        5629     +7.3%     -0.4%    205   78%
+
+  These are the best of 1008 tries. Compare them to the null above
+  before believing any of them.

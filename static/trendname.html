@@ -1,0 +1,119 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Name</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--card2:#1a1e25;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --amber:#ffb84d;--eq:#5aa9ff;--up:#3ddc97;--dn:#ff5c72;--mono:ui-monospace,Consolas,monospace}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:18px 22px 6px;display:flex;flex-wrap:wrap;gap:12px;align-items:baseline}
+  h1{font-size:20px;margin:0} h1 small{color:var(--dim);font-size:13px;font-weight:400;margin-left:10px}
+  a{color:var(--eq);text-decoration:none}
+  .sub{color:var(--dim);font-size:13px;max-width:980px;padding:0 22px 8px}
+  main{padding:8px 22px 60px}
+  h2{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--faint);margin:22px 0 8px}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:12px}
+  th{color:var(--faint);font-weight:500;text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);font-size:11px;white-space:nowrap}
+  th[data-k]{cursor:pointer;user-select:none} th[data-k]:hover{color:var(--fg)} th.on{color:var(--amber)}
+  td{padding:5px 8px;text-align:right;border-bottom:1px solid rgba(37,42,51,.6);white-space:nowrap}
+  th.l,td.l{text-align:left}
+  .pos{color:var(--up)} .neg{color:var(--dn)} .faint{color:var(--faint)} .amber{color:var(--amber)}
+  .g{display:inline-block;min-width:18px;text-align:center;padding:1px 6px;border-radius:5px;font-weight:700;font-family:var(--mono)}
+  .gA{background:#1f6f4a;color:#dfffe9} .gB{background:#2c5a86;color:#e3f0ff} .gC{background:#3b4250;color:#e6e9ee} .gD{background:#7a3b2a;color:#ffe6df} .gF{background:#8a2530;color:#ffe3e6} .gQ{background:#2a2e36;color:#8b93a1}
+  .cat{background:var(--card2);border:1px solid var(--line);color:var(--dim);padding:5px 11px;border-radius:8px;cursor:pointer;font-size:12.5px;user-select:none}
+  .cat.on{background:rgba(255,184,77,.16);border-color:var(--amber);color:var(--amber)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:inline-block;margin:4px 8px 4px 0;font-family:var(--mono);font-size:12.5px;vertical-align:top}
+  .card b{color:var(--fg)} .card .t{color:var(--faint);font-size:11px;margin-bottom:3px}
+  button.chart{background:var(--card2);border:1px solid var(--line);color:var(--eq);padding:2px 9px;border-radius:6px;cursor:pointer;font-size:11.5px}
+  button.chart:hover{border-color:var(--eq)}
+  #pic{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:10;cursor:zoom-out}
+  #pic img{max-width:97vw;max-height:96vh;border:1px solid var(--line);border-radius:8px}
+  #pic .msg{color:var(--dim);font-family:var(--mono)}
+  .more{margin:10px 0;color:var(--dim);cursor:pointer}
+</style></head>
+<body>
+<header>
+  <h1 id="title">loading…</h1>
+  <span id="tfs"></span>
+  <a href="/trendnames" style="margin-left:auto">← all names</a>
+</header>
+<div class="sub">Every trend ride this name had under your rules over the last 4 years: the uptrend already had a higher low and a higher high, buy the second higher low at the next open, sell the rest when a wick goes clearly under the last higher low, or trail once up 3x the risk. Click <b>chart</b> on any row to see that trade drawn with the higher timeframes.</div>
+<main>
+  <div id="cards"></div>
+  <h2>how it trends</h2><div id="trend"></div>
+  <h2>by year <span class="faint" style="letter-spacing:0;text-transform:none">— did it hold up, or was it one good year?</span></h2>
+  <table><thead><tr><th class="l">year</th><th>trades</th><th>per trade</th><th>won</th><th>lost</th></tr></thead><tbody id="years"></tbody></table>
+  <h2>every trade <span class="faint" id="count" style="letter-spacing:0;text-transform:none"></span></h2>
+  <table style="margin-top:8px"><thead><tr><th class="l" data-k="t">when</th><th><select id="tfsel"><option value="all">tf: all</option></select></th><th data-k="held">bars held</th><th class="l" data-k="why">how it ended</th><th data-k="ret">result</th><th data-k="worst">worst dip</th><th data-k="best_after">best after the sale</th><th class="l" data-k="hi" id="hih" hidden>next chart</th><th class="l" data-k="chop">chop</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+  <div class="more" id="more" hidden>show more…</div>
+</main>
+<div id="pic"><span class="msg">drawing…</span></div>
+<script>
+const $ = s => document.querySelector(s);
+const [, , KIND, SYM] = location.pathname.split('/').map(decodeURIComponent);
+const pct = (x, d = 1) => x == null || isNaN(x) ? '<span class="faint">–</span>' : `<span class="${x >= 0 ? 'pos' : 'neg'}">${x >= 0 ? '+' : ''}${(100*x).toFixed(d)}%</span>`;
+const p0 = x => x == null ? '–' : (100*x).toFixed(0) + '%';
+const ORDER = ['15m', '1h', '4h', '1d', '1w'];
+let HIDE_HI = true;
+let ROWS = [], TF = 'all', SHOWN = 300, SORT = {k: 't', dir: -1}, SCORES = [];
+Promise.all([
+  fetch(`/validation/trend_name_events/${KIND}_${SYM}.json?v=${Date.now()}`).then(r => r.ok ? r.json() : {by_tf: {}}),
+  fetch('/validation/trend_names.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/trend_names_focus.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/names_map.json').then(r => r.json()).catch(() => ({})),
+]).then(([ev, sc, foc, names]) => {
+  const src = sc || foc || {rows: []};
+  const full = ((names[KIND === 'etf' ? 'stock' : KIND] || {})[SYM]) || (names.stock || {})[SYM] || '';
+  $('#title').innerHTML = `${SYM} <small>${full} · ${KIND}</small>`;
+  document.title = SYM;
+  ROWS = [];
+  for (const [tf, list] of Object.entries(ev.by_tf || {})) list.forEach(x => ROWS.push(Object.assign({tf}, x)));
+  // the next-chart column only means something once it varies (the 2026-09-07 run had no higher chart loaded)
+  HIDE_HI = new Set(ROWS.map(r => r.hi)).size < 2; $('#hih').hidden = HIDE_HI;
+  SCORES = src.rows.filter(r => r.sym === SYM && r.kind === KIND);
+  const tfs = ORDER.filter(t => ROWS.some(r => r.tf === t));
+  $('#tfs').innerHTML = [`<span class="cat on" data-tf="all">all timeframes</span>`].concat(tfs.map(t => { const g = SCORES.find(x => x.tf === t); return `<span class="cat" data-tf="${t}">${t} ${g ? `<span class="g g${g.grade === '?' ? 'Q' : g.grade}">${g.grade}</span>` : ''}</span>`; })).join(' ');
+  $('#tfsel').innerHTML = '<option value="all">tf: all</option>' + tfs.map(t => `<option value="${t}">${t}</option>`).join('');
+  const setTF = t => { TF = t; SHOWN = 300; $('#tfsel').value = t; document.querySelectorAll('[data-tf]').forEach(x => x.classList.toggle('on', x.dataset.tf === t)); draw(); };
+  document.querySelectorAll('[data-tf]').forEach(b => b.onclick = () => setTF(b.dataset.tf));
+  $('#tfsel').onchange = () => setTF($('#tfsel').value);
+  draw();
+});
+function draw(){
+  let rs = ROWS.filter(r => TF === 'all' || r.tf === TF);
+  const g = SCORES.find(x => x.tf === TF);
+  const won = rs.filter(r => r.ret > 0.005), lost = rs.filter(r => r.ret < -0.005);
+  const avg = a => a.length ? a.reduce((s, r) => s + r.ret, 0) / a.length : null;
+  $('#cards').innerHTML =
+    (g ? `<span class="card"><div class="t">grade</div><span class="g g${g.grade === '?' ? 'Q' : g.grade}">${g.grade}</span> ${g.verdict || ''}</span>` : '') +
+    `<span class="card"><div class="t">trades</div><b>${rs.length}</b></span>` +
+    `<span class="card"><div class="t">per trade</div><b>${pct(avg(rs), 2)}</b></span>` +
+    `<span class="card"><div class="t">won · lost</div><b>${rs.length ? (100*won.length/rs.length).toFixed(0) : 0}%</b> · ${rs.length ? (100*lost.length/rs.length).toFixed(0) : 0}%</span>` +
+    `<span class="card"><div class="t">typical win · typical loss</div><b>${pct(avg(won))}</b> · <b>${pct(avg(lost))}</b></span>` +
+    (g && g.beta != null ? `<span class="card"><div class="t">moves per 1% of benchmark</div><b>${g.beta.toFixed(1)}x</b></span>` : '');
+  $('#trend').innerHTML = g ? `<span class="card"><div class="t">time in an uptrend</div><b>${p0(g.pct_up)}</b></span><span class="card"><div class="t">time in a downtrend</div><b>${p0(g.pct_down)}</b></span><span class="card"><div class="t">uptrend lasts</div><b>${g.up_len_days == null ? '–' : g.up_len_days.toFixed(1) + ' days'}</b></span><span class="card"><div class="t">uptrend gains</div><b>${pct(g.up_gain)}</b></span><span class="card"><div class="t">clean (closes above the 12 EMA)</div><b>${p0(g.up_clean)}</b></span><span class="card"><div class="t">uptrends a month</div><b>${g.ups_per_month == null ? '–' : g.ups_per_month.toFixed(1)}</b></span><span class="card"><div class="t">longest uptrend</div><b>${g.longest_up_days == null ? '–' : g.longest_up_days.toFixed(0) + ' days'}</b></span>` : '<span class="faint">pick a single timeframe to see how it trends there</span>';
+  const by = {};
+  rs.forEach(r => { const y = String(r.t).slice(0, 4); (by[y] = by[y] || []).push(r); });
+  $('#years').innerHTML = Object.keys(by).sort().map(y => { const a = by[y]; const w = a.filter(r => r.ret > 0.005).length, l = a.filter(r => r.ret < -0.005).length;
+    return `<tr><td class="l">${y}</td><td>${a.length}</td><td>${pct(avg(a), 2)}</td><td>${w}</td><td>${l}</td></tr>`; }).join('') || '<tr><td colspan="5" class="faint">nothing</td></tr>';
+  const TFN = {'15m': 0, '1h': 1, '4h': 2, '1d': 3, '1w': 4};
+  const key = r => SORT.k === 'tf' ? TFN[r.tf] : r[SORT.k];
+  rs = rs.slice().sort((a, b) => { const x = key(a), y = key(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return typeof x === 'string' ? SORT.dir * x.localeCompare(y) : SORT.dir * (x - y); });
+  document.querySelectorAll('th[data-k]').forEach(h => { h.textContent = h.textContent.replace(/ [▲▼]$/, ''); if (h.dataset.k === SORT.k) h.textContent += SORT.dir > 0 ? ' ▲' : ' ▼'; h.classList.toggle('on', h.dataset.k === SORT.k); });
+  $('#count').textContent = `${rs.length} trades`;
+  $('#rows').innerHTML = rs.slice(0, SHOWN).map(r => `<tr><td class="l">${r.t}</td><td>${r.tf}</td><td>${r.held}</td><td class="l">${r.why}</td><td>${pct(r.ret)}</td><td>${pct(r.worst)}</td><td>${pct(r.best_after)}</td><td class="l faint" ${HIDE_HI ? 'hidden' : ''}>${(r.hi || '').replace('higher chart ', '')}</td><td class="l faint">${(r.chop || '').split(' (')[0]}</td><td><button class="chart" data-tf="${r.tf}" data-t="${r.t}">chart</button></td></tr>`).join('') || '<tr><td colspan="10" class="faint">nothing here</td></tr>';
+  $('#more').hidden = rs.length <= SHOWN;
+  document.querySelectorAll('button.chart').forEach(b => b.onclick = () => show(b.dataset.tf, b.dataset.t, b));
+}
+$('#more').onclick = () => { SHOWN += 300; draw(); };
+document.querySelectorAll('th[data-k]').forEach(h => h.onclick = () => { if (SORT.k === h.dataset.k) SORT.dir = -SORT.dir; else SORT = {k: h.dataset.k, dir: -1}; SHOWN = 300; draw(); });
+async function show(tf, t, btn){
+  const pic = $('#pic'); pic.style.display = 'flex'; pic.innerHTML = '<span class="msg">drawing… (the first chart for a name loads all its history)</span>';
+  btn.textContent = '…';
+  try {
+    const r = await fetch(`/api/trend_chart?sym=${encodeURIComponent(SYM)}&kind=${KIND}&tf=${tf}&t=${encodeURIComponent(t)}`).then(r => r.json());
+    pic.innerHTML = r.ok ? `<img src="${r.url}">` : `<span class="msg">could not draw it: ${r.error || 'unknown'}</span>`;
+  } catch (e) { pic.innerHTML = `<span class="msg">could not draw it: ${e.message}</span>`; }
+  btn.textContent = 'chart';
+}
+$('#pic').onclick = () => { $('#pic').style.display = 'none'; };
+</script>
+</body></html>
