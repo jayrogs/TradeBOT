@@ -490,6 +490,10 @@ def render(sym, kind, tf, t, frames, tag, path):
     x0 = max(0, e - 45); x1 = min(len(df) - 1, af)
     if x1 - x0 > 320:
         x0 = max(0, e - 30); x1 = min(len(df) - 1, e + 290)
+    # a long hold (chandelier 12, trail 15%) could end past the 290-bar window, putting "sold the rest"
+    # outside the chart where no label placement can bring it back (2026-09-11): the sale is always shown
+    if xb + 10 > x1:
+        x1 = min(len(df) - 1, xb + 10)
     d = df.iloc[x0:x1 + 1]
     highs_tfs = [t_ for t_ in HIGHER.get(tf, ()) if frames.get(t_) is not None and len(frames[t_]) >= 40]
     if highs_tfs:
@@ -519,12 +523,12 @@ def render(sym, kind, tf, t, frames, tag, path):
     hi = float(np.nanmax(d["High"].values))
     rng = max(hi - lo, 1e-9)
     ax.set_ylim(lo - 0.34 * rng, hi + 0.34 * rng)
-    ax.set_xlim(-1, len(d) + max(6, int(len(d) * 0.16)))     # a right margin for the level labels
+    ax.set_xlim(-1, len(d) + max(8, int(len(d) * 0.20)))     # a right margin for the level labels
     lane_dn2 = lo - 0.30 * rng      # lower lane: the buy and the pivots
     lane_dn1 = lo - 0.16 * rng
     lane_up = hi + 0.23 * rng       # upper lane: the sale
     lane_up_lo = hi + 0.12 * rng    # a lane under it: the partial
-    xr = len(d) + 1
+    xr = len(d) + max(3, int(len(d) * 0.05))   # clear of the last pivots' words
 
     def peg(x, y_bar, y_lane, colr, marker, size, label=None, weight="bold", fs=8.5, side=0):
         ax.plot([x, x], [y_bar, y_lane], color=colr, lw=.7, ls=":", alpha=.55, zorder=6)
@@ -535,25 +539,43 @@ def render(sym, kind, tf, t, frames, tag, path):
                 an = ax.annotate(label, (x, y_lane), xytext=(-9, 0), textcoords="offset points",
                                  ha="right", va="center", color=colr, fontsize=fs, weight=weight, zorder=20)
                 keep_inside(ax, an)
-                return
+                return an
             dy = -9 if marker == "^" else 9
             ha = "center" if side == 0 else ("right" if side < 0 else "left")
             an = ax.annotate(label, (x, y_lane), xytext=(9 * side, dy), textcoords="offset points",
                              ha=ha, va="top" if marker == "^" else "bottom",
                              color=colr, fontsize=fs, weight=weight, zorder=20)
             keep_inside(ax, an)
+            return an
+        return None
 
     lows_v = df["Low"].values; highs_v = df["High"].values
     if w["prev_low"] is not None and x0 <= w["prev_low"][1] <= x1:
         pj = w["prev_low"][1]
         peg(pj - x0, lows_v[pj], lane_dn2, "#8b93a1", "^", 70, "previous low", weight="normal", fs=8)
     tj = w["trig"][1]
+    crowded = abs(e - tj) <= 5
+    an_hl = None
     if x0 <= tj <= x1:
-        crowded = abs(e - tj) <= 5
-        peg(tj - x0, lows_v[tj], lane_dn1, "#5aa9ff", "^", 150, "higher low", side=-1 if crowded else 0)
-    # when the buy sits within 5 bars of the higher low, their words touched (NU 4h): the buy drops a lane
-    near_trig = abs(e - tj) <= 5
-    peg(e - x0, lows_v[e], lane_dn2 if near_trig else lane_dn1, "#ffb84d", "^", 190, "buy", side=1 if near_trig else 0)
+        an_hl = peg(tj - x0, lows_v[tj], lane_dn1, "#5aa9ff", "^", 150, "higher low", side=-1 if crowded else 0)
+    an_buy = peg(e - x0, lows_v[e], lane_dn1, "#ffb84d", "^", 190, "buy", side=1 if crowded else 0)
+    # "buy" and "higher low" can still touch when the two bars are 1-2 apart (NU 4h). Dropping "buy" a lane
+    # put it on "previous low" on almost every chart (2026-09-11), so instead measure the two words and
+    # slide "buy" right, in its own lane, by exactly the overlap
+    if an_hl is not None and an_buy is not None:
+        rend = ax.figure.canvas.get_renderer()
+        for _try in range(4):
+            bh = an_hl.get_window_extent(rend); bb_ = an_buy.get_window_extent(rend)
+            ov_x = min(bh.x1, bb_.x1) - max(bh.x0, bb_.x0)
+            ov_y = min(bh.y1, bb_.y1) - max(bh.y0, bb_.y0)
+            if not (ov_x > -4 and ov_y > -2):
+                break
+            # slide away from "higher low": right if buy is to its right (or on it), else left
+            direction = 1 if (bb_.x0 + bb_.x1) >= (bh.x0 + bh.x1) else -1
+            ox, oy = an_buy.xyann
+            an_buy.set_ha("left" if direction > 0 else "right")
+            an_buy.xyann = (ox + direction * (ov_x + 8) * 72.0 / ax.figure.dpi, oy)
+            keep_inside(ax, an_buy)
     if w["pbar"] is not None and x0 <= w["pbar"] <= x1:
         peg(w["pbar"] - x0, highs_v[w["pbar"]], lane_up_lo, "#ffb84d", "D", 110, "sold a third", side=-1)
     peg(xb - x0, highs_v[xb], lane_up, col, "v", 190, "sold the rest %+.1f%%" % (100 * w["ret"]))

@@ -282,6 +282,62 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     Pivots 3+ apart on top of the filter: small samples, and the 4h turns negative in the second half. Not taken.
     Drawings on /eqfree now use: half at the far line, far line >= 1x, pivots 3+ apart, stocks regular hours
     (the last two are his visual rules; as coded they did not change the money).
+26f. WHAT CALLS A FAST EQ (2026-09-11, `studies/eq_fastread.py`, validation/eq_fastread.json). After grading /eqfree he
+    said the daily is "trying to base someones mood entirely on the phase of the moon" for a 5m EQ. He was right: the
+    daily 50 EMA calls which way a 5m/15m EQ breaks 50-51% of the time (a coin flip). 809 names, 85,000 5m and 39,000
+    15m EQ breaks, stocks on regular hours. Share of breaks the read got right (up call -> broke up, down -> down):
+        read                                                   5m     15m    1h     how often it gives a call
+        THIS chart: price over a rising 12 EMA / under falling 59%    58%    58%    72%
+        inside the EQ: tested-more line holds + against prior  60%    59%    59%    22%
+        both of those agree                                    66%    65%    68%    9-11%
+        NEXT chart up 12 EMA (15m for a 5m EQ ...)             45%    44%    44%    90%   <- BACKWARDS
+        this chart's 50 EMA / next chart's 50 EMA / 1h 50 EMA  45-49% (backwards or nothing)
+        daily 50 EMA, day's open, next chart's pivot trend     48-51% (nothing)
+    The bigger chart's 12 EMA points the WRONG way for the break: the EQ breaks against the move it came from (#26c).
+    Joey's rule is about the move AFTER price gets back over that 12 EMA ("Will need to get over 15min 12ema ... for
+    anything to stick"), which is a different trigger from where the EQ sits.
+    BUT THE TRADE STILL DOES NOT PAY on 5m/15m: buying the higher low inside the EQ WITH any of these reads, half at the
+    far line, far line >= 1x: 5m -0.02% to +0.05% average, middle trade -0.05% to 0.00; 15m +0.02% to +0.07%, middle
+    about zero. The call is about the BREAK; the in-EQ entry does not capture it. Next: trade the break itself in the
+    called direction (`studies/eq_breaktrade.py`). "This chart's pivot trend" gives no call at all (0%), and that is
+    not a bug: an EQ is higher lows AND lower highs, which ends both an uptrend and a downtrend, so the moment an EQ
+    becomes knowable its own chart always reads "no trend" (checked on BTC 15m: the read itself is fine bar by bar).
+26g. HIS MENTOR'S RULES ON THE 5m/15m EQ (2026-09-11, `studies/eq_riders.py`, validation/eq_riders.json; rules from
+    TCG_METHOD.md). 809 names, stocks on regular hours. Same entry as /eqfree (the next open after a higher low / lower
+    high confirms inside the EQ). The reads were the 12 EMAs of the next three charts up (the next one only, the next
+    two agreeing, two of three, all three) and this chart's own 12 EMA. Location was the EQ's line within half a normal
+    bar of a bigger chart's 12 EMA. Exits were his: half at the far line then rest to breakeven, all out at the far
+    line, a runner out on a close through this chart's 12 EMA, a runner stop walked up under each higher low, and a
+    runner out on the next chart up's 12 EMA ("zoom out game").
+    WHICH WAY THE EQ BREAKS (share right):
+        this chart's 12 EMA                                    5m 60% up / 58% down    15m 59% / 56%
+        next chart up, next two, two of three, all three       44-48% (all BACKWARDS)
+        EQ ceiling sitting on a bigger chart's 12 EMA          breaks up 55% (5m and 15m)
+        EQ floor sitting on a bigger chart's 12 EMA            breaks up 47-48%
+        open space                                             51%
+    The line pressed against a bigger chart's 12 EMA is the one that BREAKS. The 12 EMAs above point the wrong way
+    for this entry, as #26f found.
+    THE TRADE: NOTHING PAYS, with any read, location or exit. Best row of hundreds (n >= 500): 15m, next chart up's
+    12 EMA, at a bigger 12 EMA, +0.05% a trade, middle trade about zero, eras +0.09 / +0.03 / +0.07. 5m rows about
+    +0.00% average with a negative middle trade. The walked-up stop and the 12 EMA runner exits make no difference
+    at this size. Fast charts after costs, again (#24, #26c).
+    What the TCG Slack says instead (TCG_METHOD.md #9): the room does not trade the fast EQ on its own. It uses it to
+    time a 1h/4h/daily higher low at a 12 EMA and holds for THAT chart's move. That is the next study.
+26h. TRADING THE BREAK OF A 5m/15m EQ (2026-09-11, `studies/eq_breaktrade.py`, validation/eq_breaktrade.json). The
+    reads that call the break 58-68% right (#26f, #26g), applied to the break itself: every break, this chart's 12
+    EMA, the inside read, both, the next chart's 12 EMA, and its opposite. Location: the broken line on a bigger 12 EMA.
+    Entries: the next open after the break bar, or a stop order resting at the line. Stop: a wick through the EQ's
+    other line. Exits: all out at 2x the risk; half at 1x then a runner on this chart's 12 EMA, walked up under higher
+    lows, or on the next chart's 12 EMA; hold 20 bars. 809 names, 85,000 5m and 39,000 15m breaks.
+    EVERYTHING LOSES. Every break, average per trade:
+                              next open        stop order at the line
+        5m                    -0.06 to -0.07%  -0.05 to -0.06%
+        15m                   -0.12 to -0.13%  -0.06 to -0.08%
+    Middle trade negative almost everywhere. The best row of hundreds: 15m, stop order, next chart's 12 EMA agreeing,
+    line on a bigger 12 EMA, hold 20 bars, -0.00% average, -0.10% middle, +0.10% over drift (n 1,752). The direction
+    call is real; the fast break after costs does not pay, with any of the TCG exits. Together with #26f/#26g: the
+    5m/15m EQ as a trade on its own is exhausted as coded. The TCG Slack says the fast EQ is TIMING for a 1h/4h higher
+    low at a 12 EMA (TCG_METHOD.md #9) -> `studies/eq_playbook.py`.
 26. CHANNELS (was called "EQs" in error until 2026-09-09). His trade: get positioned at an edge to catch the BREAK ("buying the floor
     or selling the ceiling in order to be positioned for the eq to break one way or the other ... eqs
     usually break with follow through ... the longer they go on the clearer the breaks"). NOT buy-floor-
@@ -442,5 +498,11 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
   `/names` + `/name/<kind>/<sym>`, `/cases`, `/study`, `/rules` (this file), `/paint`.
   The dashboard review with what each page is for: `REVIEW.md`.
 - He trades on Kraken and Coinbase. Crypto cost is 0.2% round trip at his volume tier.
+- HIS MENTOR'S METHOD: `TCG_METHOD.md` (2026-09-11, his words: "use basic TheChartGuys methodology, its simple and
+  clean, also study twitter @Junglefunk_ trades, he's my mentor ... trying to maximize their strategy"). @junglefunk_ =
+  Joey Hayes of The Chart Guys. His exact rules are quoted there (12 EMA riders on every chart size, higher lows /
+  stair steps, patterns only at location, ratio charts, lose small win big). New ideas come from that file, not from me.
+  Studies built on it: `studies/eq_fastread.py` (what calls a 5m/15m EQ), `studies/eq_riders.py` (the 12 EMAs above + location
+  + his exits on 5m/15m EQs).
 - Long-form notes: `PROJECT_STATE.md`. Per-rule memory notes with his exact words:
   `C:\Users\jayru\.claude\projects\C--Users-jayru-Desktop-AI-Trading-Project\memory\`.
