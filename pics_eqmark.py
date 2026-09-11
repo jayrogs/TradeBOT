@@ -173,8 +173,207 @@ def _one(args):
     return got, errs
 
 
+BPH = {"5m": 12, "15m": 4}         # bars in one hourly bar
+LOOKS = [4, 8, 24]                 # hourly bars later, for the numbers under each chart
+GREEN, RED = "#3ddc97", "#ff5c72"
+
+
+def mark_of(note):
+    m = str(note if isinstance(note, str) else "").split("|")[0].strip().lower()
+    return m if m in ("long", "short", "skip") else ""
+
+
+def render_after(sym, tf, df, h1, d1, r, path, mark):
+    """The same EQ with what came after it: the small chart runs 60 bars on, the hourly 24 bars, the daily 10."""
+    i = r["confirm"]; born = r["born"]; n = len(df)
+    x0 = max(0, born - 40)
+    x1 = min(n - 1, i + 60)
+    d = df.iloc[x0:x1 + 1]
+    xs = np.arange(len(d))
+    now = i - x0
+    fig = plt.figure(figsize=(17, 9.6), dpi=100)
+    fig.patch.set_facecolor(DARK)
+    gs = fig.add_gridspec(2, 2, width_ratios=[1.35, 1], wspace=0.12, hspace=0.30, top=0.93, bottom=0.09)
+    ax = fig.add_subplot(gs[:, 0])
+    bnd = CK.bundle(df, x0, len(d))
+    bnd["spans"] = [(k_, max(s0, x0) - x0, min(s1, x1) - x0) for k_, s0, s1 in ST.spans(df.iloc[:x1 + 1], causal=True)
+                    if s1 >= x0 and s0 <= x1]
+    CK.render(ax, bnd, "", "%m-%d %H:%M")
+    ax.plot(xs, XM.ema(df["Close"].values.astype(float)[:x1 + 1], 12)[x0:x1 + 1], color=PURPLE, lw=1.7, zorder=7)
+    sh = r["shape"]
+    lows = [(j, p) for j, p, kd, lab in sh if kd == "low"]
+    highs = [(j, p) for j, p, kd, lab in sh if kd == "high"]
+
+    def steps(pts):
+        y = np.full(len(d), np.nan)
+        for m, (j, pr) in enumerate(pts):
+            j2 = pts[m + 1][0] if m + 1 < len(pts) else i
+            a_, b_ = max(j, x0), min(j2, i)
+            if b_ >= a_:
+                y[a_ - x0:b_ - x0 + 1] = pr
+        return y
+    ax.step(xs, steps(lows), where="post", color=BLUE, lw=2.0, zorder=8)
+    ax.step(xs, steps(highs), where="post", color=BLUE, lw=2.0, zorder=8)
+    f_now, c_now = lows[-1][1], highs[-1][1]
+    ax.hlines([f_now, c_now], now, len(d) - 1, colors=BLUE, lw=1.1, linestyles="--", alpha=0.75, zorder=6)
+    ax.axvspan(now + 0.5, len(d) + 3, color="#ffffff", alpha=0.05, zorder=1)
+    ax.axvline(now + 0.5, color=DIM, lw=0.9, ls=":", zorder=4)
+    lo = float(np.nanmin(d["Low"].values)); hi = float(np.nanmax(d["High"].values)); rng = max(hi - lo, 1e-9)
+    ax.set_ylim(lo - 0.25 * rng, hi + 0.25 * rng)
+    ax.set_xlim(-1, len(d) + 3)
+    if mark in ("long", "short") and i + 1 < n:
+        e = i + 1 - x0
+        if mark == "long":
+            ax.scatter([e], [float(df["Low"].values[i + 1]) - 0.08 * rng], marker="^", s=150, color=GREEN, zorder=9)
+        else:
+            ax.scatter([e], [float(df["High"].values[i + 1]) + 0.08 * rng], marker="v", s=150, color=RED, zorder=9)
+    step_ = max(len(d) // 7, 1)
+    ax.set_xticks(xs[::step_]); ax.set_xticklabels([q.strftime("%m-%d %H:%M") for q in d.index[::step_]], fontsize=6.5)
+    ax.set_title("%s  %s   AFTER (grey)   you: %s   dashed blue = the EQ's lines when you marked" % (
+        sym, tf, mark.upper() or "-"), color="#e6e9ee", fontsize=11.5, loc="left", pad=8)
+    panels = [(ax, d)]
+    t_now = df.index[i]
+    big = [(h1, (lambda x: int(x.index.searchsorted(t_now - pd.Timedelta(hours=1), side="right"))), 24, 66,
+            "1 hour", "%m-%d %H:%M"),
+           (d1, (lambda x: int(x.index.searchsorted(t_now.normalize(), side="left"))), 10, 70, "Daily", "%m-%d")]
+    for row, (hf, end_of, ahead, back, title, fmt) in enumerate(big):
+        if hf is None or len(hf) < 30:
+            continue
+        end_h = end_of(hf)
+        pos = max(0, end_h - back)
+        stop = min(len(hf), end_h + ahead)
+        win = stop - pos
+        if end_h - pos < 20:
+            continue
+        axh = fig.add_subplot(gs[row, 1])
+        hb = CK.bundle(hf, pos, win)
+        hb["spans"] = [(k_, max(s0, pos) - pos, min(s1, stop - 1) - pos)
+                       for k_, s0, s1 in ST.spans(hf.iloc[:stop], causal=True) if s1 >= pos and s0 <= stop - 1]
+        CK.render(axh, hb, "", fmt)
+        e12 = XM.ema(hf["Close"].values.astype(float)[:stop], 12)[pos:stop]
+        axh.plot(np.arange(len(e12)), e12, color=PURPLE, lw=1.7, zorder=7)
+        ylo = min(float(np.nanmin(hf["Low"].values[pos:stop])), f_now)
+        yhi = max(float(np.nanmax(hf["High"].values[pos:stop])), c_now)
+        yr = max(yhi - ylo, 1e-9)
+        axh.set_ylim(max(0, ylo - 0.2 * yr), yhi + 0.2 * yr)
+        axh.set_xlim(-1, win + 3)
+        axh.axhspan(f_now, c_now, color="#ffb84d", alpha=0.25, zorder=3)
+        nowx = end_h - pos - 0.5
+        axh.axvspan(nowx, win + 3, color="#ffffff", alpha=0.05, zorder=1)
+        axh.axvline(nowx, color=DIM, lw=0.9, ls=":", zorder=4)
+        axh.set_title("%s: grey = after the moment you marked, the EQ's prices in orange" % title,
+                      loc="left", color=DIM, fontsize=9.5, pad=3)
+        plt.setp(axh.get_xticklabels(), fontsize=6)
+        panels.append((axh, hb["d"]))
+    import pics_ride as PR
+    probs = PR.overlaps(fig, panels)
+    fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
+    plt.close(fig)
+    return probs
+
+
+def after_numbers(tf, df, r):
+    """Price from the next bar's open, 4 / 8 / 24 hourly bars later, and which side of the EQ price left first."""
+    i = r["confirm"]; n = len(df)
+    if i + 1 >= n:
+        return None
+    o = df["Open"].values.astype(float); c = df["Close"].values.astype(float)
+    h = df["High"].values.astype(float); l = df["Low"].values.astype(float)
+    entry = o[i + 1]
+    out = {}
+    for H in LOOKS:
+        j = i + 1 + H * BPH[tf]
+        out["pct_%d" % H] = round(float((c[j] / entry - 1) * 100), 2) if j < n else None
+    j_end = min(n - 1, i + 1 + LOOKS[-1] * BPH[tf])
+    eq_low = min(p for j, p, kd, lab in r["shape"] if kd == "low")
+    eq_high = max(p for j, p, kd, lab in r["shape"] if kd == "high")
+    lost_lo = np.where(l[i + 1:j_end + 1] < eq_low)[0]
+    lost_hi = np.where(h[i + 1:j_end + 1] > eq_high)[0]
+    first = "neither"
+    if len(lost_lo) and (not len(lost_hi) or lost_lo[0] < lost_hi[0]):
+        first = "under the EQ's bottom first"
+    elif len(lost_hi):
+        first = "over the EQ's top first"
+    out["left_the_eq"] = first
+    return out
+
+
+def _after_one(args):
+    sym, kind, rows, marks = args
+    import eq_steps as ES
+    try:
+        fr = S.frames_for(sym, kind)
+    except Exception as ex:
+        return [], ["%s %s: %s" % (kind, sym, ex)]
+    use = FR2.regular_hours(fr) if kind in ("stock", "etf") else fr
+    out, errs, cache = [], [], {}
+    for row in rows:
+        tf = row["tf"]
+        try:
+            df = use[tf]
+            if tf not in cache:
+                cache[tf] = (EC.coils(df, min_gap=3, strict_wicks=False), EC.coils(df, min_gap=3)[3])
+            (floor, ceil, cid, recs, atr), strict = cache[tf]
+            confirm = int(row["id"].rsplit("_", 1)[1])
+            r = next((x for x in recs if x["confirm"] == confirm), None)
+            if r is None:
+                errs.append("%s %s: the EQ at bar %d was not found" % (sym, tf, confirm))
+                continue
+            png = row["id"] + "_after.png"
+            probs = render_after(sym, tf, df, use.get("1h"), use.get("1d"), r, os.path.join(OUT, png),
+                                 marks.get(row["id"], ""))
+            out.append(dict(id=row["id"], after_png=png, after_problems=probs, after=after_numbers(tf, df, r),
+                            still_eq=any(x["confirm"] == confirm for x in strict),
+                            steps=ES.features(r, df["Close"].values.astype(float), atr)))
+        except Exception as ex:
+            errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
+    return out, errs
+
+
+def after_main(procs):
+    """Draw what happened after each EQ he marked, and put the numbers in the index."""
+    t0 = time.time()
+    idx_path = os.path.join(OUT, "eq_mark_index.json")
+    rows = json.load(open(idx_path))
+    notes = pd.read_csv(os.path.join("validation", "trade_notes_eqmark.csv"))
+    marks = {str(k): mark_of(v) for k, v in zip(notes["n"], notes["note"])}          # the last note per chart wins
+    by_name = {}
+    for row in rows:
+        by_name.setdefault((row["sym"], row["kind"]), []).append(row)
+    jobs = [(s_, k_, rs, marks) for (s_, k_), rs in by_name.items()]
+    got, errs = [], []
+    with cf.ProcessPoolExecutor(max_workers=min(procs, len(jobs))) as ex:
+        for g, e in ex.map(_after_one, jobs, chunksize=1):
+            got += g; errs += e
+    extra = {g["id"]: g for g in got}
+    for row in rows:
+        row.update({k: v for k, v in extra.get(row["id"], {}).items() if k != "id"})
+        row["mark"] = marks.get(row["id"], "")
+    json.dump(rows, open(idx_path, "w"), indent=1)
+    print("  %d after-charts drawn, %d with text problems  (%.0fs)" % (
+        len(got), sum(1 for g in got if g["after_problems"]), time.time() - t0))
+    for row in sorted(rows, key=lambda x: x["n"]):
+        a = row.get("after") or {}
+        st = row.get("steps") or {}
+        print("    #%-2d %-6s %-3s %-5s  4h %6s  8h %6s  24h %6s  %-28s lean %+.2f time %+.2f  %s%s" % (
+            row["n"], row["sym"], row["tf"], row["mark"], a.get("pct_4"), a.get("pct_8"), a.get("pct_24"),
+            a.get("left_the_eq", "-"), st.get("lean", 0), st.get("time_lean", 0),
+            "" if row.get("still_eq", True) else "NOT AN EQ UNDER THE STRICT SHAPE  ",
+            row.get("after_problems") or ""))
+    for e in errs:
+        print("  " + e)
+
+
 def main():
     procs, n_total = max(1, os.cpu_count() or 4), 30
+    if "--after" in sys.argv:
+        for i, a in enumerate(sys.argv):
+            nxt = sys.argv[i + 1] if i + 1 < len(sys.argv) else None
+            if a == "--procs" and nxt:
+                procs = int(nxt)
+            if a == "--log" and nxt:
+                sys.stdout = sys.stderr = open(nxt, "w", buffering=1, encoding="utf-8", errors="replace")
+        return after_main(procs)
     for i, a in enumerate(sys.argv):
         nxt = sys.argv[i + 1] if i + 1 < len(sys.argv) else None
         if a == "--procs" and nxt:

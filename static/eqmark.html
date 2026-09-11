@@ -81,19 +81,25 @@ function save(id, card) {
     .catch(fail);
 }
 
+function looksOf() {
+  const r = ROWS.find(x => x.after);
+  return r ? Object.keys(r.after).filter(k => k.startsWith('pct_')).map(k => +k.slice(4)) : [];
+}
+
 function summary() {
-  const rows = {long: [], short: [], skip: []};
-  ROWS.forEach(r => { const m = (MARKS[r.id] || {}).mark; if (rows[m]) rows[m].push(r.hidden); });
-  const pct = (a, f) => a.length ? Math.round(100 * a.filter(f).length / a.length) + '%' : '-';
-  let h = '<b>How your marks did</b><table><tr><th class="l">your mark</th><th>charts</th><th>broke your way</th><th>real move your way</th><th>fakeout your way</th><th>reversal</th><th>price your way 20 bars later</th></tr>';
-  for (const [mk, dir] of [['long', 'up'], ['short', 'down']]) {
-    const a = rows[mk];
-    const way = x => x.broke === dir;
-    const later = x => (dir === 'up' ? x.move20_normal_bars : -x.move20_normal_bars) > 0;
-    h += `<tr><td class="l">${mk}</td><td>${a.length}</td><td>${pct(a, way)}</td><td>${pct(a, x => way(x) && x.what_next === 'real')}</td><td>${pct(a, x => way(x) && x.what_next === 'fakeout')}</td><td>${pct(a, x => x.what_next === 'reversal')}</td><td>${pct(a, later)}</td></tr>`;
+  const looks = looksOf();
+  if (!looks.length) { $('#summary').innerHTML = 'The after-charts are not drawn yet.'; $('#summary').style.display = 'block'; return; }
+  let h = '<b>Your marks as a position</b> (price from the next bar\'s open)<table><tr><th class="l">your mark</th><th>charts</th>'
+    + looks.map(x => `<th>your way after ${x} hourly bars</th>`).join('') + `<th>average your way after ${looks[looks.length - 1]}</th></tr>`;
+  for (const [mk, way] of [['long', 1], ['short', -1], ['skip', 1]]) {
+    const a = ROWS.filter(r => (MARKS[r.id] || {}).mark === mk && r.after);
+    if (!a.length) continue;
+    const share = x => { const v = a.map(r => r.after['pct_' + x]).filter(v => v != null); return v.length ? `${v.filter(q => q * way > 0).length} of ${v.length}` : '-'; };
+    const last = a.map(r => r.after['pct_' + looks[looks.length - 1]]).filter(v => v != null);
+    const avg = last.length ? last.reduce((s, v) => s + v * way, 0) / last.length : null;
+    h += `<tr><td class="l">${mk === 'skip' ? 'skip (counted as long)' : mk}</td><td>${a.length}</td>${looks.map(x => `<td>${share(x)}</td>`).join('')}<td>${avg == null ? '-' : (avg > 0 ? '+' : '') + avg.toFixed(2) + '%'}</td></tr>`;
   }
-  h += `<tr><td class="l">skip</td><td>${rows.skip.length}</td><td colspan="5" class="l">broke up ${pct(rows.skip, x => x.broke === 'up')}, real moves ${pct(rows.skip, x => x.what_next === 'real')}</td></tr></table>`;
-  $('#summary').innerHTML = h;
+  $('#summary').innerHTML = h + '</table>';
   $('#summary').style.display = 'block';
 }
 
@@ -129,13 +135,20 @@ Promise.all([
 });
 
 $('#go').onclick = () => {
+  const looks = looksOf();
   document.querySelectorAll('.case').forEach(card => {
     const r = ROWS.find(x => x.id === card.dataset.id);
-    const hd = r.hidden, m = (MARKS[r.id] || {}).mark;
-    const yourWay = (m === 'long' && hd.broke === 'up') || (m === 'short' && hd.broke === 'down');
-    const el = card.querySelector('.reveal');
-    el.innerHTML = `It broke <b>${hd.broke}</b> ${hd.bars_to_break} bars later, and it was ${WORD[hd.what_next] || hd.what_next}. `
-      + (m === 'skip' ? 'You skipped it.' : yourWay ? '<b style="color:var(--up)">That was your way.</b>' : '<b style="color:var(--dn)">That was against your mark.</b>');
+    const m = (MARKS[r.id] || {}).mark, a = r.after, el = card.querySelector('.reveal'), im = card.querySelector('img');
+    if (!a || !r.after_png) { el.textContent = 'after-chart not drawn yet'; el.style.display = 'block'; return; }
+    const before = im.getAttribute('src'), after = `/validation/eq_mark/${r.after_png}?v=${Date.now()}`;
+    im.src = after;
+    const way = m === 'short' ? -1 : m === 'long' ? 1 : 0;
+    const cell = v => v == null ? '<td>-</td>' : `<td style="color:${v * way > 0 ? 'var(--up)' : v * way < 0 ? 'var(--dn)' : 'var(--fg)'}">${v > 0 ? '+' : ''}${v.toFixed(2)}%</td>`;
+    el.innerHTML = `<table><tr><th class="l">hourly bars later</th>${looks.map(x => `<th>${x}</th>`).join('')}<th class="l">price left the EQ</th><th></th></tr>`
+      + `<tr><td class="l">price from the next open</td>${looks.map(x => cell(a['pct_' + x])).join('')}<td class="l">${a.left_the_eq}</td>`
+      + `<td><span class="mk flip">show before</span></td></tr></table>`;
+    const flip = el.querySelector('.flip');
+    flip.onclick = () => { const showingAfter = im.src.includes('_after'); im.src = showingAfter ? before : after; flip.textContent = showingAfter ? 'show after' : 'show before'; };
     el.style.display = 'block';
   });
   summary();

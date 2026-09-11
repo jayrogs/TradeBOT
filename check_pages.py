@@ -27,7 +27,7 @@ FRESH = {"validation/trend_ride.json": 30, "validation/trend_ride_focus.json": 3
          "validation/entry_study.json": 30, "livelog/eq_scan.json": 1,
          "validation/eq_coil_study.json": 30, "validation/eq_coil_counts.json": 30,
          "validation/eq_freeride.json": 30, "validation/eq_freeride2.json": 30,
-         "validation/eq_farline.json": 30}
+         "validation/eq_farline.json": 30, "validation/eq_steps.json": 30}
 import glob as _glob
 INDEXES = ([("validation/eq_cases/eq_cases_index.json", "validation/eq_cases"),
             ("validation/ride_cases_index.json", "validation/ride_cases"),

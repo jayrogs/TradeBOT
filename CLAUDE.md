@@ -461,6 +461,38 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     "hidden" and the page reveals it only once all 30 are marked. NEVER TELL HIM THE OUTCOMES BEFORE HE MARKS.
     After he marks: read the notes, compare his marks to the outcomes and to every read in eq_direction.py, and build the
     direction rule from what his long marks share that his short/skip marks do not.
+26n. HIS MARKS, AND WHAT A FAST EQ IS FOR (2026-09-11, notes in validation/trade_notes_eqmark.csv: 19 long, 7 short,
+    4 skip). Three corrections from him:
+      - THE TRADE IS A POSITION ON THE BIGGER CHART, NOT THE BREAK: "we arent trying to have perfect eq breaks with massive
+        follwo through, we are trying to establish a position on a slightly larger timeframe. it doesnt have to have
+        immediate follow through." My real / fakeout / reversal labels were wrong for his trade: on a 5m EQ the lines
+        are ~1.5 normal bars apart, so touching the other line within 20 bars is ordinary wiggle (17 of 30 got called
+        "reversal"). FAST EQs ARE NOW SCORED AS A POSITION: price 4 / 8 / 24 HOURLY bars after the next open.
+      - SHOW IT ON THE CHART: "it doesnt actually show me on the charts what ended up happening, i just have to read
+        more fucking text". The reveal now swaps each chart for an after-chart (`pics_eqmark.py --after`: grey = after,
+        his arrow at the entry, dashed = the EQ lines when he marked, hourly and daily continued) plus one small table.
+      - AMD 15m "thats not an eq lol fix it": one bar made the second higher low AND wicked a normal bar over the ceiling;
+        a bar can only be one pivot, so the engine never saw it. eq_coil.coils(strict_wicks=True, the default now): every
+        bar of the shape must stay inside the lines as they stood. It also rejected his YM_F 15m. Every EQ study before
+        2026-09-11 evening (#26b-#26m) ran on the looser shape.
+    His marks as a position (small sample, no verdict): longs right 9 of 19 after 8 hourly bars and 4 of 19 after 24
+    (average -2.08% at 24); shorts 6 of 7 after 8, 3 of 7 after 24. The shorts after a big dump with the EQ under the
+    hourly 12 EMA mostly worked at 8. The "long just in case it runs more" marks after a big run (AAPL, MSFT, TSLA, SOL,
+    XRP 5m, INJ, NFLX 15m) split 3 up / 4 down at 8 hourly bars and ALL 7 were down by 24: a fixed hold is not his
+    management. Next: score his marks with his exits (half at the far line, stop walked under hourly higher lows).
+    THE SPACING OF HIGHER LOWS VS LOWER HIGHS (his ask: "check the distance and size bw HL and Lh's ... how closer higher
+    lows are or lower highs, and the likelihood of them breaking up or down"; `studies/eq_steps.py`,
+    validation/eq_steps.json, 809 names, 39,574 EQs, strict shape). Price spacing (how fast the lows rise vs the highs
+    drop), the last step only, time spacing (bars between lows vs between highs), both together, where price sits, last
+    pivot. 5m, share: broke up first / higher 8 hourly bars later / higher 24 later:
+        every EQ (control)                                       26,540   51% / 51% / 53%
+        higher lows rising much faster                            4,355   55% / 51% / 53%
+        lower highs dropping much faster                          4,268   50% / 52% / 55%
+        higher lows rising faster AND closer together in time       733   60% / 49% / 53%
+        price in the top third of the EQ                          7,003   71% / 51% / 53%
+        last pivot a higher low                                  13,185   64% / 52% / 54%
+    15m and 1h the same shape. AS CODED, THE SPACING NUDGES WHICH LINE GETS POKED FIRST BUT DOES NOT CALL WHERE PRICE IS
+    8 OR 24 HOURLY BARS LATER: every group sits on the control, on all three charts and in all three eras.
 26. CHANNELS (was called "EQs" in error until 2026-09-09). His trade: get positioned at an edge to catch the BREAK ("buying the floor
     or selling the ceiling in order to be positioned for the eq to break one way or the other ... eqs
     usually break with follow through ... the longer they go on the clearer the breaks"). NOT buy-floor-

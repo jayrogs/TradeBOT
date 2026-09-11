@@ -44,7 +44,7 @@ UP_LAB = ("HL", "EL")             # a low that keeps a coil alive
 DN_LAB = ("LH", "EH")             # a high that keeps a coil alive
 
 
-def coils(df, min_pairs=MIN_PAIRS, need_tighter=True, min_gap=0):
+def coils(df, min_pairs=MIN_PAIRS, need_tighter=True, min_gap=0, strict_wicks=True):
     """Every EQ on this chart, using only what was known at the time."""
     c = df["Close"].values.astype(float)
     h_ = df["High"].values.astype(float)
@@ -99,6 +99,29 @@ def coils(df, min_pairs=MIN_PAIRS, need_tighter=True, min_gap=0):
         if broke_early:
             i += 1
             continue
+        # Every bar of the shape must stay inside the lines as they stood at that bar. His AMD 15m note (2026-09-11):
+        # "thats not an eq lol fix it" -- one bar made the second higher low AND wicked a normal bar over the ceiling,
+        # and a bar can only be one pivot, so the engine never saw the wick. Such a run restarts after the bad bar.
+        if strict_wicks:
+            lows_ = [(int(x[1]), float(x[2])) for x in run if x[3] == "low"]
+            highs_ = [(int(x[1]), float(x[2])) for x in run if x[3] == "high"]
+            bad_bar = None
+            lo_i = hi_i = -1
+            for kk in range(min(lows_[0][0], highs_[0][0]), confirm):
+                while lo_i + 1 < len(lows_) and lows_[lo_i + 1][0] <= kk:
+                    lo_i += 1
+                while hi_i + 1 < len(highs_) and highs_[hi_i + 1][0] <= kk:
+                    hi_i += 1
+                tolk = P.SAME_LEVEL_ATR * (atr[kk] if np.isfinite(atr[kk]) else 0.0)
+                if (hi_i >= 0 and h_[kk] > highs_[hi_i][1] + tolk) or (lo_i >= 0 and l_[kk] < lows_[lo_i][1] - tolk):
+                    bad_bar = kk
+                    break
+            if bad_bar is not None:
+                run = [x for x in run if x[1] > bad_bar]
+                i += 1
+                continue
+        # the higher lows and lower highs as they stood when the EQ became knowable (form bar, price, kind, label)
+        shape = [(int(x[1]), float(x[2]), x[3], x[4]) for x in run]
         # walk forward: a later pivot tightens the edges, a close outside ends it
         k = confirm
         nxt = i + 1
@@ -139,6 +162,7 @@ def coils(df, min_pairs=MIN_PAIRS, need_tighter=True, min_gap=0):
             bars=int(end - born + 1), live_bars=int(painted),
             # a break inside the two bars before the last pivot confirmed is not a trade
             tradeable=bool(painted > 0),
+            shape=shape,
             wide_at_start=float((first_c - first_f) / a0) if np.isfinite(a0) else None,
             wide_at_end=float((ce - f) / a0) if np.isfinite(a0) else None))
         i = nxt
