@@ -153,8 +153,10 @@ def render(n, sym, kind, tf, t, frames, verdict, tag, path=None):
         ax.scatter([x], [y_lane], marker=marker, s=size, color=colr, edgecolor="#ffffff", lw=.8, zorder=13)
         if label:
             ha = "center" if side == 0 else ("right" if side < 0 else "left")
-            ax.annotate(label, (x, y_lane), xytext=(9 * side, dy), textcoords="offset points", ha=ha,
-                        va="bottom" if dy > 0 else "top", color=colr, fontsize=fs, weight=weight, zorder=20)
+            an = ax.annotate(label, (x, y_lane), xytext=(9 * side, dy), textcoords="offset points", ha=ha,
+                             va="bottom" if dy > 0 else "top", color=colr, fontsize=fs, weight=weight, zorder=20)
+            from pics_ride import keep_inside
+            keep_inside(ax, an)
 
     # the buys: numbered dots in the lower lane. Buys on neighbouring bars alternate
     # between two rows so the numbers never touch.

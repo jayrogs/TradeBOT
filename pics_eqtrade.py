@@ -138,9 +138,11 @@ def render(sym, kind, tf, r, frames, path):
         ax.scatter([x], [y_lane], marker=mk, s=size, color=col, edgecolor="#ffffff", lw=.9, zorder=14)
         if dy is None:
             dy = -13 if y_lane < y_bar else 13
-        ax.annotate(label, (x, y_lane), xytext=(10 * side, dy), textcoords="offset points",
-                    ha="center" if side == 0 else ("right" if side < 0 else "left"),
-                    va="top" if dy < 0 else "bottom", color=col, fontsize=10, weight="bold", zorder=20)
+        an = ax.annotate(label, (x, y_lane), xytext=(10 * side, dy), textcoords="offset points",
+                         ha="center" if side == 0 else ("right" if side < 0 else "left"),
+                         va="top" if dy < 0 else "bottom", color=col, fontsize=10, weight="bold", zorder=20)
+        from pics_ride import keep_inside
+        keep_inside(ax, an)
     # the stop, drawn as a line so you can see how close it is to the fill
     ax.axhline(t["stop"], color=DN, lw=1.1, ls="--", alpha=.75, zorder=5)
     ax.axhline(t["fill"], color=AMBER, lw=1.0, ls=":", alpha=.7, zorder=5)

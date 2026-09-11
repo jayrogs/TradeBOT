@@ -6,6 +6,7 @@
     --variant V    exit variant from eq_freeride2.MODES (default: a third at the far line, rest to breakeven)
     --gap G        pivots at least G bars apart (default 3)
     --hours H      "regular" (default) or "all": which bars stocks and ETFs are drawn on
+    --min-rr R     only trades whose far line is at least R times the risk away (default 1.0, eq_farline.py)
 
 Redone after his grading (2026-09-10): a fixed partial instead of "sell 91%", no EQ whose pivots sit on top
 of each other, stocks on regular-hours bars, the EQ that had already broken before it was declared is gone
@@ -41,7 +42,8 @@ DARK, DIM = "#0d0f12", "#8b93a1"
 UP, DN, BLUE, AMBER = "#3ddc97", "#ff5c72", "#5aa9ff", "#ffb84d"
 OUT = os.path.join("validation", "eq_free")
 TFS = FR2.TFS
-VARIANT = FR2.MODES[0][0]
+VARIANT = FR2.MODES[1][0]          # half at the far line, rest to breakeven
+MIN_RR = 1.0                        # skip trades whose far line is closer than 1x the risk (eq_farline.py)
 EMAWORD = {"down": "under its falling 50 EMA", "up": "over its rising 50 EMA", "mixed": "tangled around its 50 EMA", "NA": "no data"}
 SOLD = {"third": "sold a third here, rest to breakeven", "half": "sold half here, rest to breakeven",
         "all": "sold everything here"}
@@ -51,7 +53,7 @@ def fmt(x):
     return ("%.4g" % x) if abs(x) < 10 else ("%.2f" % x) if abs(x) < 1000 else ("%.0f" % x)
 
 
-def render(sym, kind, tf, row, df, hdf, path, hours, gap):
+def render(sym, kind, tf, row, df, hdf, path, hours, gap, min_rr=MIN_RR):
     c = df["Close"].values.astype(float); o = df["Open"].values.astype(float)
     h = df["High"].values.astype(float); l = df["Low"].values.astype(float)
     n = len(c)
@@ -168,7 +170,7 @@ def render(sym, kind, tf, row, df, hdf, path, hours, gap):
             (AMBER, "dotted: the entry"), (DN, "red dashed: the stop, a wick through the signal pivot"),
             (UP, "green dashed: the far line, where part is sold")],
            [("#8b93a1", "Direction: the daily chart over its rising 50 EMA = long, under its falling 50 EMA = short (weekly for a daily EQ). Right panel: that chart, 50 EMA in purple, the EQ boxed in orange.")],
-           [("#8b93a1", "Pivots at least %d bars apart. Drawn on %s. Picked at random among trades WITH the bigger picture, NOT for how they turned out." % (gap, bars_word))]]
+           [("#8b93a1", "Pivots at least %d bars apart. Far line at least %.1fx the risk. Drawn on %s. Picked at random among trades WITH the bigger picture, NOT for how they turned out." % (gap, min_rr, bars_word))]]
     for r_i, items in enumerate(key):
         xpos = 0.045
         for c_, txt in items:
@@ -190,13 +192,20 @@ def render(sym, kind, tf, row, df, hdf, path, hours, gap):
         hl_ = hdf["Low"].values[pos:pos + win]; hh_ = hdf["High"].values[pos:pos + win]
         ylo = float(np.nanmin(hl_)); yhi = float(np.nanmax(hh_)); yr = max(yhi - ylo, 1e-9)
         axh.set_ylim(ylo - 0.3 * yr, yhi + 0.3 * yr)
+        # no price below zero on the scale (ETH weekly showed "-250")
+        axh.set_yticks([y for y in axh.get_yticks() if y >= 0 and axh.get_ylim()[0] <= y <= axh.get_ylim()[1]])
         e50 = XM.ema(hdf["Close"].values.astype(float), 50)[pos:pos + win]
         axh.plot(np.arange(len(e50)), e50, color="#b48cff", lw=1.7, zorder=7)
         # where the EQ sits on the bigger chart: an orange box over the bars it lived in, at its prices
-        b_ = int(sub.searchsorted(df.index[born], side="right")) - 1
-        z_ = int(sub.searchsorted(df.index[min(max(end, xb), n - 1)], side="right")) - 1
+        # the box is the EQ only: from its first higher low / lower high to the bar it ended, at the prices of
+        # those pivots (not the low it came in from, not the rest of the trade)
+        c_lows = [float(x[2]) for x in coil if x[3] == "low"]; c_highs = [float(x[2]) for x in coil if x[3] == "high"]
+        first_bar = min(x[1] for x in coil) if coil else born
+        b_ = int(sub.searchsorted(df.index[first_bar], side="right")) - 1
+        z_ = int(sub.searchsorted(df.index[min(end, n - 1)], side="right")) - 1
         b_ = min(max(b_, 0), win - 1); z_ = min(max(z_, b_), win - 1)
-        lo_b, hi_b = row["eq_lo"], row["eq_hi"]
+        lo_b = min(c_lows) if c_lows else row["eq_lo"]
+        hi_b = max(c_highs) if c_highs else row["eq_hi"]
         if hi_b - lo_b < 0.03 * yr:
             mid_b = (hi_b + lo_b) / 2
             lo_b, hi_b = mid_b - 0.015 * yr, mid_b + 0.015 * yr
@@ -226,13 +235,13 @@ def render(sym, kind, tf, row, df, hdf, path, hours, gap):
     story += "Out after %d bars: %s. %+.2f%%." % (row["held"], row["why"], 100 * ret)
     return dict(sym=sym, kind=kind, tf=tf, t=row["t"], side=row["side"], ret=float(ret), held=int(row["held"]),
                 reached=bool(row["took"]), why=row["why"], rr=float(gain / risk), share=float(share),
-                variant=row["variant"], gap=gap, hours=bars_word,
+                variant=row["variant"], gap=gap, hours=bars_word, min_rr=min_rr,
                 h_next=row["e50"], h_two=row["e200"], story=story,
                 png=os.path.basename(path), problems=probs)
 
 
 def _one(args):
-    sym, kind, seed, variant, gap, hours = args
+    sym, kind, seed, variant, gap, hours, min_rr = args
     try:
         fr = S.frames_for(sym, kind)
     except Exception as ex:
@@ -247,7 +256,7 @@ def _one(args):
             continue
         try:
             rows = [x for x in FR2.trades(kind, tf, df, fr, start, gap, modes=[variant])
-                    if x["tag1"] == 0 and x["born"] > 40 and x["xb"] + 22 < len(df)]
+                    if x["tag1"] == 0 and x["rr"] >= min_rr and x["born"] > 40 and x["xb"] + 22 < len(df)]
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex)); continue
         if not rows:
@@ -261,7 +270,7 @@ def _one(args):
             os.makedirs(OUT, exist_ok=True)
             path = os.path.join(OUT, "%s_%s_%s_%s_%d.png" % (kind, sym, tf, r["side"], r["e"]))
             try:
-                out = render(sym, kind, tf, r, df, fr.get(htf), path, hours, gap)
+                out = render(sym, kind, tf, r, df, fr.get(htf), path, hours, gap, min_rr)
             except Exception as ex:
                 errs.append("%s %s %s draw: %s" % (kind, sym, tf, ex)); continue
             if out:
@@ -270,7 +279,7 @@ def _one(args):
 
 
 def main():
-    procs, per_tf, variant, gap, hours = max(1, os.cpu_count() or 4), 4, VARIANT, 3, "regular hours"
+    procs, per_tf, variant, gap, hours, min_rr = max(1, os.cpu_count() or 4), 4, VARIANT, 3, "regular hours", MIN_RR
     for i, a in enumerate(sys.argv):
         nxt = sys.argv[i + 1] if i + 1 < len(sys.argv) else None
         if a == "--procs" and nxt:
@@ -281,6 +290,8 @@ def main():
             variant = nxt
         if a == "--gap" and nxt:
             gap = int(nxt)
+        if a == "--min-rr" and nxt:
+            min_rr = float(nxt)
         if a == "--hours" and nxt:
             hours = "all hours" if nxt.startswith("all") else "regular hours"
         if a == "--log" and nxt:
@@ -290,7 +301,7 @@ def main():
     import focus
     names = [(s_, k_) for s_, k_ in focus.names() if focus.have(s_, k_)]
     rng = np.random.default_rng(20260910)
-    jobs = [(s_, k_, int(rng.integers(1 << 30)), variant, gap, hours) for s_, k_ in names]
+    jobs = [(s_, k_, int(rng.integers(1 << 30)), variant, gap, hours, min_rr) for s_, k_ in names]
     rows, errs = [], []
     with cf.ProcessPoolExecutor(max_workers=procs) as ex:
         for got, err in ex.map(_one, jobs, chunksize=1):
@@ -309,7 +320,7 @@ def main():
             os.remove(os.path.join(OUT, fn))
     json.dump(keep, open(os.path.join(OUT, "eq_free_index.json"), "w"), indent=1)
     bad = [r for r in keep if r["problems"]]
-    print("  %s | pivots %d+ bars apart | %s" % (variant, gap, hours))
+    print("  %s | pivots %d+ bars apart | far line >= %.1fx the risk | %s" % (variant, gap, min_rr, hours))
     print("  %d trades drawn from %d candidates, %d with text problems  (%.0fs)" % (len(keep), len(rows), len(bad), time.time() - t0))
     for r in keep:
         print("    %-6s %-3s %-5s %+7.2f%%  %3d bars  far line %-11s %4.1fx  %-5s/%-5s  %s" % (

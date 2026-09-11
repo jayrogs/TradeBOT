@@ -89,6 +89,12 @@
   <div class="note">Your note on TSM: the far line was 0.09 times the risk, so there was almost nothing to sell into. Trades taken <b>with</b> the daily chart, split by how far the far line sat from the entry, measured in units of the risk (entry to stop).</div>
   <div class="box" id="rr"></div>
 
+  <h2>skip the trade when the far line is too close</h2>
+  <div class="note">The table above, turned into a rule: take the trade only when the far line is at least this many times the risk away, and skip it otherwise.
+    Trades with the daily chart, all hours, every market, in all three eras. On the 1 hour and 4 hour charts, skipping close far lines is the one change that made
+    <b>both</b> the average and the middle trade positive in every era. The daily is a handful of trades.</div>
+  <div class="box" id="farline">loading&hellip;</div>
+
   <h2>pivots 3+ bars apart vs any spacing</h2>
   <div class="note">Trades taken with the daily chart, same bars and management as picked above.</div>
   <div class="box" id="gaps"></div>
@@ -103,7 +109,7 @@
 
   <h2>the trades, drawn</h2>
   <div class="note" id="meta">loading&hellip;</div>
-  <div class="note">Only trades taken with the daily chart's 50 EMA. Per chart size, two that reached the far line and two that did not, picked at random inside each.
+  <div class="note">Only trades taken with the daily chart's 50 EMA, with the far line at least 1x the risk away. Per chart size, two that reached the far line and two that did not, picked at random inside each.
     Blue is the EQ, amber dotted the entry, red dashed the stop, green dashed the far line. The right panel is the daily (weekly for a daily EQ): 50 EMA in purple, the EQ boxed in orange. Click to enlarge.</div>
   <div id="list"></div>
 </main>
@@ -114,16 +120,18 @@ const pct = (x, d = 2) => x == null ? '<span class="faint">-</span>'
   : `<span class="${x >= 0 ? 'pos' : 'neg'}">${x >= 0 ? '+' : ''}${(100 * x).toFixed(d)}%</span>`;
 const p0 = x => x == null ? '-' : (100 * x).toFixed(0) + '%';
 const NICE = {'5m': '5 minute', '15m': '15 minute', '1h': '1 hour', '4h': '4 hour', '1d': 'daily'};
-let D = null, HOURS = 'regular hours', GAP = '3', VAR = null;
+let D = null, F = null, HOURS = 'all hours', GAP = '0', VAR = 'half at the far line, rest to breakeven';
 
-function cell(v) {
+function cell(v, variant) {
   if (!v) return '<td class="faint">-</td>';
+  // "hold for the break" never sells at the far line, so how often it got there is not counted
+  const reach = String(variant || VAR || '').startsWith('hold') ? 'no partial' : `far line ${p0(v.reached)}`;
   const lucky = v.mean > 0 && v.median <= 0;
   const bleed = v.median > 0 && v.mean <= 0;
   const flag = lucky ? ' <span class="neg" title="a few big winners carry this; the ordinary trade lost">!</span>'
              : bleed ? ' <span class="neg" title="the ordinary trade wins, but the losses are bigger than the wins">~</span>' : '';
   return `<td><span class="big">${pct(v.mean)}</span>${flag}` +
-         `<div class="sm">middle ${pct(v.median)}</div><div class="sm">far line ${p0(v.reached)} &middot; n ${v.n.toLocaleString()}</div></td>`;
+         `<div class="sm">middle ${pct(v.median)}</div><div class="sm">${reach} &middot; n ${v.n.toLocaleString()}</div></td>`;
 }
 
 function picker(id, items, cur, label, set) {
@@ -148,8 +156,8 @@ function draw() {
     a += `<tr class="grp"><td class="l" colspan="6">${NICE[tf]} chart</td></tr>`;
     for (const v of M.variants) {
       a += `<tr><td class="l"></td><td class="l">${v}</td>` +
-        M.tags.map(t => cell(D.by_h_ema_daily[`${k(HOURS, GAP, v, tf)} | ${t}`])).join('') +
-        cell(D.base[k(HOURS, GAP, v, tf)]) + '</tr>';
+        M.tags.map(t => cell(D.by_h_ema_daily[`${k(HOURS, GAP, v, tf)} | ${t}`], v)).join('') +
+        cell(D.base[k(HOURS, GAP, v, tf)], v) + '</tr>';
     }
   }
   $('#answer').innerHTML = a + '</table>';
@@ -171,7 +179,27 @@ function draw() {
   let e = `<table><tr><th class="l">chart</th><th>before 2022</th><th>first half</th><th>second half</th></tr>`;
   for (const tf of M.tfs) e += `<tr><td class="l">${NICE[tf]}</td>` + M.eras.map(x => cell(D.era_with[`${k(HOURS, GAP, VAR, tf)} | ${x}`])).join('') + '</tr>';
   $('#eras').innerHTML = `<div class="sm" style="margin:4px 0 6px">${VAR}</div>` + e + '</table>';
+  if (F) drawFar();
 }
+
+function drawFar() {
+  const M = F.meta, v = M.variants.includes(VAR) ? VAR : M.variants[0];
+  let h = `<div class="sm" style="margin:4px 0 6px">${v} &middot; ${D ? D.meta.gap_names[GAP] : ''} &middot; all hours, every market${v === VAR ? '' : ' (this study ran half, all out and a third only)'}</div>`;
+  h += '<table><tr><th class="l">chart</th><th class="l">take it only if the far line is at least</th><th>every era</th><th>before 2022</th><th>first half</th><th>second half</th></tr>';
+  for (const tf of M.tfs) {
+    h += `<tr class="grp"><td class="l" colspan="6">${NICE[tf]} chart</td></tr>`;
+    for (const m of M.mins) {
+      const key = `${GAP} | ${v} | ${tf} | ${m.toFixed(1)}`;
+      h += `<tr><td class="l"></td><td class="l">${m === 0 ? 'every trade' : m + 'x the risk'}</td>` +
+        ['all', ...M.eras].map(x => cell(F.table[`${key} | ${x}`], v)).join('') + '</tr>';
+    }
+  }
+  $('#farline').innerHTML = h + '</table>';
+}
+
+fetch('/validation/eq_farline.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).then(d => {
+  F = d; if (F) drawFar(); else $('#farline').innerHTML = '<span class="faint">not run yet</span>';
+}).catch(() => { $('#farline').innerHTML = '<span class="faint">could not read the far-line study</span>'; });
 
 fetch('/validation/eq_freeride2.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).then(d => {
   if (!d) { $('#answer').innerHTML = '<span class="faint">the study has not finished yet</span>'; return; }

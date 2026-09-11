@@ -329,6 +329,28 @@ def _walk_manager(df, tf, kind, ctx, e, trig, prev_low, nth, fill, pivot, atr0, 
                 best_after=float(np.max(c[exit_bar:after + 1]) / fill - 1))
 
 
+def keep_inside(ax, an, pad=3):
+    """Measure one label against its own plot and move it back inside (2026-09-11: the stricter overlaps()
+    found labels in the lowest lane hanging under the plot, and labels at the left edge hanging off it, on
+    most charts in six sets). Off the top or bottom: put it BESIDE its marker instead of under/over it.
+    Off the left or right: flip it to the inner side."""
+    rend = ax.figure.canvas.get_renderer()
+    box = ax.get_window_extent(rend)
+    bb = an.get_window_extent(rend)
+    ox, oy = an.xyann
+    if bb.y0 < box.y0 + pad or bb.y1 > box.y1 - pad:
+        ox = 12 if ox >= 0 else -12
+        oy = 0
+        an.set_va("center")
+        an.set_ha("left" if ox > 0 else "right")
+        an.xyann = (ox, oy)
+        bb = an.get_window_extent(rend)
+    if bb.x0 < box.x0 + pad:
+        an.set_ha("left"); an.xyann = (max(abs(ox), 9), oy)
+    elif bb.x1 > box.x1 - pad:
+        an.set_ha("right"); an.xyann = (-max(abs(ox), 9), oy)
+
+
 def overlaps(fig, axes_with_bars):
     """Measure every piece of text on the figure against every other piece, against the price and
     time scales, against the edges of its own plot, and against the candles. Returns a list of
@@ -510,14 +532,16 @@ def render(sym, kind, tf, t, frames, tag, path):
                    edgecolor="#ffffff", lw=.8, zorder=13)
         if label:
             if marker == "D":
-                ax.annotate(label, (x, y_lane), xytext=(-9, 0), textcoords="offset points",
-                            ha="right", va="center", color=colr, fontsize=fs, weight=weight, zorder=20)
+                an = ax.annotate(label, (x, y_lane), xytext=(-9, 0), textcoords="offset points",
+                                 ha="right", va="center", color=colr, fontsize=fs, weight=weight, zorder=20)
+                keep_inside(ax, an)
                 return
             dy = -9 if marker == "^" else 9
             ha = "center" if side == 0 else ("right" if side < 0 else "left")
-            ax.annotate(label, (x, y_lane), xytext=(9 * side, dy), textcoords="offset points",
-                        ha=ha, va="top" if marker == "^" else "bottom",
-                        color=colr, fontsize=fs, weight=weight, zorder=20)
+            an = ax.annotate(label, (x, y_lane), xytext=(9 * side, dy), textcoords="offset points",
+                             ha=ha, va="top" if marker == "^" else "bottom",
+                             color=colr, fontsize=fs, weight=weight, zorder=20)
+            keep_inside(ax, an)
 
     lows_v = df["Low"].values; highs_v = df["High"].values
     if w["prev_low"] is not None and x0 <= w["prev_low"][1] <= x1:

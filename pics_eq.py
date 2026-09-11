@@ -96,8 +96,10 @@ def render(sym, kind, tf, t, frames, path, tag="picked at random. Not chosen for
         ax.plot([x, x], [y_bar, y_lane], color=colr, lw=.7, ls=":", alpha=.55, zorder=6)
         ax.scatter([x], [y_lane], marker=marker, s=size, color=colr, edgecolor="#ffffff", lw=.8, zorder=13)
         ha = "center" if side == 0 else ("right" if side < 0 else "left")
-        ax.annotate(label, (x, y_lane), xytext=(9 * side, dy), textcoords="offset points", ha=ha,
-                    va="bottom" if dy > 0 else "top", color=colr, fontsize=8.5, weight="bold", zorder=20)
+        an = ax.annotate(label, (x, y_lane), xytext=(9 * side, dy), textcoords="offset points", ha=ha,
+                         va="bottom" if dy > 0 else "top", color=colr, fontsize=8.5, weight="bold", zorder=20)
+        from pics_ride import keep_inside
+        keep_inside(ax, an)
 
     peg(i - x0, l[i], lane_dn, "#5aa9ff", "^", 130, "touched the floor", -10, side=-1)
     peg(e - x0, l[e], lane_dn, "#ffb84d", "^", 190, "buy", -10, side=1)

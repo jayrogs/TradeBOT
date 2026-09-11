@@ -254,6 +254,34 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         "shame a fakeout! was definitely bearish otherwise", SI_F 5m "see how little risk it is".
     Study after the fixes: studies/eq_freeride2.py -> validation/eq_freeride2.json (spacing 0 vs 3, all hours vs
     regular hours for stocks, a third / half / all out / hold / the old sizing, far line bucketed by risk).
+    RESULTS (809 names, 2.1M trade rows, 24 minutes on 20 cores). His fixes made the drawings honest; they did
+    not change the money much:
+      - A fixed third or half instead of the old sizing: about the same average (4h +0.18 / +0.17 vs +0.16),
+        and a third makes the middle trade WORSE (4h -0.05 vs +0.19): two thirds ride to a breakeven stop.
+      - Pivots 3+ bars apart keeps about a quarter of the trades and barely moves the averages. The daily
+        "+6.82%" with a third is a handful of trades (n 103, eras +13.47 / -2.29 / -0.33, middle -0.34).
+      - Regular-hours bars for stocks: NOT better in numbers (stocks 4h, a third: all hours +0.07, regular
+        -0.31). The candles look cleaner; the trade does not improve.
+      - THE LEAD: how far the far line sits. When it is under 1x the risk (TSM's 0.09x was his complaint) the
+        partial trades earn about nothing; at 1-2x and 2x+ "half at the far line, rest to breakeven" is
+        positive on BOTH numbers: 4h +0.35/+0.18 and +0.47/+0.28, 1h +0.21/+0.03 and +0.30/+0.01 (any spacing,
+        all hours, with the daily 50 EMA). Skipping close far lines beats changing the sizing. Not yet run
+        as a filter across eras.
+      - Steadiest row is still "all out at the far line": middle positive on 1h/4h/daily in all three eras
+        (4h +0.47 / +0.52 / +0.47) but the average is only about +0.1% (losses bigger than wins).
+      - With vs against the daily 50 EMA still barely separates (4h all out +0.04 vs -0.05). 5m/15m: nothing.
+    THE FAR-LINE FILTER (2026-09-11, `studies/eq_farline.py`, validation/eq_farline.json, table on /eqfree): take the
+    trade only when the far line is at least N x the risk away. Any spacing, all hours, with the daily 50 EMA.
+    Average / middle, then the three eras (before 2022 / first half / second half):
+        4h all out, far line >= 1.5x   +0.59 / +0.79   n 320   eras +0.87/+1.14  +0.54/+0.79  +0.54/+0.66
+        4h half, rest to BE, >= 1x     +0.40 / +0.19   n 524   eras +1.21/+0.44  +0.33/+0.17  +0.21/+0.20
+        4h all out, >= 1x              +0.31 / +0.67   n 525   eras +0.67/+1.17  +0.18/+0.73  +0.33/+0.49
+        1h all out, >= 1x              +0.20 / +0.30   n 1,899 eras +0.31/+0.41  +0.14/+0.25  +0.21/+0.32
+        (no filter, 4h all out         +0.13 / +0.48;  4h half +0.17 / +0.14)
+    The first EQ rows positive on BOTH numbers in ALL THREE eras. The daily is a few trades carrying it (lottery).
+    Pivots 3+ apart on top of the filter: small samples, and the 4h turns negative in the second half. Not taken.
+    Drawings on /eqfree now use: half at the far line, far line >= 1x, pivots 3+ apart, stocks regular hours
+    (the last two are his visual rules; as coded they did not change the money).
 26. CHANNELS (was called "EQs" in error until 2026-09-09). His trade: get positioned at an edge to catch the BREAK ("buying the floor
     or selling the ceiling in order to be positioned for the eq to break one way or the other ... eqs
     usually break with follow through ... the longer they go on the clearer the breaks"). NOT buy-floor-
