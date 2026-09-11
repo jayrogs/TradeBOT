@@ -492,8 +492,9 @@ def render(sym, kind, tf, t, frames, tag, path):
         x0 = max(0, e - 30); x1 = min(len(df) - 1, e + 290)
     # a long hold (chandelier 12, trail 15%) could end past the 290-bar window, putting "sold the rest"
     # outside the chart where no label placement can bring it back (2026-09-11): the sale is always shown
-    if xb + 10 > x1:
-        x1 = min(len(df) - 1, xb + 10)
+    if xb + 10 > x1 and xb + 10 - x0 <= 340:
+        x1 = min(len(df) - 1, xb + 10)          # a sale just past the window: widen a little
+    sale_past_edge = xb > x1                    # a very long hold: keep the window readable, mark the sale at the edge
     d = df.iloc[x0:x1 + 1]
     highs_tfs = [t_ for t_ in HIGHER.get(tf, ()) if frames.get(t_) is not None and len(frames[t_]) >= 40]
     if highs_tfs:
@@ -583,7 +584,11 @@ def render(sym, kind, tf, t, frames, tag, path):
             keep_inside(ax, an_buy)
     if w["pbar"] is not None and x0 <= w["pbar"] <= x1:
         peg(w["pbar"] - x0, highs_v[w["pbar"]], lane_up_lo, "#ffb84d", "D", 110, "sold a third", side=-1)
-    peg(xb - x0, highs_v[xb], lane_up, col, "v", 190, "sold the rest %+.1f%%" % (100 * w["ret"]))
+    if sale_past_edge:
+        peg(x1 - x0, highs_v[x1], lane_up, col, "v", 190,
+            "sold the rest %+.1f%%, %d bars later \u2192" % (100 * w["ret"], xb - x1), side=-1)
+    else:
+        peg(xb - x0, highs_v[xb], lane_up, col, "v", 190, "sold the rest %+.1f%%" % (100 * w["ret"]))
     if af > xb and af <= x1:
         ax.axvline(xb - x0, color="#5b6472", lw=.8, ls=":", zorder=5)
     ax.axhline(w["fill"], color="#ffb84d", lw=.8, ls="--", alpha=.6, zorder=5)
