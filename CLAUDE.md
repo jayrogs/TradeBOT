@@ -434,9 +434,23 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     82-89%) and the last pivot (63-70%) mostly convert into reversals/fakeouts, not real moves (5m price vs 12 EMA: real
     20% vs control 11%, reversal 37% vs 22%). The 12 EMA's slope across the EQ and the next chart's 12 EMA point the WRONG
     way (44-47%). The daily 50 EMA is a coin flip (50-52%). The EQ's own read 57-58%.
-    Next, running: a TIGHT version of his rule (the EQ sitting IN the 1h pullback: floor within a normal 1h bar above the
-    1h's last low, or within half a 1h bar of the 1h 12 EMA) and "the second break": how often a call is right after the
-    first break went against it and reversed (the fakeout his mentors trade).
+    TIGHT VERSION OF HIS RULE AND THE SECOND BREAK (same run, rerun 2026-09-11): his_tight = (1h uptrend or above the
+    1h 12 EMA) AND the EQ IN the 1h pullback (floor within a normal 1h bar above the 1h's last low, or within half a 1h
+    bar of the 1h 12 EMA); "2nd" = the call was right on the SECOND break (the first went against it, then the EQ broke
+    the other line within 20 bars).
+                              calls   poke right   real right   2nd right   ended right   (control: poke / real / 2nd)
+        5m, knowable           47%       51%          12%          21%          51%        51% / 11% / 21%
+        5m, last bar           48%       56%          13%          19%          52%
+        15m, knowable          77%       50%          14%          27%          51%        53% / 15% / 25%
+        15m, last bar          78%       56%          16%          24%          53%
+        1h (4h rule), knowable 80%       51%          15%          25%          51%        53% / 14% / 23%
+        1h (4h rule), last bar 80%       60%          17%          21%          52%        eras 64 / 57 / 62
+    AS CODED, NEITHER VERSION OF HIS RULE CALLS A 5m/15m EQ BETTER THAN CHANCE, on the first poke, on real follow-through,
+    or on the second break. The one lean: 1h EQs with the 4h read on the last bar before the break, 60% poke right in all
+    three eras, but real moves barely above the control (17% vs 14%). No read beat the control on the second break except
+    the ones that point backwards on the first (the mirror). Nothing to trade yet. My coding of "the EQ can make a nice
+    higher low for the hourly" may still not be his eye: next step proposed to him is to have HIM mark a set of 5m/15m
+    EQs (with the 1h beside them) long / short / skip, and measure what his marks share.
 26. CHANNELS (was called "EQs" in error until 2026-09-09). His trade: get positioned at an edge to catch the BREAK ("buying the floor
     or selling the ceiling in order to be positioned for the eq to break one way or the other ... eqs
     usually break with follow through ... the longer they go on the clearer the breaks"). NOT buy-floor-
