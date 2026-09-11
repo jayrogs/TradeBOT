@@ -42,11 +42,11 @@ DARK, DIM = "#0d0f12", "#8b93a1"
 UP, DN, BLUE, AMBER = "#3ddc97", "#ff5c72", "#5aa9ff", "#ffb84d"
 OUT = os.path.join("validation", "eq_free")
 TFS = FR2.TFS
-VARIANT = FR2.MODES[1][0]          # half at the far line, rest to breakeven
+VARIANT = [m[0] for m in FR2.MODES if m[1] == "tcg"][0]   # round 3: half at the far line, the TCG rest
 MIN_RR = 1.0                        # skip trades whose far line is closer than 1x the risk (eq_farline.py)
 EMAWORD = {"down": "under its falling 50 EMA", "up": "over its rising 50 EMA", "mixed": "tangled around its 50 EMA", "NA": "no data"}
 SOLD = {"third": "sold a third here, rest to breakeven", "half": "sold half here, rest to breakeven",
-        "all": "sold everything here"}
+        "all": "sold everything here", "tcg": "sold half here, rest walked up under higher lows"}
 
 
 def fmt(x):
@@ -170,7 +170,8 @@ def render(sym, kind, tf, row, df, hdf, path, hours, gap, min_rr=MIN_RR):
             (AMBER, "dotted: the entry"), (DN, "red dashed: the stop, a wick through the signal pivot"),
             (UP, "green dashed: the far line, where part is sold")],
            [("#8b93a1", "Direction: the daily chart over its rising 50 EMA = long, under its falling 50 EMA = short (weekly for a daily EQ). Right panel: that chart, 50 EMA in purple, the EQ boxed in orange.")],
-           [("#8b93a1", "Pivots at least %d bars apart. Far line at least %.1fx the risk. Drawn on %s. Picked at random among trades WITH the bigger picture, NOT for how they turned out." % (gap, min_rr, bars_word))]]
+           [("#8b93a1", "Pivots at least %d bars apart. Far line at least %.1fx the risk. Drawn on %s. Picked at random among trades WITH the bigger picture, NOT for how they turned out." % (gap, min_rr, bars_word))],
+           [("#8b93a1", "Round 3: no buy on the last bar before the bell, none against this chart's own 12 EMA, stop at least 3x the cost. The rest: stop under each new higher low, sold into overbought or a close through the 12 EMA.")]]
     for r_i, items in enumerate(key):
         xpos = 0.045
         for c_, txt in items:
@@ -255,7 +256,7 @@ def _one(args):
         if df is None:
             continue
         try:
-            rows = [x for x in FR2.trades(kind, tf, df, fr, start, gap, modes=[variant])
+            rows = [x for x in FR2.trades(kind, tf, df, fr, start, gap, modes=[variant], filters=True)
                     if x["tag1"] == 0 and x["rr"] >= min_rr and x["born"] > 40 and x["xb"] + 22 < len(df)]
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex)); continue

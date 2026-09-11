@@ -38,6 +38,8 @@ import structure as ST            # noqa: E402
 import trend_ride as R            # noqa: E402
 import eq_coil as EC              # noqa: E402
 import eq_freeride as FR          # noqa: E402
+import exit_managers as XM        # noqa: E402
+import indicators as IND          # noqa: E402
 
 TFS = ["5m", "15m", "1h", "4h", "1d"]
 CAP_DAYS = 30
@@ -50,7 +52,8 @@ MODES = [("a third at the far line, rest to breakeven", "third"),
          ("half at the far line, rest to breakeven", "half"),
          ("all out at the far line", "all"),
          ("hold for the break, no partial", "hold"),
-         ("old sizing: sell what makes the rest free", "old")]
+         ("old sizing: sell what makes the rest free", "old"),
+         ("half at the far line, rest walked up under higher lows, out into overbought or a 12 EMA close", "tcg")]
 SIDES = ["long", "short"]
 TAGS = ["with", "against", "no trend"]
 RRB = ["far line under 1x the risk", "far line 1-2x the risk", "far line 2x the risk or more"]
@@ -88,10 +91,10 @@ def regular_hours(frames):
 
 
 def share_of(mode, risk, gain):
-    return {"third": 1.0 / 3, "half": 0.5, "all": 1.0, "old": risk / (risk + gain)}.get(mode, 0.0)
+    return {"third": 1.0 / 3, "half": 0.5, "all": 1.0, "tcg": 0.5, "old": risk / (risk + gain)}.get(mode, 0.0)
 
 
-def walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode):
+def walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode, extra=None):
     """From the fill at bar e. The stop is checked before the far line on every bar (the careful reading).
     third / half / old: sell that share at the far line and move the rest's stop to the entry.
     all: everything off at the far line. hold: no partial. Past the far line our way, trail 5 bars.
@@ -119,7 +122,24 @@ def walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode):
                 took = True
                 took_bar = k
                 stop_now = fill
-        if not broke:
+        if mode == "tcg" and took and extra is not None:
+            # the TCG rest (his round-2 notes): stop walked up under each new higher low, sold into overbought,
+            # or out on a close through this chart's 12 EMA
+            tol = P.SAME_LEVEL_ATR * a
+            if sgn > 0:
+                for p_ in extra["lows_at"].get(k, ()):
+                    stop_now = max(stop_now, p_ - tol)
+            else:
+                for p_ in extra["highs_at"].get(k, ()):
+                    stop_now = min(stop_now, p_ + tol)
+            r_ = extra["rsi"][k]
+            if np.isfinite(r_) and ((sgn > 0 and r_ >= 70) or (sgn < 0 and r_ <= 30)):
+                return k, share * target + (1 - share) * o[k + 1], True, took_bar, (
+                    "sold the rest into overbought" if sgn > 0 else "covered the rest into oversold")
+            e12_ = extra["e12"][k]
+            if np.isfinite(e12_) and ((sgn > 0 and c[k] < e12_) or (sgn < 0 and c[k] > e12_)):
+                return k, share * target + (1 - share) * o[k + 1], True, took_bar, "the rest out on a close through the 12 EMA"
+        if not broke and mode != "tcg":
             tol = P.SAME_LEVEL_ATR * a
             if (sgn > 0 and h[k] > target + tol) or (sgn < 0 and l[k] < target - tol):
                 broke = True
@@ -137,7 +157,7 @@ def walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode):
     return None
 
 
-def trades(kind, tf, df, frames, start, gap, modes=None):
+def trades(kind, tf, df, frames, start, gap, modes=None, filters=False):
     """Every trade on one chart, one dict per trade per exit variant. `frames` supplies the daily/weekly
     chart for the direction read (always the all-hours frames: a daily bar is the whole session)."""
     if df is None or len(df) < 300:
@@ -150,6 +170,16 @@ def trades(kind, tf, df, frames, start, gap, modes=None):
         return
     piv = ST.pivots(df)
     pcis = [pv[0] for pv in piv]
+    e12 = XM.ema(c, 12)
+    e12_slope = e12 - np.r_[np.full(3, np.nan), e12[:-3]]
+    rsi = IND.rsi_parts(c)[0]
+    lows_at, highs_at = {}, {}
+    for ci_, j_, p_, kd_, lab_ in piv:
+        if kd_ == "low" and lab_ in ("HL", "EL"):
+            lows_at.setdefault(ci_, []).append(float(p_))
+        elif kd_ == "high" and lab_ in ("LH", "EH"):
+            highs_at.setdefault(ci_, []).append(float(p_))
+    extra = dict(rsi=rsi, e12=e12, lows_at=lows_at, highs_at=highs_at)
     big = "1d" if tf in ("5m", "15m", "1h", "4h") else "1w"
     e50 = FR.ema_of(df, tf, frames, big)
     e200 = FR.ema_of(df, tf, frames, big, span=200, slope=False)
@@ -199,6 +229,13 @@ def trades(kind, tf, df, frames, start, gap, modes=None):
             t = df.index[e]
             risk = abs(fill - stop); gain = abs(target - fill)
             rr_ = gain / risk
+            if filters:
+                if day is not None and (e + 1 >= n or day[e + 1] != day[e]):
+                    continue                      # the last bar before the bell (NVDA 15m, round 2)
+                if (sgn > 0 and c[ci] < e12[ci] and e12_slope[ci] < 0) or (sgn < 0 and c[ci] > e12[ci] and e12_slope[ci] > 0):
+                    continue                      # against this chart's own 12 EMA (AVAX 5m, round 2)
+                if risk / fill < 3 * cost:
+                    continue                      # a stop smaller than 3x the cost (AVAX 5m, round 2)
             base = dict(side=side, side_i=side_i, tf_i=tf_i, gap_i=gap_i, kind_i=kind_i,
                         era_i=0 if t < start else 1 if t < mid else 2,
                         tag1=TAGS.index(FR.tag(side, e50[ci])), tag2=TAGS.index(FR.tag(side, both[ci])),
@@ -210,7 +247,7 @@ def trades(kind, tf, df, frames, start, gap, modes=None):
             for mode_i, (vname, mode) in enumerate(MODES):
                 if modes is not None and vname not in modes:
                     continue
-                res = walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode)
+                res = walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode, extra)
                 if res is None:
                     continue
                 xb, xpx, took, took_bar, why = res
