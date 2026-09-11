@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-11 00:23",
+ "generated": "2026-09-11 00:33",
  "items": [
   {
    "sym": "SUI",
@@ -11,9 +11,7 @@
    "why": "broke our way, trailed out",
    "story": "An EQ was alive: floor at 2.687, ceiling at 2.709, 3.5 normal bars tall, born 06-28 01:40. Price touched the floor, so the buy went in at the next open, 2.689, to be positioned for the break. After 188 bars: broke our way, trailed out. Sold at 2.759 for +2.4%. 40 bars later the price was +4.4% from the buy.",
    "after_ret": 0.044330395328944894,
-   "problems": [
-    "text hanging off the plot: 'sold'"
-   ],
+   "problems": [],
    "n": 1,
    "group": "5m charts"
   },
@@ -153,9 +151,7 @@
    "why": "broke the wrong way",
    "story": "An EQ was alive: floor at 0.3013, ceiling at 0.346, 4.1 normal bars tall, born 08-22 08:00. Price touched the floor, so the buy went in at the next open, 0.3048, to be positioned for the break. After 10 bars: broke the wrong way. Sold at 0.2999 for -1.8%. 40 bars later the price was +25.7% from the buy.",
    "after_ret": 0.2565616797900263,
-   "problems": [
-    "text hanging off the plot: 'sold'"
-   ],
+   "problems": [],
    "n": 11,
    "group": "4h charts"
   },

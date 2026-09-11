@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-11 00:15",
+ "generated": "2026-09-11 00:33",
  "items": [
   {
    "n": 1,
@@ -111,9 +111,7 @@
    "part": 0.0,
    "verdict": "filter pick: worked",
    "tag": "hot, liquid, volume 16.3x, first oversold in 4 days",
-   "problems": [
-    "text hanging off the plot: 'stop: half the 38% run-up (b'"
-   ]
+   "problems": []
   },
   {
    "n": 9,
