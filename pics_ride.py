@@ -551,7 +551,9 @@ def render(sym, kind, tf, t, frames, tag, path):
     if x0 <= tj <= x1:
         crowded = abs(e - tj) <= 5
         peg(tj - x0, lows_v[tj], lane_dn1, "#5aa9ff", "^", 150, "higher low", side=-1 if crowded else 0)
-    peg(e - x0, lows_v[e], lane_dn1, "#ffb84d", "^", 190, "buy", side=1 if abs(e - tj) <= 5 else 0)
+    # when the buy sits within 5 bars of the higher low, their words touched (NU 4h): the buy drops a lane
+    near_trig = abs(e - tj) <= 5
+    peg(e - x0, lows_v[e], lane_dn2 if near_trig else lane_dn1, "#ffb84d", "^", 190, "buy", side=1 if near_trig else 0)
     if w["pbar"] is not None and x0 <= w["pbar"] <= x1:
         peg(w["pbar"] - x0, highs_v[w["pbar"]], lane_up_lo, "#ffb84d", "D", 110, "sold a third", side=-1)
     peg(xb - x0, highs_v[xb], lane_up, col, "v", 190, "sold the rest %+.1f%%" % (100 * w["ret"]))
@@ -621,11 +623,13 @@ def render(sym, kind, tf, t, frames, tag, path):
         band_up = yhi + 0.24 * yrng
         # labels go beside the marker, away from the vertical lines
         axh.scatter([a], [band_dn], marker="^", s=150, color="#ffb84d", edgecolor="#ffffff", lw=.8, zorder=14)
-        axh.annotate("buy", (a, band_dn), xytext=(0, -10), textcoords="offset points",
-                     ha="center", va="top", color="#ffb84d", fontsize=8, weight="bold", zorder=15)
+        an_b = axh.annotate("buy", (a, band_dn), xytext=(0, -10), textcoords="offset points",
+                            ha="center", va="top", color="#ffb84d", fontsize=8, weight="bold", zorder=15)
+        keep_inside(axh, an_b)
         axh.scatter([b], [band_up], marker="v", s=150, color=col, edgecolor="#ffffff", lw=.8, zorder=14)
-        axh.annotate("sold", (b, band_up), xytext=(0, 10), textcoords="offset points",
-                     ha="center", va="bottom", color=col, fontsize=8, weight="bold", zorder=15)
+        an_s = axh.annotate("sold", (b, band_up), xytext=(0, 10), textcoords="offset points",
+                            ha="center", va="bottom", color=col, fontsize=8, weight="bold", zorder=15)
+        keep_inside(axh, an_s)
         note = "%s  — buy and sale marked" % htf
         if kind in ("stock", "etf") and abs(scale - 1) > 0.25:
             note += "  (prices on a different scale: stock split)"

@@ -140,9 +140,12 @@ def render(sym, kind, tf, t, frames, path, tag="picked at random. Not chosen for
         axh.set_ylim(ylo - 0.42 * yr, yhi + 0.42 * yr)
         axh.axvline(a, color="#ffb84d", lw=1.0, alpha=.85, zorder=9); axh.axvline(b, color=col, lw=1.0, ls="--", alpha=.85, zorder=9)
         axh.scatter([a], [ylo - 0.25 * yr], marker="^", s=150, color="#ffb84d", edgecolor="#ffffff", lw=.8, zorder=14)
-        axh.annotate("buy", (a, ylo - 0.25 * yr), xytext=(0, -10), textcoords="offset points", ha="center", va="top", color="#ffb84d", fontsize=8, weight="bold", zorder=15)
+        from pics_ride import keep_inside
+        an_b = axh.annotate("buy", (a, ylo - 0.25 * yr), xytext=(0, -10), textcoords="offset points", ha="center", va="top", color="#ffb84d", fontsize=8, weight="bold", zorder=15)
+        keep_inside(axh, an_b)
         axh.scatter([b], [yhi + 0.24 * yr], marker="v", s=150, color=col, edgecolor="#ffffff", lw=.8, zorder=14)
-        axh.annotate("sold", (b, yhi + 0.24 * yr), xytext=(0, 10), textcoords="offset points", ha="center", va="bottom", color=col, fontsize=8, weight="bold", zorder=15)
+        an_s = axh.annotate("sold", (b, yhi + 0.24 * yr), xytext=(0, 10), textcoords="offset points", ha="center", va="bottom", color=col, fontsize=8, weight="bold", zorder=15)
+        keep_inside(axh, an_s)
         axh.set_title("%s  — buy and sale marked" % htf, loc="left", color=DIM, fontsize=9.5, pad=3)
         plt.setp(axh.get_xticklabels(), fontsize=6)
     import pics_ride as PR

@@ -181,7 +181,12 @@ def render(n, sym, kind, tf, t, frames, verdict, tag, path=None):
             y, txt, va = y_lo + 0.02 * (y_hi - y_lo), txt + " (below)", "bottom"
         elif y > y_hi - 0.02 * (y_hi - y_lo):
             y, txt, va = y_hi - 0.02 * (y_hi - y_lo), txt + " (above)", "top"
-        ax.text(xr, y, txt, color=colr, fontsize=8, va=va, ha="left", zorder=20)
+        t = ax.text(xr, y, txt, color=colr, fontsize=8, va=va, ha="left", zorder=20)
+        # a long name ("stop: half the 38% run-up (below)") ran past the plot's right edge: measure it, and
+        # if it does not fit in the margin, break it onto two lines at the colon
+        rend = ax.figure.canvas.get_renderer()
+        if t.get_window_extent(rend).x1 > ax.get_window_extent(rend).x1 - 3 and ": " in txt:
+            t.set_text(txt.replace(": ", ":\n", 1))
 
     ax.axhline(w["avg"], color="#ffb84d", lw=1.0, ls="--", alpha=.9)
     level_text(w["avg"], "average buy", "#ffb84d", "bottom")
