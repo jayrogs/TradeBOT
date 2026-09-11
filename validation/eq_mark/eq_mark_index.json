@@ -1,0 +1,482 @@
+[
+ {
+  "id": "crypto_BTC_5m_95623",
+  "sym": "BTC",
+  "kind": "crypto",
+  "tf": "5m",
+  "t": "2023-06-28 21:25:00",
+  "png": "crypto_BTC_5m_95623.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "weak",
+   "bars_to_break": 2,
+   "move20_normal_bars": 1.48
+  },
+  "n": 1
+ },
+ {
+  "id": "stock_AMZN_15m_18404",
+  "sym": "AMZN",
+  "kind": "stock",
+  "tf": "15m",
+  "t": "2024-07-05 15:45:00",
+  "png": "stock_AMZN_15m_18404.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 1,
+   "move20_normal_bars": -2.45
+  },
+  "n": 2
+ },
+ {
+  "id": "stock_JPM_5m_94520",
+  "sym": "JPM",
+  "kind": "stock",
+  "tf": "5m",
+  "t": "2026-07-15 11:20:00",
+  "png": "stock_JPM_5m_94520.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "reversal",
+   "bars_to_break": 6,
+   "move20_normal_bars": -0.68
+  },
+  "n": 3
+ },
+ {
+  "id": "crypto_HYPE_15m_2429",
+  "sym": "HYPE",
+  "kind": "crypto",
+  "tf": "15m",
+  "t": "2026-03-03 02:30:00",
+  "png": "crypto_HYPE_15m_2429.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "fakeout",
+   "bars_to_break": 2,
+   "move20_normal_bars": -0.39
+  },
+  "n": 4
+ },
+ {
+  "id": "stock_AAPL_5m_55611",
+  "sym": "AAPL",
+  "kind": "stock",
+  "tf": "5m",
+  "t": "2024-07-15 10:50:00",
+  "png": "stock_AAPL_5m_55611.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "weak",
+   "bars_to_break": 1,
+   "move20_normal_bars": 0.97
+  },
+  "n": 5
+ },
+ {
+  "id": "stock_COST_15m_15034",
+  "sym": "COST",
+  "kind": "stock",
+  "tf": "15m",
+  "t": "2023-12-27 15:30:00",
+  "png": "stock_COST_15m_15034.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "weak",
+   "bars_to_break": 2,
+   "move20_normal_bars": -3.47
+  },
+  "n": 6
+ },
+ {
+  "id": "crypto_LINK_5m_58311",
+  "sym": "LINK",
+  "kind": "crypto",
+  "tf": "5m",
+  "t": "2023-02-19 04:10:00",
+  "png": "crypto_LINK_5m_58311.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 8,
+   "move20_normal_bars": 2.52
+  },
+  "n": 7
+ },
+ {
+  "id": "crypto_INJ_15m_43712",
+  "sym": "INJ",
+  "kind": "crypto",
+  "tf": "15m",
+  "t": "2024-01-21 11:30:00",
+  "png": "crypto_INJ_15m_43712.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "reversal",
+   "bars_to_break": 7,
+   "move20_normal_bars": 3.14
+  },
+  "n": 8
+ },
+ {
+  "id": "stock_GOOGL_15m_31138",
+  "sym": "GOOGL",
+  "kind": "stock",
+  "tf": "15m",
+  "t": "2026-06-23 15:00:00",
+  "png": "stock_GOOGL_15m_31138.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "reversal",
+   "bars_to_break": 4,
+   "move20_normal_bars": -1.98
+  },
+  "n": 9
+ },
+ {
+  "id": "futures_SI_F_15m_27538",
+  "sym": "SI_F",
+  "kind": "futures",
+  "tf": "15m",
+  "t": "2023-11-03 16:15:00",
+  "png": "futures_SI_F_15m_27538.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 3,
+   "move20_normal_bars": -0.77
+  },
+  "n": 10
+ },
+ {
+  "id": "crypto_AAVE_15m_27386",
+  "sym": "AAVE",
+  "kind": "crypto",
+  "tf": "15m",
+  "t": "2023-05-13 04:15:00",
+  "png": "crypto_AAVE_15m_27386.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 2,
+   "move20_normal_bars": -0.24
+  },
+  "n": 11
+ },
+ {
+  "id": "stock_COIN_5m_88048",
+  "sym": "COIN",
+  "kind": "stock",
+  "tf": "5m",
+  "t": "2026-03-16 11:30:00",
+  "png": "stock_COIN_5m_88048.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "weak",
+   "bars_to_break": 5,
+   "move20_normal_bars": -1.05
+  },
+  "n": 12
+ },
+ {
+  "id": "stock_LLY_5m_27964",
+  "sym": "LLY",
+  "kind": "stock",
+  "tf": "5m",
+  "t": "2023-02-10 12:10:00",
+  "png": "stock_LLY_5m_27964.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "weak",
+   "bars_to_break": 1,
+   "move20_normal_bars": 0.07
+  },
+  "n": 13
+ },
+ {
+  "id": "stock_NFLX_5m_91629",
+  "sym": "NFLX",
+  "kind": "stock",
+  "tf": "5m",
+  "t": "2026-05-20 10:55:00",
+  "png": "stock_NFLX_5m_91629.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "reversal",
+   "bars_to_break": 1,
+   "move20_normal_bars": -1.23
+  },
+  "n": 14
+ },
+ {
+  "id": "stock_COIN_15m_25391",
+  "sym": "COIN",
+  "kind": "stock",
+  "tf": "15m",
+  "t": "2025-08-04 15:45:00",
+  "png": "stock_COIN_15m_25391.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "real",
+   "bars_to_break": 1,
+   "move20_normal_bars": -5.14
+  },
+  "n": 15
+ },
+ {
+  "id": "crypto_LINK_15m_134065",
+  "sym": "LINK",
+  "kind": "crypto",
+  "tf": "15m",
+  "t": "2026-05-28 23:45:00",
+  "png": "crypto_LINK_15m_134065.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "reversal",
+   "bars_to_break": 1,
+   "move20_normal_bars": -0.09
+  },
+  "n": 16
+ },
+ {
+  "id": "futures_6E_F_5m_49513",
+  "sym": "6E_F",
+  "kind": "futures",
+  "tf": "5m",
+  "t": "2023-05-16 19:00:00",
+  "png": "futures_6E_F_5m_49513.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 2,
+   "move20_normal_bars": 5.4
+  },
+  "n": 17
+ },
+ {
+  "id": "crypto_XRP_15m_31710",
+  "sym": "XRP",
+  "kind": "crypto",
+  "tf": "15m",
+  "t": "2024-06-08 05:30:00",
+  "png": "crypto_XRP_15m_31710.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 2,
+   "move20_normal_bars": -2.35
+  },
+  "n": 18
+ },
+ {
+  "id": "stock_MSFT_15m_31633",
+  "sym": "MSFT",
+  "kind": "stock",
+  "tf": "15m",
+  "t": "2026-07-21 15:15:00",
+  "png": "stock_MSFT_15m_31633.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 2,
+   "move20_normal_bars": -7.99
+  },
+  "n": 19
+ },
+ {
+  "id": "stock_NFLX_15m_25832",
+  "sym": "NFLX",
+  "kind": "stock",
+  "tf": "15m",
+  "t": "2025-08-27 15:30:00",
+  "png": "stock_NFLX_15m_25832.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "reversal",
+   "bars_to_break": 1,
+   "move20_normal_bars": 3.21
+  },
+  "n": 20
+ },
+ {
+  "id": "futures_GC_F_5m_101031",
+  "sym": "GC_F",
+  "kind": "futures",
+  "tf": "5m",
+  "t": "2024-02-09 16:25:00",
+  "png": "futures_GC_F_5m_101031.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 3,
+   "move20_normal_bars": 0.61
+  },
+  "n": 21
+ },
+ {
+  "id": "futures_YM_F_15m_75024",
+  "sym": "YM_F",
+  "kind": "futures",
+  "tf": "15m",
+  "t": "2025-11-06 22:30:00",
+  "png": "futures_YM_F_15m_75024.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 1,
+   "move20_normal_bars": 1.2
+  },
+  "n": 22
+ },
+ {
+  "id": "crypto_HYPE_5m_17189",
+  "sym": "HYPE",
+  "kind": "crypto",
+  "tf": "5m",
+  "t": "2026-04-06 18:55:00",
+  "png": "crypto_HYPE_5m_17189.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 2,
+   "move20_normal_bars": 2.09
+  },
+  "n": 23
+ },
+ {
+  "id": "stock_AMD_15m_14174",
+  "sym": "AMD",
+  "kind": "stock",
+  "tf": "15m",
+  "t": "2023-11-08 12:15:00",
+  "png": "stock_AMD_15m_14174.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "real",
+   "bars_to_break": 15,
+   "move20_normal_bars": 0.0
+  },
+  "n": 24
+ },
+ {
+  "id": "stock_TSLA_5m_29092",
+  "sym": "TSLA",
+  "kind": "stock",
+  "tf": "5m",
+  "t": "2023-03-03 15:10:00",
+  "png": "stock_TSLA_5m_29092.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "real",
+   "bars_to_break": 1,
+   "move20_normal_bars": -6.76
+  },
+  "n": 25
+ },
+ {
+  "id": "futures_NQ_F_5m_229726",
+  "sym": "NQ_F",
+  "kind": "futures",
+  "tf": "5m",
+  "t": "2025-12-02 13:50:00",
+  "png": "futures_NQ_F_5m_229726.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "fakeout",
+   "bars_to_break": 2,
+   "move20_normal_bars": 1.84
+  },
+  "n": 26
+ },
+ {
+  "id": "crypto_SOL_15m_132384",
+  "sym": "SOL",
+  "kind": "crypto",
+  "tf": "15m",
+  "t": "2026-05-11 11:30:00",
+  "png": "crypto_SOL_15m_132384.png",
+  "problems": [],
+  "hidden": {
+   "broke": "down",
+   "what_next": "reversal",
+   "bars_to_break": 2,
+   "move20_normal_bars": 5.33
+  },
+  "n": 27
+ },
+ {
+  "id": "crypto_AVAX_5m_194834",
+  "sym": "AVAX",
+  "kind": "crypto",
+  "tf": "5m",
+  "t": "2024-06-11 23:50:00",
+  "png": "crypto_AVAX_5m_194834.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "reversal",
+   "bars_to_break": 2,
+   "move20_normal_bars": -11.73
+  },
+  "n": 28
+ },
+ {
+  "id": "futures_RTY_F_5m_233391",
+  "sym": "RTY_F",
+  "kind": "futures",
+  "tf": "5m",
+  "t": "2025-12-22 19:20:00",
+  "png": "futures_RTY_F_5m_233391.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "fakeout",
+   "bars_to_break": 2,
+   "move20_normal_bars": 2.86
+  },
+  "n": 29
+ },
+ {
+  "id": "crypto_XRP_5m_89925",
+  "sym": "XRP",
+  "kind": "crypto",
+  "tf": "5m",
+  "t": "2024-05-21 03:10:00",
+  "png": "crypto_XRP_5m_89925.png",
+  "problems": [],
+  "hidden": {
+   "broke": "up",
+   "what_next": "reversal",
+   "bars_to_break": 14,
+   "move20_normal_bars": 0.79
+  },
+  "n": 30
+ }
+]

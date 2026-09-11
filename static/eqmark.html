@@ -1,0 +1,147 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Mark the EQs</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--card2:#1a1e25;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --amber:#ffb84d;--eq:#5aa9ff;--up:#3ddc97;--dn:#ff5c72;--mono:ui-monospace,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:24px 26px 6px;max-width:1500px}
+  h1{font-size:22px;margin:0 0 6px}
+  .quote{color:var(--amber);font-style:italic;margin:0 0 6px}
+  .sub{color:var(--dim);max-width:980px}
+  .sub b{color:var(--fg)}
+  main{padding:6px 26px 90px;max-width:1500px}
+  .bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);
+       display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .bar b{color:var(--fg)}
+  .case{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;margin:16px 0}
+  .line{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-bottom:8px}
+  .line b{color:var(--fg)}
+  img{width:100%;border-radius:8px;border:1px solid var(--line);display:block;cursor:zoom-in}
+  .marks{display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap}
+  .mk{background:var(--card2);border:1px solid var(--line);color:var(--dim);padding:8px 22px;border-radius:9px;
+      cursor:pointer;font-size:14px;font-weight:600;user-select:none}
+  .mk.long.on{background:rgba(61,220,151,.18);border-color:var(--up);color:var(--up)}
+  .mk.short.on{background:rgba(255,92,114,.18);border-color:var(--dn);color:var(--dn)}
+  .mk.skip.on{background:rgba(139,147,161,.18);border-color:var(--dim);color:var(--fg)}
+  input.note{flex:1;min-width:260px;background:var(--card2);border:1px solid var(--line);color:var(--fg);
+             border-radius:8px;padding:8px 10px;font:13px inherit}
+  .saved{font-size:12px;color:var(--up);min-width:120px}
+  .reveal{display:none;margin-top:10px;padding:9px 12px;border-radius:8px;background:var(--card2);
+          border-left:3px solid var(--amber);font-size:13.5px}
+  .reveal b{color:var(--fg)}
+  button.go{background:rgba(255,184,77,.16);border:1px solid var(--amber);color:var(--amber);padding:8px 16px;
+            border-radius:9px;cursor:pointer;font-weight:600}
+  button.go:disabled{opacity:.4;cursor:not-allowed}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:12.5px;margin-top:10px}
+  th,td{padding:6px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th{color:var(--faint);font-weight:500}
+  td.l,th.l{text-align:left}
+  #summary{display:none;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:14px 0}
+  #zoom{position:fixed;inset:0;background:rgba(0,0,0,.93);display:none;align-items:center;justify-content:center;z-index:30;cursor:zoom-out;padding:10px}
+  #zoom img{max-width:99vw;max-height:98vh;width:auto}
+</style></head>
+<body>
+<header>
+  <h1>Mark the EQs: long, short, or skip</h1>
+  <p class="quote">"usually based on if its in an uptrend on higher timeframes like hourly, or if its above the ema12 on something like the hourly and the eq can make a nice higher low from that"</p>
+  <div class="sub">Every version of that I coded came out a coin flip, so this time the rule comes from your picks. Each chart <b>stops at the moment the EQ could first be seen</b>: nothing after the dotted line, so you can't see which way it broke. Right side: the hourly (top) and the daily (bottom) up to the same moment, 12 EMA in purple, the EQ's prices in orange. Pick one for each, add a note if you want, and when they're all marked, press <b>show what happened</b>.</div>
+</header>
+<main>
+  <div class="bar"><span id="count">loading&hellip;</span><button class="go" id="go" disabled>show what happened</button></div>
+  <div id="summary"></div>
+  <div id="list"></div>
+</main>
+<div id="zoom"></div>
+<script>
+const $ = s => document.querySelector(s);
+let ROWS = [], MARKS = {};
+const WORD = {real: 'a real move (ran 2+ normal bars)', fakeout: 'a fakeout (straight back inside)', reversal: 'a reversal (then broke the other way)', weak: 'a weak break (went nowhere much)'};
+
+function parse(note) {
+  if (!note) return {mark: '', text: ''};
+  const i = note.indexOf(' | ');
+  const mark = (i < 0 ? note : note.slice(0, i)).trim().toLowerCase();
+  return {mark: ['long', 'short', 'skip'].includes(mark) ? mark : '', text: i < 0 ? '' : note.slice(i + 3)};
+}
+
+function count() {
+  const done = ROWS.filter(r => MARKS[r.id] && MARKS[r.id].mark).length;
+  $('#count').innerHTML = `<b>${done}</b> of <b>${ROWS.length}</b> marked`;
+  $('#go').disabled = done < ROWS.length;
+}
+
+function save(id, card) {
+  const m = MARKS[id] || {mark: '', text: ''};
+  const s = card.querySelector('.saved');
+  const fail = () => { s.textContent = 'NOT SAVED - tell Claude'; s.style.color = '#ff5c72'; };
+  fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({set: 'eqmark', n: id, note: m.mark + (m.text ? ' | ' + m.text : '')})})
+    .then(r => { if (!r.ok) return fail(); s.textContent = 'saved'; s.style.color = ''; setTimeout(() => { if (s.textContent === 'saved') s.textContent = ''; }, 1500); })
+    .catch(fail);
+}
+
+function summary() {
+  const rows = {long: [], short: [], skip: []};
+  ROWS.forEach(r => { const m = (MARKS[r.id] || {}).mark; if (rows[m]) rows[m].push(r.hidden); });
+  const pct = (a, f) => a.length ? Math.round(100 * a.filter(f).length / a.length) + '%' : '-';
+  let h = '<b>How your marks did</b><table><tr><th class="l">your mark</th><th>charts</th><th>broke your way</th><th>real move your way</th><th>fakeout your way</th><th>reversal</th><th>price your way 20 bars later</th></tr>';
+  for (const [mk, dir] of [['long', 'up'], ['short', 'down']]) {
+    const a = rows[mk];
+    const way = x => x.broke === dir;
+    const later = x => (dir === 'up' ? x.move20_normal_bars : -x.move20_normal_bars) > 0;
+    h += `<tr><td class="l">${mk}</td><td>${a.length}</td><td>${pct(a, way)}</td><td>${pct(a, x => way(x) && x.what_next === 'real')}</td><td>${pct(a, x => way(x) && x.what_next === 'fakeout')}</td><td>${pct(a, x => x.what_next === 'reversal')}</td><td>${pct(a, later)}</td></tr>`;
+  }
+  h += `<tr><td class="l">skip</td><td>${rows.skip.length}</td><td colspan="5" class="l">broke up ${pct(rows.skip, x => x.broke === 'up')}, real moves ${pct(rows.skip, x => x.what_next === 'real')}</td></tr></table>`;
+  $('#summary').innerHTML = h;
+  $('#summary').style.display = 'block';
+}
+
+Promise.all([
+  fetch('/validation/eq_mark/eq_mark_index.json?v=' + Date.now()).then(r => r.ok ? r.json() : []),
+  fetch('/api/tradenote?set=eqmark').then(r => r.json()).catch(() => ({})),
+]).then(([rows, notes]) => {
+  ROWS = rows.sort((a, b) => a.n - b.n);
+  notes = notes || {};
+  ROWS.forEach(r => { MARKS[r.id] = parse(notes[r.id]); });
+  if (!ROWS.length) { $('#count').textContent = 'no charts yet'; return; }
+  $('#list').innerHTML = ROWS.map(r => `
+    <div class="case" data-id="${r.id}">
+      <div class="line"><b>#${r.n}</b> &middot; ${r.sym} <span style="color:var(--faint)">${r.kind}</span> &middot; ${r.tf} &middot; ${r.t}</div>
+      <img src="/validation/eq_mark/${r.png}?v=${Date.now()}" loading="lazy" alt="${r.sym} ${r.tf}">
+      <div class="marks">
+        <span class="mk long" data-m="long">Long</span><span class="mk short" data-m="short">Short</span><span class="mk skip" data-m="skip">Skip</span>
+        <input class="note" placeholder="why? (optional)" value="${(MARKS[r.id].text || '').replace(/"/g, '&quot;')}">
+        <span class="saved"></span>
+      </div>
+      <div class="reveal"></div>
+    </div>`).join('');
+  document.querySelectorAll('.case').forEach(card => {
+    const id = card.dataset.id;
+    const paint = () => card.querySelectorAll('.mk').forEach(b => b.classList.toggle('on', b.dataset.m === MARKS[id].mark));
+    paint();
+    card.querySelectorAll('.mk').forEach(b => b.onclick = () => { MARKS[id].mark = b.dataset.m; paint(); count(); save(id, card); });
+    let t = null;
+    card.querySelector('.note').oninput = e => { MARKS[id].text = e.target.value; clearTimeout(t); t = setTimeout(() => save(id, card), 600); };
+  });
+  document.querySelectorAll('.case img').forEach(im => im.onclick = () => { const z = $('#zoom'); z.innerHTML = `<img src="${im.getAttribute('src')}">`; z.style.display = 'flex'; });
+  count();
+});
+
+$('#go').onclick = () => {
+  document.querySelectorAll('.case').forEach(card => {
+    const r = ROWS.find(x => x.id === card.dataset.id);
+    const hd = r.hidden, m = (MARKS[r.id] || {}).mark;
+    const yourWay = (m === 'long' && hd.broke === 'up') || (m === 'short' && hd.broke === 'down');
+    const el = card.querySelector('.reveal');
+    el.innerHTML = `It broke <b>${hd.broke}</b> ${hd.bars_to_break} bars later, and it was ${WORD[hd.what_next] || hd.what_next}. `
+      + (m === 'skip' ? 'You skipped it.' : yourWay ? '<b style="color:var(--up)">That was your way.</b>' : '<b style="color:var(--dn)">That was against your mark.</b>');
+    el.style.display = 'block';
+  });
+  summary();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+};
+$('#zoom').onclick = () => { $('#zoom').style.display = 'none'; };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#zoom').style.display = 'none'; });
+</script>
+</body></html>

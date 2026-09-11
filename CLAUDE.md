@@ -451,6 +451,16 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     the ones that point backwards on the first (the mirror). Nothing to trade yet. My coding of "the EQ can make a nice
     higher low for the hourly" may still not be his eye: next step proposed to him is to have HIM mark a set of 5m/15m
     EQs (with the 1h beside them) long / short / skip, and measure what his marks share.
+26m. HE MARKS THE EQs BLIND (2026-09-11, he said "sure show me", then "and the daily chart too please").
+    `pics_eqmark.py` -> validation/eq_mark/ -> /eqmark. 30 EQs from the focus list, 15 on the 5m and 15 on the 15m,
+    pivots 3+ apart, stocks regular hours. Each chart STOPS at the bar the EQ became knowable (nothing after it is drawn).
+    Left: the small chart, the EQ's flat steps in blue, its 12 EMA in purple. Right: the 1h (top) and the daily (bottom)
+    with ONLY bars that had closed by then (1h bars that ended by that moment, daily bars from before that day), 12 EMA in
+    purple, the EQ's prices as an orange band. Marks save under set "eqmark" as "long|short|skip | note". What happened
+    next (which way it broke, real / fakeout / reversal, bars to the break, move 20 bars later) sits in the index under
+    "hidden" and the page reveals it only once all 30 are marked. NEVER TELL HIM THE OUTCOMES BEFORE HE MARKS.
+    After he marks: read the notes, compare his marks to the outcomes and to every read in eq_direction.py, and build the
+    direction rule from what his long marks share that his short/skip marks do not.
 26. CHANNELS (was called "EQs" in error until 2026-09-09). His trade: get positioned at an edge to catch the BREAK ("buying the floor
     or selling the ceiling in order to be positioned for the eq to break one way or the other ... eqs
     usually break with follow through ... the longer they go on the clearer the breaks"). NOT buy-floor-

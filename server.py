@@ -868,6 +868,11 @@ def eqfree_page():
     return send_from_directory("static", "eqfree.html")
 
 
+@app.route("/eqmark")
+def eqmark_page():
+    return send_from_directory("static", "eqmark.html")
+
+
 @app.route("/eqtrades")
 def eqtrades_page():
     return send_from_directory("static", "eqtrades.html")
