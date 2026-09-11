@@ -142,15 +142,18 @@ def bar_reads(df, tf, frames, all_frames):
     return rd, states
 
 
-def inside_read(r, states, l, h, atr):
+def inside_read(r, states, l, h, atr, floor_a=None, ceil_a=None):
     """#26c's call, as a trader could see it the moment the EQ became knowable."""
     i, born = r["confirm"], r["born"]
     a = atr[i] if np.isfinite(atr[i]) and atr[i] > 0 else np.nan
     if not np.isfinite(a):
         return "none", "none"
     pre = str(states[max(0, born - 1)]) if born > 0 else "FLAT"
-    tf_ = int(np.sum(l[born:i + 1] <= r["floor"] + TOUCH * a))
-    tc = int(np.sum(h[born:i + 1] >= r["ceil"] - TOUCH * a))
+    # edges as they stood when the EQ became knowable (2026-09-11: the final edges were a small look-ahead)
+    fl_ = floor_a[i] if floor_a is not None and np.isfinite(floor_a[i]) else r["floor"]
+    ce_ = ceil_a[i] if ceil_a is not None and np.isfinite(ceil_a[i]) else r["ceil"]
+    tf_ = int(np.sum(l[born:i + 1] <= fl_ + TOUCH * a))
+    tc = int(np.sum(h[born:i + 1] >= ce_ - TOUCH * a))
     s1 = 1 if tf_ > tc else -1 if tc > tf_ else 0
     s2 = 1 if pre == "DOWN" else -1 if pre == "UP" else 0
     score = s1 + s2
@@ -185,12 +188,12 @@ def _work(args):
         try:
             rd, states = bar_reads(df, tf, frames, all_frames)
             h = df["High"].values.astype(float); l = df["Low"].values.astype(float)
-            _, _, _, rs, atr = EC.coils(df, min_gap=0)
+            floor_a, ceil_a, _, rs, atr = EC.coils(df, min_gap=0)
             ins = {}
             for r in rs:
                 if not r["tradeable"] or r["born"] < 60:
                     continue
-                call, lean = inside_read(r, states, l, h, atr)
+                call, lean = inside_read(r, states, l, h, atr, floor_a, ceil_a)
                 ins[(r["born"], r["end"])] = (call, lean)
                 d = break_dir(r["how"])
                 if d is None:

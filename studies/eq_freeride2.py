@@ -180,6 +180,7 @@ def trades(kind, tf, df, frames, start, gap, modes=None, filters=False):
         elif kd_ == "high" and lab_ in ("LH", "EH"):
             highs_at.setdefault(ci_, []).append(float(p_))
     extra = dict(rsi=rsi, e12=e12, lows_at=lows_at, highs_at=highs_at)
+    states = ST.states(df, causal=True)
     big = "1d" if tf in ("5m", "15m", "1h", "4h") else "1w"
     e50 = FR.ema_of(df, tf, frames, big)
     e200 = FR.ema_of(df, tf, frames, big, span=200, slope=False)
@@ -198,6 +199,15 @@ def trades(kind, tf, df, frames, start, gap, modes=None, filters=False):
         if not r["tradeable"] or r["born"] < 60:
             continue
         i, end = r["confirm"], r["end"]
+        # the EQ's own read at the moment it became knowable, with its edges as they stood THEN
+        a_in = atr[i] if np.isfinite(atr[i]) and atr[i] > 0 else np.nan
+        inside = "none"
+        if np.isfinite(a_in) and np.isfinite(floor[i]) and np.isfinite(ceil[i]):
+            pre = str(states[r["born"] - 1]) if r["born"] > 0 else "FLAT"
+            t_fl = int(np.sum(l[r["born"]:i + 1] <= floor[i] + 0.25 * a_in))
+            t_ce = int(np.sum(h[r["born"]:i + 1] >= ceil[i] - 0.25 * a_in))
+            sc = (1 if t_fl > t_ce else -1 if t_ce > t_fl else 0) + (1 if pre == "DOWN" else -1 if pre == "UP" else 0)
+            inside = "up" if sc >= 2 else "down" if sc <= -2 else "none"
         k0 = bisect.bisect_left(pcis, i)
         k1 = bisect.bisect_left(pcis, end)
         long_pv = next((pv for pv in piv[k0:k1] if pv[3] == "low" and pv[4] in ("HL", "EL")), None)
@@ -242,7 +252,9 @@ def trades(kind, tf, df, frames, start, gap, modes=None, filters=False):
                         rr=rr_, rr_i=0 if rr_ < 1 else 1 if rr_ < 2 else 2,
                         born=int(r["born"]), end=int(end), e=int(e), pj=int(j), pivot=lab, t=str(t),
                         fill=float(fill), stop=float(stop), target=float(target),
-                        e50=str(e50[ci]), e200=str(e200[ci]),
+                        e50=str(e50[ci]), e200=str(e200[ci]), inside=inside,
+                        own12=("up" if (c[ci] > e12[ci] and e12_slope[ci] > 0) else
+                               "down" if (c[ci] < e12[ci] and e12_slope[ci] < 0) else "none"),
                         eq_lo=float(np.min(l[r["born"]:end + 1])), eq_hi=float(np.max(h[r["born"]:end + 1])))
             for mode_i, (vname, mode) in enumerate(MODES):
                 if modes is not None and vname not in modes:

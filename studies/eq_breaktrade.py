@@ -187,7 +187,7 @@ def _work(args):
                 other = r["floor"] if sgn > 0 else r["ceil"]
                 stop = other - tol if sgn > 0 else other + tol
                 b = k - 1                                   # everything read on the bar before the break
-                call, _lean = EF.inside_read(r, states, l, h, atr)
+                call, _lean = EF.inside_read(r, states, l, h, atr, floor, ceil)
                 o12 = str(own[b]); n12 = str(next_st[b])
                 vals = {"every": "up" if sgn > 0 else "down", "own12": o12, "inside": call,
                         "own12_and_inside": o12 if (o12 == call and call != "none") else "none",

@@ -161,6 +161,8 @@ def render(sym, kind, tf, row, df, hdf, path, hours, gap, min_rr=MIN_RR):
     ax.set_xticks(xs[::step_]); ax.set_xticklabels([q.strftime("%m-%d %H:%M") for q in d.index[::step_]], fontsize=6.5)
     ax.set_yticks([y for y in ax.get_yticks() if y >= 0 and ax.get_ylim()[0] <= y <= ax.get_ylim()[1]])
     reason = "%s %s" % ("daily" if htf == "1d" else "weekly", "falling" if row["e50"] == "down" else "rising" if row["e50"] == "up" else "mixed")
+    if tf in ("5m", "15m"):
+        reason = "its 12 EMA and the EQ agree"
     ax.set_title("%s  %s   %s, %s   %s %+.1f%% in %d bars   far line %s" % (
         sym, tf, "LONG" if long_ else "SHORT", reason, "WON" if won else "LOST", 100 * ret, row["held"],
         "reached" if row["took"] else "not reached"), color="#e6e9ee", fontsize=11.5, loc="left", pad=8)
@@ -169,7 +171,8 @@ def render(sym, kind, tf, row, df, hdf, path, hours, gap, min_rr=MIN_RR):
     key = [[(BLUE, "blue: the EQ, flat until the next higher low or lower high"),
             (AMBER, "dotted: the entry"), (DN, "red dashed: the stop, a wick through the signal pivot"),
             (UP, "green dashed: the far line, where part is sold")],
-           [("#8b93a1", "Direction: the daily chart over its rising 50 EMA = long, under its falling 50 EMA = short (weekly for a daily EQ). Right panel: that chart, 50 EMA in purple, the EQ boxed in orange.")],
+           [("#8b93a1", ("Direction on 5m/15m: this chart's own 12 EMA AND the EQ's read (the line tested more holds, against the move it came from) agree. Right panel: the daily, 50 EMA in purple, EQ boxed."
+                         if tf in ("5m", "15m") else "Direction: the daily chart over its rising 50 EMA = long, under its falling 50 EMA = short (weekly for a daily EQ). Right panel: that chart, 50 EMA in purple, the EQ boxed in orange."))],
            [("#8b93a1", "Pivots at least %d bars apart. Far line at least %.1fx the risk. Drawn on %s. Picked at random among trades WITH the bigger picture, NOT for how they turned out." % (gap, min_rr, bars_word))],
            [("#8b93a1", "Round 3: no buy on the last bar before the bell, none against this chart's own 12 EMA, stop at least 3x the cost. The rest: stop under each new higher low, sold into overbought or a close through the 12 EMA.")]]
     for r_i, items in enumerate(key):
@@ -221,9 +224,15 @@ def render(sym, kind, tf, row, df, hdf, path, hours, gap, min_rr=MIN_RR):
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
     plt.close(fig)
     big = "daily" if tf in ("5m", "15m", "1h", "4h") else "weekly"
-    story = ("The %s chart was %s, so this EQ was a %s. A %s confirmed, so the %s went in "
-             "at the next open, %s. The stop sat a wick past that %s at %s, and the %s was %s, %.1f times the risk away. " % (
-                 big, EMAWORD.get(row["e50"], "?"),
+    fast = tf in ("5m", "15m")
+    story = (((
+              "%sThis chart's %s, so this EQ was a %s. A %s confirmed, so the %s went in " if fast else
+              "The %s chart was %s, so this EQ was a %s. A %s confirmed, so the %s went in ")
+             + "at the next open, %s. The stop sat a wick past that %s at %s, and the %s was %s, %.1f times the risk away. ") % (
+                 ("" if fast else big),
+                 (("price was over a rising 12 EMA, the floor held more tests and it came from a downtrend" if long_ else
+                   "price was under a falling 12 EMA, the ceiling held more tests and it came from an uptrend") if fast
+                  else EMAWORD.get(row["e50"], "?")),
                  "buy" if long_ else "short", near, "buy" if long_ else "short", fmt(fill), near, fmt(stop), far,
                  fmt(target), gain / risk))
     if row["took"]:
@@ -239,6 +248,15 @@ def render(sym, kind, tf, row, df, hdf, path, hours, gap, min_rr=MIN_RR):
                 variant=row["variant"], gap=gap, hours=bars_word, min_rr=min_rr,
                 h_next=row["e50"], h_two=row["e200"], story=story,
                 png=os.path.basename(path), problems=probs)
+
+
+def direction_ok(x, tf):
+    """5m/15m: this chart's own 12 EMA AND the EQ's own read must both point the trade's way (his note: the daily
+    50 EMA is too far away for a 5m trade). 1h and up: with the daily 50 EMA (weekly for a daily EQ)."""
+    if tf in ("5m", "15m"):
+        want = "up" if x["side"] == "long" else "down"
+        return x.get("own12") == want and x.get("inside") == want
+    return x["tag1"] == 0
 
 
 def _one(args):
@@ -257,7 +275,7 @@ def _one(args):
             continue
         try:
             rows = [x for x in FR2.trades(kind, tf, df, fr, start, gap, modes=[variant], filters=True)
-                    if x["tag1"] == 0 and x["rr"] >= min_rr and x["born"] > 40 and x["xb"] + 22 < len(df)]
+                    if direction_ok(x, tf) and x["rr"] >= min_rr and x["born"] > 40 and x["xb"] + 22 < len(df)]
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex)); continue
         if not rows:
