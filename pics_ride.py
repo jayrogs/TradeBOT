@@ -556,9 +556,14 @@ def render(sym, kind, tf, t, frames, tag, path):
     tj = w["trig"][1]
     crowded = abs(e - tj) <= 5
     an_hl = None
+    # the buy is the open right after the higher low confirms, so on most charts the two bars sit 1-2 apart and two
+    # separate words collide however they are slid (2026-09-11). Then ONE word names both markers.
+    together = abs(e - tj) <= 5 and x0 <= tj <= x1      # 2 bars was not enough: 7 charts still collided at 3-5
     if x0 <= tj <= x1:
-        an_hl = peg(tj - x0, lows_v[tj], lane_dn1, "#5aa9ff", "^", 150, "higher low", side=-1 if crowded else 0)
-    an_buy = peg(e - x0, lows_v[e], lane_dn1, "#ffb84d", "^", 190, "buy", side=1 if crowded else 0)
+        an_hl = peg(tj - x0, lows_v[tj], lane_dn1, "#5aa9ff", "^", 150,
+                    "higher low + buy" if together else "higher low", side=-1 if crowded else 0)
+    an_buy = peg(e - x0, lows_v[e], lane_dn1, "#ffb84d", "^", 190, None if together else "buy",
+                 side=1 if crowded else 0)
     # "buy" and "higher low" can still touch when the two bars are 1-2 apart (NU 4h). Dropping "buy" a lane
     # put it on "previous low" on almost every chart (2026-09-11), so instead measure the two words and
     # slide "buy" right, in its own lane, by exactly the overlap

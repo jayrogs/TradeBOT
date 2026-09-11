@@ -338,6 +338,46 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     call is real; the fast break after costs does not pay, with any of the TCG exits. Together with #26f/#26g: the
     5m/15m EQ as a trade on its own is exhausted as coded. The TCG Slack says the fast EQ is TIMING for a 1h/4h higher
     low at a 12 EMA (TCG_METHOD.md #9) -> `studies/eq_playbook.py`.
+26i. THE TCG PLAYBOOK WITH THE FAST CHART AS TIMING, first version (2026-09-11, `studies/eq_playbook.py`,
+    validation/eq_playbook.json). Idea on the 1h (timed on the 5m) and on the 4h (timed on the 15m): the big chart in
+    an uptrend or its last high a higher high; location = the small bar's low within half a big normal bar of the big
+    12 EMA, that EMA rising; triggers = a small EQ breaking our way, a small higher low confirming, small RSI back over
+    30, or no trigger; stop under the small structure; half at big RSI 70 or 2x the risk, runner walked up under big
+    higher lows or out on the big 12 EMA; all out at 2x as control.
+    AS CODED, NOTHING PAID: -0.06% to -0.12% a trade, middle trade -0.10% to -0.23%, won 35-44%, every trigger,
+    location, exit and pair. Location added nothing (small higher low 1h/5m: at the 12 EMA -0.06/-0.14, anywhere -0.06/-0.13).
+    BUT THIS VERSION DID NOT TEST THEIR TRADE, for two measured reasons:
+      - IT FIRED LIKE A MACHINE GUN: 1.65 million "small higher low" trades on the 1h/5m pair. Every 5m pivot while the
+        1h leaned up became a trade; they take one position per big higher low.
+      - THE STOP WAS SMALLER THAN THE COST. Middle 5m higher-low stop against the round-trip cost: ES futures 0.06% vs
+        0.05% (cost = 80% of the risk), SOL 0.38% vs 0.20% (53%), NVDA 0.44% vs 0.05% (11%). 4h/15m: ES 42%, SOL 29%,
+        NVDA 6%. With cost at half the risk, no rule can pay.
+    Version 2 (`studies/eq_playbook2.py`): one trade per big higher low; the stop never tighter than a fraction of a big
+    normal bar; results split by market.
+26j. THE TCG PLAYBOOK, VERSION 2: their trade, one idea at a time (2026-09-11, `studies/eq_playbook2.py`,
+    validation/eq_playbook2.json). Fixes both flaws of #26i: ONE trade per big-chart higher low (per trigger), and the
+    stop pushed out to at least 0, 0.5 or 1.0 of a normal big bar. Setup: big chart in an uptrend, pullback reached a
+    rising big 12 EMA. Triggers: small EQ breaks our way, small higher low confirms, or no trigger (next open at the 12
+    EMA). Exits: half at big RSI 70 or 2x the risk then runner under big higher lows / out on the big 12 EMA; all out
+    at 2x. Split by market. Average / middle trade, far line not involved:
+        1h idea, 5m timing        EVERY market and every row loses. Stocks small higher low -0.03/-0.04 (floor 1.0);
+                                  ETFs -0.02/-0.03 (floor 1.0); no trigger -0.05; small EQ break -0.06 to -0.08.
+        4h idea, 15m timing
+          stocks, small higher low (floor 0.5 or 1.0)   +0.01 / -0.01, won 49-50%, +0.05 over drift, n 72,968,
+                                                        eras +0.03-0.04 / -0.01 / +0.01 (flat, not negative)
+          ETFs, small higher low (any floor)            +0.02-0.03 / -0.01 to -0.03, +0.07-0.08 over drift, n 13,260,
+                                                        eras +0.02-0.05 / +0.01-0.02 / +0.03-0.05
+          ETFs, small EQ breaks our way                 +0.06-0.09 / -0.04 to 0.00, n 463, eras -0.30 / -0.06 / +0.45:
+                                                        a few trades carry it
+          stocks and ETFs, no trigger at the 12 EMA     -0.03 to -0.05
+          crypto (every row)                            -0.14 to -0.39, middle -0.3 to -2.2 (wider stops lose more)
+          futures (every row)                           -0.03 to -0.15
+    WHAT HOLDS: waiting for a 15m higher low at a 4h 12 EMA pullback beats buying the pullback outright by about +0.05%
+    a trade on stocks and ETFs, in every era. That is real timing value from the small chart, in their words "Scouting
+    a TSLA hourly higher low entry". WHAT DOES NOT: as coded, their trade on these charts is about break-even on stocks
+    and ETFs and loses on crypto and futures. The management variants (walked-up stop, 12 EMA runner, all out at 2x)
+    barely differ. Not yet drawn (rule 10): the break-even rows need pictures before any verdict, and the idea chart
+    size may be the constraint -- their room plays the daily/weekly idea (see #26c supply: few EQs there).
 26. CHANNELS (was called "EQs" in error until 2026-09-09). His trade: get positioned at an edge to catch the BREAK ("buying the floor
     or selling the ceiling in order to be positioned for the eq to break one way or the other ... eqs
     usually break with follow through ... the longer they go on the clearer the breaks"). NOT buy-floor-
