@@ -413,6 +413,30 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     direction before building round 4. Also fixed: the EQ's own read counted touches against the EQ's final edges (a
     small look-ahead); it now uses the edges as they stood (eq_freeride2, eq_fastread, eq_breaktrade). #26f numbers
     for that read need a rerun.
+26l. EQ DIRECTION, FIRST POKE AND FOLLOW-THROUGH (2026-09-11, `studies/eq_direction.py`, validation/eq_direction.json).
+    His ask: "why not both? and we can compare to see which were fakeouts". Every EQ break scored on the poke (which line
+    the first wick went through) and what came next: REAL (ran 2+ normal bars before a close back inside), FAKEOUT (back
+    inside within 5 bars without running 1 bar), REVERSAL (the other line broke within 20 bars), weak. Reads taken at two
+    moments (when the EQ became knowable, last bar before the break), EQ read without look-ahead, pivots 3+ apart,
+    stocks regular hours. 809 names: 20,054 5m, 9,305 15m, 1,515 1h breaks.
+    WHAT FAST EQ BREAKS DO:            real    fakeout   reversal   weak
+        5m                              22%      24%        43%      11%
+        15m                             28%      13%        53%       7%
+        1h                              26%      16%        49%       8%
+    THE MOST COMMON OUTCOME IS A REVERSAL: the EQ breaks one way and then breaks the other line within 20 bars.
+    HIS RULE (his words: "if its in an uptrend on higher timeframes like hourly, or if its above the ema12 on something
+    like the hourly and the eq can make a nice higher low from that for the hourly uptrend to continue"), coded as: 1h
+    uptrend or price above the 1h 12 EMA, AND the EQ floor above the 1h's last swing low (4h for a 1h EQ):
+        poke right 47-49% when the EQ became knowable (all three charts); last bar before the break 49% (5m), 54% (15m),
+        58% (1h). Real break the called way ~ the same as the control. It calls 85-89% of EQs: TOO LOOSE as coded ("floor
+        above the 1h's last low" is true for almost every EQ). Not his read yet.
+    READS THAT ONLY SEE THE BREAK STARTING: price vs this chart's 12 EMA on the last bar before the break (poke right
+    82-89%) and the last pivot (63-70%) mostly convert into reversals/fakeouts, not real moves (5m price vs 12 EMA: real
+    20% vs control 11%, reversal 37% vs 22%). The 12 EMA's slope across the EQ and the next chart's 12 EMA point the WRONG
+    way (44-47%). The daily 50 EMA is a coin flip (50-52%). The EQ's own read 57-58%.
+    Next, running: a TIGHT version of his rule (the EQ sitting IN the 1h pullback: floor within a normal 1h bar above the
+    1h's last low, or within half a 1h bar of the 1h 12 EMA) and "the second break": how often a call is right after the
+    first break went against it and reversed (the fakeout his mentors trade).
 26. CHANNELS (was called "EQs" in error until 2026-09-09). His trade: get positioned at an edge to catch the BREAK ("buying the floor
     or selling the ceiling in order to be positioned for the eq to break one way or the other ... eqs
     usually break with follow through ... the longer they go on the clearer the breaks"). NOT buy-floor-

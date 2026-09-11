@@ -67,7 +67,8 @@ READS = [("control", "every EQ called up (the control)"),
          ("last_pivot", "the last pivot: a higher low -> up, a lower high -> down"),
          ("h1_trend", "the 1h (4h for a 1h EQ): uptrend / downtrend (pivots)"),
          ("h1_above12", "the 1h (4h for a 1h EQ): price above / below its 12 EMA"),
-         ("his_rule", "HIS RULE: 1h uptrend or above the 1h 12 EMA, AND the EQ floor above the 1h's last low (a 1h higher low)")]
+         ("his_rule", "HIS RULE: 1h uptrend or above the 1h 12 EMA, AND the EQ floor above the 1h's last low (a 1h higher low)"),
+         ("his_tight", "HIS RULE, TIGHT: same, with the EQ IN the 1h pullback (floor within a 1h bar above the 1h's last low, or at the 1h 12 EMA)")]
 READ_KEYS = [k for k, _ in READS]
 OUTCOMES = ["real", "fakeout", "reversal", "weak"]
 ERAS = ["before", "first", "second"]
@@ -154,6 +155,12 @@ def _work(args):
             h1_state = EF.higher_state(df, tf, frames, htf)
             h1_ev = ER.above12(df, tf, frames, htf)[1]
             h1_lo, h1_hi = last_swings(df, tf, frames, htf)
+            hdf_ = frames.get(htf)
+            if hdf_ is not None and len(hdf_) >= 60:
+                al_ = FR.align(df, tf, hdf_, htf, P._atr(hdf_).astype(object))
+                h1_atr = np.array([np.nan if isinstance(x, str) else float(x) for x in al_], dtype=float)
+            else:
+                h1_atr = np.full(n, np.nan)
             piv = ST.pivots(df)
             pcis = [pv[0] for pv in piv]
             for r in recs:
@@ -212,6 +219,16 @@ def _work(args):
                     up_ok = (t_h == "up" or ab == 1) and np.isfinite(h1_lo[m]) and fl_m > h1_lo[m]
                     dn_ok = (t_h == "down" or ab == 2) and np.isfinite(h1_hi[m]) and ce_m < h1_hi[m]
                     vals += [code(t_h), ab, 1 if (up_ok and not dn_ok) else 2 if (dn_ok and not up_ok) else 0]
+                    ha = h1_atr[m]
+                    up_t = dn_t = False
+                    if np.isfinite(ha) and ha > 0:
+                        in_pull_up = (np.isfinite(h1_lo[m]) and h1_lo[m] < fl_m <= h1_lo[m] + ha) or \
+                                     (np.isfinite(h1_ev[m]) and abs(fl_m - h1_ev[m]) <= 0.5 * ha)
+                        in_pull_dn = (np.isfinite(h1_hi[m]) and h1_hi[m] - ha <= ce_m < h1_hi[m]) or \
+                                     (np.isfinite(h1_ev[m]) and abs(ce_m - h1_ev[m]) <= 0.5 * ha)
+                        up_t = (t_h == "up" or ab == 1) and in_pull_up
+                        dn_t = (t_h == "down" or ab == 2) and in_pull_dn
+                    vals += [1 if (up_t and not dn_t) else 2 if (dn_t and not up_t) else 0]
                 rows.append([tf_i, sgn, cls, float(run), float(move20), era_i] + vals)
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
@@ -237,6 +254,8 @@ def score(g, col):
                 fakeout_on_call=float((poke & (cls == 1)).mean()),
                 reversal_on_call=float((poke & (cls == 2)).mean()),
                 fakeout_share_of_right_pokes=float((cls[poke] == 1).mean()) if poke.any() else None,
+                second_break_right=float((~poke & (cls == 2)).mean()),
+                right_either_break=float((poke & (cls == 0)).mean() + (~poke & (cls == 2)).mean()),
                 ended_right=float((move > 0).mean()),
                 avg_move=float(move.mean()),
                 median_move=float(np.median(move)))
@@ -297,17 +316,18 @@ def main():
             tf, b["n"], 100 * (b["broke_up"] or 0), *[100 * b["outcomes"].get(o, 0) for o in OUTCOMES]))
         for moment in MOMENTS:
             print("   %s" % moment)
-            print("     %-14s %6s %6s %6s %6s %6s %6s %6s   eras poke/real" % (
-                "read", "calls", "poke", "real", "fake", "rev", "ended", "move"))
+            print("     %-14s %6s %6s %6s %6s %6s %6s %6s %6s   eras poke/real" % (
+                "read", "calls", "poke", "real", "fake", "rev", "2nd", "ended", "move"))
             for rk in READ_KEYS:
                 s = table[tf]["moments"][moment].get(rk)
                 if not s:
                     continue
                 eras = "  ".join(("%2.0f/%2.0f" % (100 * e["poke_right"], 100 * e["real_right"])) if e else " -/- "
                                  for e in (s["eras"].get(er) for er in ERAS))
-                print("     %-14s %5.0f%% %5.0f%% %5.0f%% %5.0f%% %5.0f%% %5.0f%% %+5.2f   %s" % (
+                print("     %-14s %5.0f%% %5.0f%% %5.0f%% %5.0f%% %5.0f%% %5.0f%% %5.0f%% %+5.2f   %s" % (
                     rk, 100 * s["share_called"], 100 * s["poke_right"], 100 * s["real_right"],
-                    100 * s["fakeout_on_call"], 100 * s["reversal_on_call"], 100 * s["ended_right"], s["avg_move"], eras))
+                    100 * s["fakeout_on_call"], 100 * s["reversal_on_call"], 100 * s["second_break_right"],
+                    100 * s["ended_right"], s["avg_move"], eras))
     if log:
         open(os.path.splitext(log)[0] + ".done", "w").write("done")
 
