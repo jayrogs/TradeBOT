@@ -39,6 +39,10 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     server's answer and show NOT SAVED in red when it fails. (2026-09-10: his whole grading of /eqfree was
     lost to a page that flashed "saved" while the server rejected every save -- wrong field names.)
 13. When the technique is wrong, code the variants and run them. Do not ask which one to try.
+13b. GitHub (github.com/jayrogs/TradeBOT): whenever a tracked file changes, I commit and push it to main myself,
+    straight away. No branches, no pull requests. The app shows a "+N -N / Create PR" bar whenever the computer
+    and GitHub differ, and his words (2026-09-11) were "i just dont want to be asked to do something for something
+    i didnt do". Keep that bar at zero. Never push TCG_METHOD.md or tcg_slack/ (private TCG Slack content, ignored).
 
 ## What is settled (do not re-litigate)
 
