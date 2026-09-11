@@ -175,6 +175,7 @@ def _one(args):
 
 BPH = {"5m": 12, "15m": 4}         # bars in one hourly bar
 LOOKS = [4, 8, 24]                 # hourly bars later, for the numbers under each chart
+AFTER_BARS = {"5m": 96, "15m": 60}  # how far the small chart runs on: 8 hourly bars either way
 GREEN, RED = "#3ddc97", "#ff5c72"
 
 
@@ -187,7 +188,7 @@ def render_after(sym, tf, df, h1, d1, r, path, mark):
     """The same EQ with what came after it: the small chart runs 60 bars on, the hourly 24 bars, the daily 10."""
     i = r["confirm"]; born = r["born"]; n = len(df)
     x0 = max(0, born - 40)
-    x1 = min(n - 1, i + 60)
+    x1 = min(n - 1, i + AFTER_BARS[tf])
     d = df.iloc[x0:x1 + 1]
     xs = np.arange(len(d))
     now = i - x0
