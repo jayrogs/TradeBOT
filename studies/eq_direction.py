@@ -64,10 +64,38 @@ READS = [("control", "every EQ called up (the control)"),
          ("pressed_line", "the EQ line pressed against a bigger chart's 12 EMA (ceiling -> up, floor -> down)"),
          ("eq_read", "the EQ's own read: line tested more holds + against the move it came from"),
          ("eq_lean", "the EQ's own read, either half"),
-         ("last_pivot", "the last pivot: a higher low -> up, a lower high -> down")]
+         ("last_pivot", "the last pivot: a higher low -> up, a lower high -> down"),
+         ("h1_trend", "the 1h (4h for a 1h EQ): uptrend / downtrend (pivots)"),
+         ("h1_above12", "the 1h (4h for a 1h EQ): price above / below its 12 EMA"),
+         ("his_rule", "HIS RULE: 1h uptrend or above the 1h 12 EMA, AND the EQ floor above the 1h's last low (a 1h higher low)")]
 READ_KEYS = [k for k, _ in READS]
 OUTCOMES = ["real", "fakeout", "reversal", "weak"]
 ERAS = ["before", "first", "second"]
+
+
+def last_swings(df, tf, frames, htf):
+    """The bigger chart's last confirmed swing low and swing high, as seen from each bar of this chart."""
+    n = len(df)
+    hdf = frames.get(htf)
+    if hdf is None or len(hdf) < 60:
+        return np.full(n, np.nan), np.full(n, np.nan)
+    hb = len(hdf)
+    lo = np.full(hb, np.nan); hi = np.full(hb, np.nan)
+    piv = ST.pivots(hdf)
+    p_ = 0; cl = np.nan; ch = np.nan
+    for k in range(hb):
+        while p_ < len(piv) and piv[p_][0] <= k:
+            if piv[p_][3] == "low":
+                cl = float(piv[p_][2])
+            else:
+                ch = float(piv[p_][2])
+            p_ += 1
+        lo[k] = cl; hi[k] = ch
+    out = []
+    for arr in (lo, hi):
+        al = FR.align(df, tf, hdf, htf, arr.astype(object))
+        out.append(np.array([np.nan if isinstance(x, str) else float(x) for x in al], dtype=float))
+    return out[0], out[1]
 
 
 def code(v):
@@ -122,6 +150,10 @@ def _work(args):
             next_sw = FR.swings_of(df, tf, frames, up1)
             above_ev = [ER.above12(df, tf, frames, htf)[1] for htf in ABOVE[tf]]
             states = ST.states(df, causal=True)
+            htf = "1h" if tf in ("5m", "15m") else "4h"
+            h1_state = EF.higher_state(df, tf, frames, htf)
+            h1_ev = ER.above12(df, tf, frames, htf)[1]
+            h1_lo, h1_hi = last_swings(df, tf, frames, htf)
             piv = ST.pivots(df)
             pcis = [pv[0] for pv in piv]
             for r in recs:
@@ -175,6 +207,11 @@ def _work(args):
                              1 if sc >= 2 else 2 if sc <= -2 else 0,
                              1 if sc >= 1 else 2 if sc <= -1 else 0,
                              1 if last == "low" else 2 if last == "high" else 0]
+                    t_h = str(h1_state[m])
+                    ab = (1 if c[m] > h1_ev[m] else 2 if c[m] < h1_ev[m] else 0) if np.isfinite(h1_ev[m]) else 0
+                    up_ok = (t_h == "up" or ab == 1) and np.isfinite(h1_lo[m]) and fl_m > h1_lo[m]
+                    dn_ok = (t_h == "down" or ab == 2) and np.isfinite(h1_hi[m]) and ce_m < h1_hi[m]
+                    vals += [code(t_h), ab, 1 if (up_ok and not dn_ok) else 2 if (dn_ok and not up_ok) else 0]
                 rows.append([tf_i, sgn, cls, float(run), float(move20), era_i] + vals)
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
