@@ -116,6 +116,7 @@ def trades_for(sym, kind):
             if share > 0:
                 pnl += share * side * (c[end_at] - entry) / entry
             got.append(dict(sym=sym, kind=kind, tf=tf, side=int(side), born=int(r["born"]), confirm=int(r["confirm"]),
+                            shape=[(int(j_), float(p_), kd_) for j_, p_, kd_, lb_ in r["shape"]],
                             e=int(e), entry=float(entry), stop=float(stop), target=float(target), cut=float(cut),
                             took_at=None if took_at is None else int(took_at), end_at=int(end_at), how=how,
                             pct=float(pnl * 100), risk_pct=float(risk / entry * 100),
@@ -138,6 +139,19 @@ def draw_trade(sym, tf, df, hdf, tr, path):
     CK.render(ax, bnd, "", "%m-%d %H:%M")
     ax.plot(xs, XM.ema(df["Close"].values.astype(float)[:x1 + 1], 12)[x0:x1 + 1], color=PURPLE, lw=1.4, zorder=6)
     e, end = tr["e"] - x0, tr["end_at"] - x0
+
+    def steps(pts):                                  # the EQ as he draws it: flat lines to the next pivot
+        y = np.full(len(d), np.nan)
+        for m_, (j_, pr_) in enumerate(pts):
+            j2 = pts[m_ + 1][0] if m_ + 1 < len(pts) else tr["confirm"]
+            a_, b_ = max(j_, x0), min(j2, tr["confirm"])
+            if b_ >= a_:
+                y[a_ - x0:b_ - x0 + 1] = pr_
+        return y
+    sh = tr.get("shape") or []
+    ax.step(xs, steps([(j_, p_) for j_, p_, kd_ in sh if kd_ == "low"]), where="post", color=BLUE, lw=2.2, zorder=8)
+    ax.step(xs, steps([(j_, p_) for j_, p_, kd_ in sh if kd_ == "high"]), where="post", color=BLUE, lw=2.2, zorder=8)
+    ax.axvline(tr["confirm"] - x0 + 0.5, color=DIM, lw=0.9, ls=":", zorder=4)
     ax.hlines(tr["entry"], e, len(d) - 1, colors=DIM, lw=1.2, linestyles=":", zorder=7)
     ax.hlines(tr["stop"], e, end, colors=RED, lw=1.6, linestyles="--", zorder=7)
     ax.hlines(tr["target"], e, end, colors=GREEN, lw=1.6, linestyles="--", zorder=7)
@@ -155,9 +169,9 @@ def draw_trade(sym, tf, df, hdf, tr, path):
                        else float(df["Close"].values[tr["end_at"]])], marker="x", s=110, color="#e6e9ee", lw=2, zorder=9)
     step_ = max(len(d) // 7, 1)
     ax.set_xticks(xs[::step_]); ax.set_xticklabels([q.strftime("%m-%d %H:%M") for q in d.index[::step_]], fontsize=6.5)
-    ax.set_title("%s  %s  %s   risked %.2f%% to the red line, aimed %.2f%% at the green   ->  %+.2f%%" % (
+    ax.set_title("%s %s %s   EQ blue, risk %.2f%% red, target %.2f%% green  ->  %+.2f%%" % (
         sym, tf, "long" if tr["side"] > 0 else "short", tr["risk_pct"], tr["target_pct"], tr["pct"]),
-        color="#e6e9ee", fontsize=11.5, loc="left", pad=8)
+        color="#e6e9ee", fontsize=11, loc="left", pad=8)
     panels = [(ax, d)]
     t_now = df.index[tr["e"]]
     end_h = int(hdf.index.searchsorted(t_now, side="right"))
@@ -177,8 +191,7 @@ def draw_trade(sym, tf, df, hdf, tr, path):
         axh.set_ylim(max(0, ylo - 0.15 * yr), yhi + 0.15 * yr)
         axh.set_xlim(-1, stop_h - pos + 2)
         axh.axvline(end_h - pos - 0.5, color=DIM, lw=0.9, ls=":", zorder=4)
-        axh.set_title("the hourly: the red stop and the green target come from here", loc="left", color=DIM,
-                      fontsize=9.5, pad=3)
+        axh.set_title("the hourly", loc="left", color=DIM, fontsize=9.5, pad=3)
         plt.setp(axh.get_xticklabels(), fontsize=6)
         panels.append((axh, hb["d"]))
     import pics_ride as PR
