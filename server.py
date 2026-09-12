@@ -878,6 +878,11 @@ def eqrisk_page():
     return send_from_directory("static", "eqrisk.html")
 
 
+@app.route("/bbwalk")
+def bbwalk_page():
+    return send_from_directory("static", "bbwalk.html")
+
+
 @app.route("/eqtrades")
 def eqtrades_page():
     return send_from_directory("static", "eqtrades.html")

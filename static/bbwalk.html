@@ -1,0 +1,95 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>The oversold bounce, checked</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --up:#3ddc97;--dn:#ff5c72;--amber:#ffb84d;--mono:ui-monospace,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:22px 26px 4px;max-width:1500px}
+  h1{font-size:21px;margin:0 0 6px}
+  h2{font-size:16px;margin:26px 0 8px}
+  .sub{color:var(--dim);max-width:960px}
+  .sub b{color:var(--fg)}
+  main{padding:4px 26px 80px;max-width:1500px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;margin:14px 0}
+  img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;cursor:zoom-in}
+  .line{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-bottom:7px}
+  .line b{color:var(--fg)}
+  .win b{color:var(--up)} .loss b{color:var(--dn)}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:12.5px;margin:8px 0 2px}
+  th,td{padding:6px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th{color:var(--faint);font-weight:500}
+  td.l,th.l{text-align:left}
+  .good{color:var(--up)} .bad{color:var(--dn)}
+  #zoom{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:30;cursor:zoom-out;padding:8px}
+  #zoom img{max-width:99vw;max-height:98vh;width:auto}
+</style></head>
+<body>
+<header>
+  <h1>The oversold bounce, checked properly</h1>
+  <div class="sub">RSI 14 on the 5m or 15m drops to 30 or under, then crosses back over. Buy the next open.
+    Stop at the nearest structure that kills the idea. Half off at 1x the risk. The rest with the stop walked under
+    each new higher low on the idea chart (the hourly for a 5m entry, the 4-hour for a 15m). Only taken when price
+    is on the right side of that chart's 12 EMA. Shorts mirror it.
+    <br><br>This setup first printed <b>+1.32% a trade</b>. That number was two bugs of mine: a partial booked on
+    trades that never reached it, and a stop measured against a level the trail had already moved past. Below is
+    what it does with those fixed, with trades restricted to a sane risk band, and against a control that takes the
+    same management on any bar at all.</div>
+</header>
+<main>
+  <div id="nums"></div>
+  <h2>Winners</h2><div id="wins"></div>
+  <h2>Losers</h2><div id="losses"></div>
+</main>
+<div id="zoom"></div>
+<script>
+const $ = s => document.querySelector(s);
+const pc = v => (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+const rr = v => (v > 0 ? '+' : '') + v.toFixed(2) + 'R';
+const cls = v => v > 0 ? 'good' : v < 0 ? 'bad' : '';
+
+Promise.all([
+  fetch('/validation/bb_walk/bb_walk_index.json?v=' + Date.now()).then(r => r.json()),
+  fetch('/validation/bb_verify.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+]).then(([d, v]) => {
+  const s = d.stats;
+  let h = `<div class="card"><b>These charts come from ${s.n.toLocaleString()} trades on the focus list</b><table>
+    <tr><th class="l">measure</th><th>value</th></tr>
+    <tr><td class="l">average, in R</td><td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td></tr>
+    <tr><td class="l">middle trade, in R</td><td class="${cls(s.middle_R)}">${rr(s.middle_R)}</td></tr>
+    <tr><td class="l">trades won</td><td>${(100 * s.won).toFixed(0)}%</td></tr>
+    <tr><td class="l">reached the 1R partial</td><td>${(100 * s.took_partial).toFixed(0)}%</td></tr>
+    <tr><td class="l">risk per trade (middle)</td><td>${s.median_risk.toFixed(2)}%</td></tr></table></div>`;
+  if (v && v.table) {
+    h += '<div class="card"><b>Every management, all 809 names, each against its own control</b>'
+      + '<table><tr><th class="l">how the trade was managed</th><th>trades</th><th>average</th><th>middle</th>'
+      + '<th>won</th><th>vs its control</th></tr>';
+    for (const [name, row] of Object.entries(v.table)) {
+      const a = row.all, c = row.control;
+      if (!a) continue;
+      const edge = c ? a.avg_R - c.avg_R : null;
+      h += `<tr><td class="l">${name}</td><td>${a.n.toLocaleString()}</td>`
+        + `<td class="${cls(a.avg_R)}">${rr(a.avg_R)}</td><td class="${cls(a.middle_R)}">${rr(a.middle_R)}</td>`
+        + `<td>${(100 * a.won).toFixed(0)}%</td>`
+        + `<td class="${edge == null ? '' : cls(edge)}">${edge == null ? '-' : rr(edge)}</td></tr>`;
+    }
+    h += '</table><div class="sub" style="margin-top:8px">The control is the same management and the same 12 EMA '
+      + 'filter, entered on any bar instead of on an oversold bounce. The gap between the two is what the trigger '
+      + 'is worth.</div></div>';
+  }
+  $('#nums').innerHTML = h;
+  const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
+      <div class="line">${c.sym} <span style="color:var(--faint)">${c.tf} ${c.side > 0 ? 'long' : 'short'}</span>
+        &middot; ${c.t} &middot; risked <b>${c.risk_pct.toFixed(2)}%</b> &middot; <b>${rr(c.R)}</b>
+        &middot; ${c.how}${c.took_at ? ' (half came off first)' : ''}</div>
+      <img src="/validation/bb_walk/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym} ${c.tf}"></div>`;
+  $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
+  $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
+  document.querySelectorAll('img').forEach(im => im.onclick = () => {
+    const z = $('#zoom'); z.innerHTML = `<img src="${im.getAttribute('src')}">`; z.style.display = 'flex';
+  });
+});
+$('#zoom').onclick = () => { $('#zoom').style.display = 'none'; };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#zoom').style.display = 'none'; });
+</script>
+</body></html>

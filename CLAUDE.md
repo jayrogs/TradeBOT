@@ -99,6 +99,26 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     names and fails unless they agree on every trade; it found all of the above. RUN IT AFTER ANY CHANGE TO A TRADE
     WALK.
 
+34. THE OVERNIGHT RUN, 2026-09-12: what survived and what did not.
+    THE RULE TABLE (`studies/tcg_lab.py`, 809 names; `--slow` runs the same stack on 1h/4h entries with the daily
+    and weekly as the idea chart). On the FAST charts every base trade is negative and the rules move it by
+    hundredths of a percent. On the SWING charts the picture is different and better:
+        eq_hl (a higher low inside a live EQ), walked stop, 1h/4h    base +0.135% a trade (n 3,543, won 32%)
+          with the name STRONG against its benchmark                 +0.437% (n 1,523) vs -0.044% without
+          with two of three charts above onside                      +0.296%
+          with price on the idea chart's 12 EMA side                 +0.250%
+          with the idea chart oversold                               +0.312%
+        eq_break, 1h/4h, all out at 2x: strong +0.197% vs -0.240%; role reversal +0.265% vs -0.097%
+    RELATIVE STRENGTH IS A SWING TOOL, NOT A FAST ONE: the ratio read did nothing on 5m/15m (#26n) and is the
+    single biggest rule on the 1h/4h. That matches how Joey actually uses it.
+    THEN THE VERIFICATION (`studies/swing_verify.py`, all names, R and blocks of 20): the swing EQ entry with the
+    strength filter is +0.487% a trade and +0.29R on average -- but the MIDDLE trade is -0.302% (-0.24R), it wins
+    33% of the time, only 29 of 65 blocks of twenty made money, and the worst losing streak is 23. Stocks alone are
+    flat (+0.035%, median -0.002%); crypto carries the average (+0.772% average, -0.581% middle). This is the
+    #26c lottery shape, not a clean edge. Its control (any bar, same management) is -0.08R, so the entry is worth
+    something real; the shape is not yet holdable.
+    NOT VERIFIED, NOT CLAIMED: nothing from tonight is tradeable as it stands.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.

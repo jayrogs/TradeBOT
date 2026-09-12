@@ -57,6 +57,9 @@ import eq_freeride2 as FR2        # noqa: E402
 
 OUT = os.path.join("validation", "tcg_lab.json")
 PAIRS = [("5m", "1h", ["15m", "1h", "4h"]), ("15m", "4h", ["1h", "4h", "1d"])]
+# the swing version: the same stack where the room actually holds trades, timed off the 1h and 4h
+PAIRS_SLOW = [("1h", "1d", ["4h", "1d", "1w"]), ("4h", "1w", ["1d", "1w"])]
+TFS = [p[0] for p in PAIRS]
 TRIGGERS = ["eq_break", "eq_hl", "hl", "backburner", "regain12"]
 MANAGERS = ["out2r", "walk", "ema_runner"]
 CONDS = ["big_trend", "big_side12", "at_12", "at_level", "big_os", "stack2", "strong", "ratio_rising",
@@ -181,7 +184,7 @@ def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big
 
 
 def _work(args):
-    sym, kind, start, bench = args
+    sym, kind, start, bench, pairs = args
     try:
         frames = B.frames_for(sym, kind)
     except Exception as ex:
@@ -190,7 +193,7 @@ def _work(args):
         frames = FR2.regular_hours(frames)
     mid_t = start + (pd.Timestamp.now() - start) / 2
     rows, errs = [], []
-    for tf_i, (tf, big, above) in enumerate(PAIRS):
+    for tf_i, (tf, big, above) in enumerate(pairs):
         df = frames.get(tf)
         bdf = frames.get(big)
         if df is None or bdf is None or len(df) < 500 or len(bdf) < 80:
@@ -408,6 +411,11 @@ def stats(v):
 
 def main():
     procs, log, allnames = max(1, os.cpu_count() or 4), None, False
+    global PAIRS, OUT, TFS
+    if "--slow" in sys.argv:                    # 1h and 4h entries instead of 5m and 15m
+        PAIRS = PAIRS_SLOW
+        TFS = [p[0] for p in PAIRS]
+        OUT = os.path.join("validation", "tcg_lab_slow.json")
     for i, a in enumerate(sys.argv):
         if a == "--procs" and i + 1 < len(sys.argv):
             procs = int(sys.argv[i + 1])
@@ -430,7 +438,7 @@ def main():
         except Exception:
             benches[kd] = None
     R.quiet_workers()
-    jobs = [(s_, k_, start, benches.get(k_)) for s_, k_ in names]
+    jobs = [(s_, k_, start, benches.get(k_), PAIRS) for s_, k_ in names]
     parts, errs, done = [], [], 0
     with cf.ProcessPoolExecutor(max_workers=procs) as ex:
         for part, err in ex.map(_work, jobs, chunksize=1):

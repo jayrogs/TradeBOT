@@ -15,7 +15,7 @@ import urllib.request
 
 BASE = "http://localhost:5001"
 HERE = os.path.dirname(os.path.abspath(__file__))
-PAGES = ["/", "/eq", "/eqcharts", "/eqcoils", "/eqtrades", "/eqfree", "/eqmark", "/eqrisk","/rides", "/ridecharts", "/bb", "/trends", "/trendstudy",
+PAGES = ["/", "/eq", "/eqcharts", "/eqcoils", "/eqtrades", "/eqfree", "/eqmark", "/eqrisk", "/bbwalk","/rides", "/ridecharts", "/bb", "/trends", "/trendstudy",
          "/names", "/cases", "/study", "/rules", "/paint", "/scan", "/markets", "/desk",
          "/exitcharts", "/log", "/backburner", "/trendcases"]
 # file -> how many days old is too old
@@ -27,7 +27,8 @@ FRESH = {"validation/trend_ride.json": 30, "validation/trend_ride_focus.json": 3
          "validation/entry_study.json": 30, "livelog/eq_scan.json": 1,
          "validation/eq_coil_study.json": 30, "validation/eq_coil_counts.json": 30,
          "validation/eq_freeride.json": 30, "validation/eq_freeride2.json": 30,
-         "validation/eq_farline.json": 30, "validation/eq_steps.json": 30}
+         "validation/eq_farline.json": 30, "validation/eq_steps.json": 30,
+         "validation/bb_verify.json": 30, "validation/tcg_lab.json": 30}
 import glob as _glob
 INDEXES = ([("validation/eq_cases/eq_cases_index.json", "validation/eq_cases"),
             ("validation/ride_cases_index.json", "validation/ride_cases"),
@@ -38,7 +39,8 @@ INDEXES = ([("validation/eq_cases/eq_cases_index.json", "validation/eq_cases"),
             ("validation/eq_trades/eq_trades_index.json", "validation/eq_trades"),
             ("validation/eq_free/eq_free_index.json", "validation/eq_free"),
             ("validation/eq_mark/eq_mark_index.json", "validation/eq_mark"),
-            ("validation/eq_risk/eq_risk_index.json", "validation/eq_risk")]
+            ("validation/eq_risk/eq_risk_index.json", "validation/eq_risk"),
+            ("validation/bb_walk/bb_walk_index.json", "validation/bb_walk")]
            + [(f.replace("\\", "/"), os.path.dirname(f).replace("\\", "/"))
               for f in sorted(_glob.glob(os.path.join("validation", "exit_cases", "*", "*index*.json")))])
 
