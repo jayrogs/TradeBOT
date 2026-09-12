@@ -128,7 +128,7 @@ for idx, folder in INDEXES:
         print("  %-42s (none)" % idx)
         continue
     d = json.load(open(f))
-    items = d if isinstance(d, list) else d.get("items", d.get("rows", d.get("cases", [])))
+    items = d if isinstance(d, list) else d.get("items", d.get("rows", d.get("cases", d.get("charts", []))))
     if isinstance(items, dict):
         items = list(items.values())
     miss = probs = 0

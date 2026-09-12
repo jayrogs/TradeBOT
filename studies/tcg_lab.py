@@ -93,14 +93,14 @@ def align_to(small, tf, frames, htf, arr):
 
 
 def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big_rsi, mode, bell=None,
-              atr=None, chand=3.0):
+              atr=None, chand=3.0, entry_px=None):
     """One trade, array math, no bar-by-bar loop."""
     n = len(c)
     last = min(n - 1, e + MAX_BARS)
     if bell is not None:                       # his rule: a 5m/15m stock trade is out at the bell
         last = min(last, int(bell))
     lw, hw, cw = l[e:last + 1], h[e:last + 1], c[e:last + 1]
-    entry = o[e]
+    entry = o[e] if entry_px is None else float(entry_px)   # a scaled-in position uses its average fill
 
     def first(mask):
         return int(np.argmax(mask)) if mask.any() else None

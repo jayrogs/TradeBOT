@@ -1,9 +1,12 @@
 """pics_bbwalk.py -- the backburner trade drawn, winners and losers (2026-09-12).
 
-The setup being checked (`studies/bb_verify.py`): RSI 14 on the 5m/15m goes to 30 or under, then back over it; buy
-the next open; stop at the nearest structure that kills the idea (this chart's last low or the idea chart's, plus a
-little); half off at 1x the risk; the rest with the stop walked under each new higher low on the idea chart (1h for
-a 5m entry, 4h for a 15m); only when price is on the right side of the idea chart's 12 EMA. Shorts mirror it.
+THE TRADE (`studies/bb_verify.py`), in his words: "its about buying it AT OR UNDER 30 ... its about scaling into a
+dip". RSI 14 on the 5m/15m reaches 30 or under: a first unit goes on at the next open, and up to two more as price
+keeps falling, each a further half a normal bar down, while the print STAYS at or under 30. The position is the
+average of those fills. Stop at the nearest structure below the LOWEST fill that kills the idea (this chart's last
+low or the idea chart's, plus a little). Half off at 1x the risk. The rest with the stop walked under each new
+higher low on the idea chart (1h for a 5m entry, 4h for a 15m). Only in names with relative strength to their own
+sector leader. Shorts mirror it.
 
 Nothing is claimed about this trade until these are looked at.
 
@@ -31,21 +34,25 @@ import indicators as IND          # noqa: E402
 import exit_managers as XM        # noqa: E402
 import eq_freeride2 as FR2        # noqa: E402
 import tcg_lab as L               # noqa: E402
+import bb_verify as BB            # noqa: E402
 
 DARK, DIM = "#0d0f12", "#8b93a1"
 PURPLE, GREEN, RED, AMBER, BLUE = "#b48cff", "#3ddc97", "#ff5c72", "#ffb84d", "#5aa9ff"
 OUT = os.path.join("validation", "bb_walk")
 PAIRS = L.PAIRS
 COST = L.COST
+L_ADDS = BB.ADDS
+L_ADD_GAP = BB.ADD_GAP
 
 
-def walk_one(kind, o, h, l, c, e, side, stop, risk, big_hl, bell):
-    """The same walk bb_verify runs, but recording every step so it can be drawn."""
+def walk_one(kind, o, h, l, c, e, side, stop, risk, big_hl, bell, entry_px=None):
+    """The same walk bb_verify runs, but recording every step so it can be drawn.
+    `e` is the LAST fill of the scale-in and `entry_px` the average of the fills."""
     n = len(c)
     last = min(n - 1, e + L.MAX_BARS)
     if bell is not None:
         last = min(last, int(bell))
-    entry = o[e]
+    entry = o[e] if entry_px is None else float(entry_px)
     cut = entry + side * risk
     took_at = None
     line = stop
@@ -118,20 +125,57 @@ def trades_for(sym, kind):
         if kind in ("stock", "etf"):
             day = df.index.normalize().values
             bells = np.searchsorted(day, day, side="right") - 1
+        # RELATIVE STRENGTH against the name's OWN sector leader, exactly as bb_verify measures it
+        strong = np.zeros(n)
+        lead_name = "-"
+        lead = BB.SECTOR_MAP.get("%s|%s" % (kind, sym))
+        d1 = frames.get("1d")
+        if lead and d1 is not None and len(d1) > 60:
+            lk, ls = lead[0].split("|")
+            try:
+                bx = S.frames_for(ls, lk)["1d"]["Close"]
+            except Exception:
+                bx = None
+            if bx is not None:
+                bxa = bx.reindex(d1.index).ffill().values.astype(float)
+                ratio = d1["Close"].values.astype(float) / bxa
+                ok = np.isfinite(ratio)
+                if ok.sum() >= 60:
+                    lead_name = ls
+                    r12 = XM.ema(np.where(ok, ratio, np.nan), 12)
+                    up5 = r12 - np.r_[np.full(5, np.nan), r12[:-5]]
+                    flag = np.where((ratio > r12) & (up5 > 0), 1.0, 0.0)
+                    al = L.align_to(df, tf, frames, "1d", flag)
+                    strong = np.where(np.isfinite(al), al, 0.0)
         os_ = rsi <= 30; ob = rsi >= 70
-        for side, ks in ((1, np.where(os_[:-1] & ~os_[1:])[0] + 1), (-1, np.where(ob[:-1] & ~ob[1:])[0] + 1)):
+        # the FIRST bar of each oversold run: that is where the scale-in starts (not the cross back over)
+        for side, ks in ((1, np.where(os_[1:] & ~os_[:-1])[0] + 1), (-1, np.where(ob[1:] & ~ob[:-1])[0] + 1)):
             for k in ks:
                 e = k + 1; m_ = e - 1
                 if e < 120 or e + 10 >= n or not np.isfinite(atr[m_]) or atr[m_] <= 0:
                     continue
-                if not (np.isfinite(b12[m_]) and ((side > 0 and c[m_] > b12[m_]) or (side < 0 and c[m_] < b12[m_]))):
-                    continue
-                entry = o[e]; a = atr[m_]
-                near_small = last_lo[m_] if side > 0 else last_hi[m_]
-                near_big = big_lo[m_] if side > 0 else big_hi[m_]
+                a = atr[m_]
+                # SCALE IN while the print stays at or under 30, each unit half a normal bar lower
+                fills = [o[e]]
+                fill_bars = [e]
+                j = e
+                while len(fills) < L_ADDS and j + 1 < n:
+                    j += 1
+                    if not ((rsi[j - 1] <= 30) if side > 0 else (rsi[j - 1] >= 70)):
+                        break
+                    gap = L_ADD_GAP * a
+                    lower = (o[j] <= fills[-1] - gap) if side > 0 else (o[j] >= fills[-1] + gap)
+                    if lower:
+                        fills.append(o[j])
+                        fill_bars.append(j)
+                entry = float(np.mean(fills))
+                e_last = fill_bars[-1]
+                worst = min(fills) if side > 0 else max(fills)
+                near_small = last_lo[e_last] if side > 0 else last_hi[e_last]
+                near_big = big_lo[e_last] if side > 0 else big_hi[e_last]
                 pool = [(x, lab) for x, lab in ((near_small, "this chart's last %s" % ("low" if side > 0 else "high")),
                                                 (near_big, "the %s's last %s" % (big, "low" if side > 0 else "high")))
-                        if np.isfinite(x) and ((side > 0 and x < entry) or (side < 0 and x > entry))]
+                        if np.isfinite(x) and ((side > 0 and x < worst) or (side < 0 and x > worst))]
                 if not pool:
                     continue
                 base, from_ = max(pool) if side > 0 else min(pool)
@@ -144,9 +188,13 @@ def trades_for(sym, kind):
                 rp = risk / entry * 100
                 if rp < 3 * COST.get(kind, 0.05) or rp > 5.0:
                     continue
-                r = walk_one(kind, o, h, l, c, e, side, stop, risk, big_lo if side > 0 else big_hi,
-                             None if bells is None else bells[e])
-                got.append(dict(sym=sym, kind=kind, tf=tf, big=big, side=int(side), e=int(e), entry=float(entry),
+                if not (strong[e_last] > 0):        # his filter: strength against its own sector leader
+                    continue
+                r = walk_one(kind, o, h, l, c, e_last, side, stop, risk, big_lo if side > 0 else big_hi,
+                             None if bells is None else bells[e_last], entry_px=entry)
+                got.append(dict(sym=sym, kind=kind, tf=tf, big=big, side=int(side), e=int(e_last), first=int(e),
+                                entry=float(entry), fills=[float(x) for x in fills],
+                                fill_bars=[int(x) for x in fill_bars], leader=lead_name,
                                 stop=float(stop), risk_pct=float(risk / entry * 100), t=str(df.index[e]),
                                 stop_from=from_, base=float(base) if "floored" not in from_ else float(stop),
                                 R=float(r["pct"] / (risk / entry * 100)), **r))
@@ -155,20 +203,23 @@ def trades_for(sym, kind):
 
 def draw(sym, tf, big, df, bdf, tr, path):
     e, end = tr["e"], tr["end"]
-    x0 = max(0, e - 60)
+    fb = tr.get("fill_bars", [e])
+    fx = tr.get("fills", [tr["entry"]])
+    x0 = max(0, min(fb) - 60)
     x1 = min(len(df) - 1, end + 12)
     d = df.iloc[x0:x1 + 1]
     xs = np.arange(len(d))
     fig = plt.figure(figsize=(16, 7.8), dpi=100)
     fig.patch.set_facecolor(DARK)
-    gs = fig.add_gridspec(1, 2, width_ratios=[1.5, 1], wspace=0.12, top=0.90, bottom=0.13)
+    gs = fig.add_gridspec(1, 2, width_ratios=[1.5, 1], wspace=0.12, top=0.90, bottom=0.155)
     ax = fig.add_subplot(gs[0, 0])
     bnd = CK.bundle(df, x0, len(d)); bnd["spans"] = []
     CK.render(ax, bnd, "", "%m-%d %H:%M")
     ax.plot(xs, XM.ema(df["Close"].values.astype(float)[:x1 + 1], 12)[x0:x1 + 1], color=PURPLE, lw=1.3, zorder=6)
-    lo = min(float(np.nanmin(d["Low"].values)), tr["stop"]); hi = max(float(np.nanmax(d["High"].values)), tr["cut"])
+    lo = min(float(np.nanmin(d["Low"].values)), tr["stop"], min(fx))
+    hi = max(float(np.nanmax(d["High"].values)), tr["cut"], max(fx))
     rng = max(hi - lo, 1e-9)
-    ax.set_ylim(lo - 0.40 * rng, hi + 0.40 * rng)
+    ax.set_ylim(lo - 0.46 * rng, hi + 0.46 * rng)
     pad_x = max(20, int(0.18 * len(d)))
     ax.set_xlim(-1, len(d) + pad_x)
     # the stop as it was walked
@@ -179,33 +230,51 @@ def draw(sym, tf, big, df, bdf, tr, path):
         sty += [y0_, y0_]
     ax.plot(stx, sty, color=RED, lw=1.6, ls="--", zorder=7)
     ax.hlines(tr["cut"], e - x0, min(tr["took_at"] or end, x1) - x0, colors=AMBER, lw=1.4, ls="--", zorder=7)
-    ax.hlines(tr["entry"], e - x0, len(d) - 1, colors=DIM, lw=1.0, ls=":", zorder=6)
-    # the risk, shaded: entry down to the first stop is 1R; entry up to the partial is the same distance
+    # the average of the fills: the price the position actually sits at
+    ax.hlines(tr["entry"], min(fb) - x0, len(d) - 1, colors="#e6e9ee", lw=1.2, ls=":", zorder=8)
+    ax.annotate("avg %.4g" % tr["entry"], (len(d) - 1, tr["entry"]), xytext=(5, 0),
+                textcoords="offset points", ha="left", va="center", color="#e6e9ee", fontsize=8, zorder=20)
+    # the risk, shaded: the average fill down to the first stop is 1R; the same distance up is where half comes off
     ax.axhspan(min(tr["entry"], tr["steps"][0][1]), max(tr["entry"], tr["steps"][0][1]),
                xmin=(e - x0 + 1) / (len(d) + pad_x + 1), color=RED, alpha=0.10, zorder=2)
     ax.axhspan(min(tr["entry"], tr["cut"]), max(tr["entry"], tr["cut"]),
                xmin=(e - x0 + 1) / (len(d) + pad_x + 1), color=AMBER, alpha=0.08, zorder=2)
+
     long_ = tr["side"] > 0
-    lane1 = lo - 0.13 * rng if long_ else hi + 0.13 * rng
-    lane2 = lo - 0.26 * rng if long_ else hi + 0.26 * rng
-    lane3 = lo - 0.38 * rng if long_ else hi + 0.38 * rng
+    sgn = -1 if long_ else 1
+
+    def lane(frac):
+        return (lo if long_ else hi) + sgn * frac * rng
+    # ONE LANE PER UNIT: three fills a bar apart landed on the same spot and read as a single entry
+    fill_lanes = [lane(0.10 + 0.055 * i_) for i_ in range(len(fx))]
+    lane2 = lane(0.10 + 0.055 * len(fx) + 0.055)
+    lane3 = lane(0.10 + 0.055 * len(fx) + 0.145)
     import pics_ride as PR
 
     def peg(x, y_bar, y_lane, colr, marker, label):
         ax.plot([x, x], [y_bar, y_lane], color=colr, lw=0.7, ls=":", alpha=0.6, zorder=6)
         ax.scatter([x], [y_lane], marker=marker, s=130, color=colr, edgecolor="#ffffff", lw=0.8, zorder=13)
+        if not label:
+            return
         an = ax.annotate(label, (x, y_lane), xytext=(0, -10 if long_ else 10), textcoords="offset points",
                          ha="center", va="top" if long_ else "bottom", color=colr, fontsize=8.5, weight="bold",
                          zorder=20)
         PR.keep_inside(ax, an)
-    peg(e - x0, tr["entry"], lane1, GREEN if long_ else RED, "^" if long_ else "v", "buy" if long_ else "short")
+    # every unit on its own lane, joined so the scale-in reads as a sequence, labelled once at the last
+    word = "buy" if long_ else "short"
+    if len(fx) > 1:
+        ax.plot([b_ - x0 for b_ in fb], fill_lanes, color=BLUE, lw=1.0, ls="-", alpha=0.65, zorder=10)
+    for i_, (b_, px_, ly_) in enumerate(zip(fb, fx, fill_lanes)):
+        peg(b_ - x0, px_, ly_, GREEN if long_ else RED, "^" if long_ else "v",
+            (word if len(fx) == 1 else "%s x%d, avg %.4g" % (word, len(fx), tr["entry"]))
+            if i_ == len(fx) - 1 else None)
     if tr["took_at"] is not None:
         peg(tr["took_at"] - x0, tr["cut"], lane2, AMBER, "o", "half off at 1R")
     peg(end - x0, tr["exit_px"], lane3, "#e6e9ee", "X", "out %+.2fR" % tr["R"])
     step_ = max(len(d) // 7, 1)
     ax.set_xticks(xs[::step_]); ax.set_xticklabels([q.strftime("%m-%d %H:%M") for q in d.index[::step_]], fontsize=6.5)
-    ax.set_title("%s %s %s   oversold bounce   1R = %.2f%% of price  ->  %+.2fR" % (
-        sym, tf, "long" if long_ else "short", tr["risk_pct"], tr["R"]),
+    ax.set_title("%s %s %s   scaled into the dip, %d unit%s   1R = %.2f%% of price  ->  %+.2fR" % (
+        sym, tf, "long" if long_ else "short", len(fx), "" if len(fx) == 1 else "s", tr["risk_pct"], tr["R"]),
         color="#e6e9ee", fontsize=11, loc="left", pad=8)
     panels = [(ax, d)]
     t_now = df.index[e]
@@ -225,9 +294,13 @@ def draw(sym, tf, big, df, bdf, tr, path):
         axh.set_title("the %s" % big, loc="left", color=DIM, fontsize=9.5, pad=3)
         plt.setp(axh.get_xticklabels(), fontsize=6)
         panels.append((axh, hb["d"]))
-    fig.text(0.045, 0.025, "red band = what is risked (1R), from the entry to the first stop, which sits just past %s"
-             "   orange band = the same distance in profit, where half comes off   red dashed = the stop as it "
-             "stepped up" % tr.get("stop_from", "the nearest structure"), color=DIM, fontsize=9, ha="left")
+    fig.text(0.045, 0.048, "arrows = each unit going on while RSI stayed at or under 30    "
+             "white dotted = the average they add up to    red dashed = the stop as it stepped up",
+             color=DIM, fontsize=8.5, ha="left")
+    fig.text(0.045, 0.016, "red band = what is risked (1R), from that average down to the first stop, just past %s"
+             "    orange band = the same distance up, where half comes off    strong vs %s"
+             % (tr.get("stop_from", "the nearest structure"), tr.get("leader", "its leader")),
+             color=DIM, fontsize=8.5, ha="left")
     probs = PR.overlaps(fig, panels)
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
     plt.close(fig)
@@ -298,7 +371,8 @@ def main():
     stats = dict(n=len(rows), avg_R=float(allR.mean()), middle_R=float(np.median(allR)),
                  won=float((allR > 0).mean()), avg_pct=float(np.mean([r["pct"] for r in rows])),
                  median_risk=float(np.median([r["risk_pct"] for r in rows])),
-                 took_partial=float(np.mean([r["took_at"] is not None for r in rows])))
+                 took_partial=float(np.mean([r["took_at"] is not None for r in rows])),
+                 avg_units=float(np.mean([len(r["fills"]) for r in rows])))
     slim = [{k: v for k, v in d.items() if k != "steps"} for d in drawn]
     json.dump(dict(stats=stats, charts=slim), open(os.path.join(OUT, "bb_walk_index.json"), "w"), indent=1)
     print("  drawn %d, problems %d  (%.0fs)" % (len(drawn), sum(1 for d in drawn if d["problems"]), time.time() - t0))

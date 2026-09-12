@@ -20,6 +20,7 @@ judge it, not an average:
 Writes validation/bb_verify.json
 """
 import concurrent.futures as cf
+import io
 import json
 import os
 import sys
@@ -45,17 +46,39 @@ COSTV = L.COST
 OUT = os.path.join("validation", "bb_verify.json")
 ERAS = ["before 2022", "first half", "second half"]
 # (name, mode, use the 12 EMA filter, which array the stop walks on)
-SETUPS = [("stop walked under the IDEA chart's higher lows", "walk", True, "big"),
-          ("stop walked under the SMALL chart's higher lows", "walk", True, "small"),
-          ("chandelier: 3 normal bars under the highest close", "chand", True, "big"),
-          ("out when a bar closes through the small 12 EMA", "ema_runner", True, "big"),
-          ("all out at 2x the risk", "out2r", True, "big"),
-          ("idea-chart trail, NO 12 EMA filter", "walk", False, "big")]
+# HIS BACKBURNER, 2026-09-12: "its about buying it AT OR UNDER 30 ... its about scaling into a dip".
+# Not a bounce trigger. The first unit goes on while RSI is at or under 30 and more units go on as it drops
+# further; the position is the average of those fills.
+ADDS = 3               # at most three units
+ADD_GAP = 0.5          # a new unit only after price falls another half a normal bar
+# (name, mode, which strength cut, which structure the stop walks on)
+#   "any"    every scale-in
+#   "over"   the name's ratio to ITS OWN SECTOR LEADER is above that ratio's 12 EMA on the daily
+#   "rising" the same, and the ratio has been climbing for a week (the ratio trending, not just above)
+SETUPS = [("scale-in, walked stop, ANY name", "walk", "any", "big"),
+          ("scale-in, walked stop, OVER its sector leader", "walk", "over", "big"),
+          ("scale-in, walked stop, sector ratio RISING", "walk", "rising", "big"),
+          ("scale-in, small-chart trail, ratio rising", "walk", "rising", "small"),
+          ("scale-in, chandelier 3, ratio rising", "chand", "rising", "big"),
+          ("scale-in, all out at 2x, ratio rising", "out2r", "rising", "big")]
+# EVERY NAME IS MEASURED AGAINST ITS OWN SECTOR LEADER (2026-09-12, his words: "The bench arm is obvious dude,
+# whatever is the sector leader or etf of the sector. Like we compare to BTC for all crypto"). The map is built by
+# studies/sector_map.py on the FIRST HALF of each name's history, so it cannot peek at what gets traded.
+SECTOR_MAP = json.load(io.open(os.path.join("validation", "sector_map.json"), encoding="utf-8"))     if os.path.exists(os.path.join("validation", "sector_map.json")) else {}
+# A name only HAS a sector if it actually moves with one. Below this the "leader" is noise and the name gets no
+# strength read at all (72 of 781: the inverse ETFs, which sit at -0.87 to their index, and the farm futures).
+MIN_R = 0.30
+SECTOR_MAP = {k: v for k, v in SECTOR_MAP.items() if v[1] >= MIN_R}
 CONTROL = "control: any bar, same management and filter"        # rule 15: every result needs a control
 
 
+BENCH_CLOSE = {}
+
+
 def _work(args):
-    sym, kind, start = args
+    sym, kind, start, benches = args
+    global BENCH_CLOSE
+    BENCH_CLOSE = benches
     try:
         frames = B.frames_for(sym, kind)
     except Exception as ex:
@@ -102,14 +125,35 @@ def _work(args):
                 bl[k] = cl2; bh[k] = ch2
             big_lo = L.align_to(df, tf, frames, big, bl)
             big_hi = L.align_to(df, tf, frames, big, bh)
+            # RELATIVE STRENGTH, his requirement: the name over its benchmark, that ratio above its own 12 EMA
+            # on the daily. Stocks and ETFs are measured against SPY and QQQ, strong against EITHER counts.
+            over = np.full(n, np.nan)
+            rising = np.full(n, np.nan)
+            d1 = frames.get("1d")
+            lead = SECTOR_MAP.get("%s|%s" % (kind, sym))
+            if d1 is not None and len(d1) > 60 and lead:
+                bx = BENCH_CLOSE.get(lead[0])
+                if bx is not None and lead[0] != "%s|%s" % (kind, sym):
+                    bxa = bx.reindex(d1.index).ffill().values.astype(float)
+                    ratio = d1["Close"].values.astype(float) / bxa
+                    ok = np.isfinite(ratio)
+                    if ok.sum() >= 60:
+                        rr = np.where(ok, ratio, np.nan)
+                        r12 = XM.ema(rr, 12)
+                        up5 = r12 - np.r_[np.full(5, np.nan), r12[:-5]]
+                        over = L.align_to(df, tf, frames, "1d",
+                                          np.where(ratio > r12, 1.0, 0.0))
+                        rising = L.align_to(df, tf, frames, "1d",
+                                            np.where((ratio > r12) & (up5 > 0), 1.0, 0.0))
             bells = None
             if kind in ("stock", "etf"):
                 day = df.index.normalize().values
                 bells = np.searchsorted(day, day, side="right") - 1
             os_ = (rsi <= 30)
-            ups = np.where(os_[:-1] & ~os_[1:])[0] + 1
             ob = (rsi >= 70)
-            dns = np.where(ob[:-1] & ~ob[1:])[0] + 1
+            # the first oversold bar of each run: that is where the scale-in starts
+            ups = np.where(os_[1:] & ~os_[:-1])[0] + 1
+            dns = np.where(ob[1:] & ~ob[:-1])[0] + 1
             # the control: the same trade taken on ANY bar, same management, same filter
             step = max(40, n // 4000)
             ctrl_up = np.arange(100, n - 6, step)
@@ -122,15 +166,30 @@ def _work(args):
                         continue
                     a = atr[m_]
                     ba = batr[m_] if np.isfinite(batr[m_]) else a
-                    entry = o[e]
+                    # SCALE IN while the print stays at or under 30: a unit now, more as it drops further
+                    fills = [o[e]]
+                    fill_bars = [e]
+                    j = e
+                    while len(fills) < ADDS and j + 1 < n:
+                        j += 1
+                        if not ((rsi[j - 1] <= 30) if side > 0 else (rsi[j - 1] >= 70)):
+                            break
+                        gap = ADD_GAP * a
+                        lower = (o[j] <= fills[-1] - gap) if side > 0 else (o[j] >= fills[-1] + gap)
+                        if lower:
+                            fills.append(o[j])
+                            fill_bars.append(j)
+                    entry = float(np.mean(fills))
+                    e_last = fill_bars[-1]
                     cands = []
-                    near = last_lo[m_] if side > 0 else last_hi[m_]
+                    near = last_lo[e_last] if side > 0 else last_hi[e_last]
                     if np.isfinite(near):
                         cands.append(near)
-                    bigline = big_lo[m_] if side > 0 else big_hi[m_]
+                    bigline = big_lo[e_last] if side > 0 else big_hi[e_last]
                     if np.isfinite(bigline):
                         cands.append(bigline)
-                    cands = [x for x in cands if np.isfinite(x) and ((side > 0 and x < entry) or (side < 0 and x > entry))]
+                    worst = min(fills) if side > 0 else max(fills)
+                    cands = [x for x in cands if np.isfinite(x) and ((side > 0 and x < worst) or (side < 0 and x > worst))]
                     if not cands:
                         continue
                     stop = max(cands) if side > 0 else min(cands)
@@ -145,16 +204,21 @@ def _work(args):
                     rp = risk / entry * 100
                     if rp < 3 * COSTV.get(kind, 0.05) or rp > 5.0:
                         continue
-                    on_side = 1.0 if (np.isfinite(b12[m_]) and ((side > 0 and c[m_] > b12[m_]) or
-                                                                (side < 0 and c[m_] < b12[m_]))) else 0.0
+                    # a SHORT is strong when the name is WEAK against its leader, so the flag mirrors
+                    o_ = over[e_last]
+                    r_ = rising[e_last]
+                    f_over = (o_ if side > 0 else (1.0 - o_)) if np.isfinite(o_) else 0.0
+                    f_rise = (r_ if side > 0 else (1.0 - r_)) if np.isfinite(r_) else 0.0
                     t_ = df.index[e]
                     era = 0 if t_ < start else 1 if t_ < mid_t else 2
                     res = []
                     for _, mode, _f, which in SETUPS:
                         trail = (big_lo if side > 0 else big_hi) if which == "big" else                                 (last_lo if side > 0 else last_hi)
-                        res.append(L.run_trade(kind, o, h, l, c, e, side, stop, risk, b12, trail, small12, None,
-                                               mode, None if bells is None else bells[e], atr))
-                    rows.append([tf_i, side, era, on_side, risk / entry * 100, float(t_.value), is_ctrl] + res)
+                        res.append(L.run_trade(kind, o, h, l, c, e_last, side, stop, risk, b12, trail, small12,
+                                               None, mode, None if bells is None else bells[e_last], atr,
+                                               entry_px=entry))
+                    rows.append([tf_i, side, era, f_over, f_rise, risk / entry * 100,
+                                 float(t_.value), is_ctrl] + res)
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
     if not rows:
@@ -218,7 +282,18 @@ def main():
     R.quiet_workers()
     parts, kinds, errs, done = [], [], [], 0
     with cf.ProcessPoolExecutor(max_workers=procs) as ex:
-        for got, err in ex.map(_work, [(s_, k_, start) for s_, k_ in names], chunksize=1):
+        # the leader is named market-and-all ("crypto|BTC"): ticker BTC is ALSO an ETF in this data
+        benches = {}
+        for _key, _lead in SECTOR_MAP.items():
+            if _lead[0] in benches:
+                continue
+            _kd, _sym = _lead[0].split("|")
+            try:
+                benches[_lead[0]] = B.frames_for(_sym, _kd)["1d"]["Close"]
+            except Exception as _ex:
+                print("  LEADER MISSING %s: %s" % (_lead[0], _ex), flush=True)
+        print("  leaders loaded: %s" % ", ".join(sorted(benches)), flush=True)
+        for got, err in ex.map(_work, [(s_, k_, start, benches) for s_, k_ in names], chunksize=1):
             done += 1
             errs += err or []
             if got is not None:
@@ -228,7 +303,7 @@ def main():
                 print("  %d/%d names  (%.0fs)" % (done, len(names), time.time() - t0), flush=True)
     f = np.concatenate(parts)
     kinds = np.array(kinds)
-    cols = ["tf", "side", "era", "on_side", "risk_pct", "t", "ctrl"] + ["r%d" % i for i in range(len(SETUPS))]
+    cols = ["tf", "side", "era", "f_over", "f_rise", "risk_pct", "t", "ctrl"] +         ["r%d" % i for i in range(len(SETUPS))]
     d = pd.DataFrame(f, columns=cols)
     d["kind"] = kinds
     d = d.sort_values("t")
@@ -238,7 +313,8 @@ def main():
     print("\n  THE BACKBURNER CORNER, CHECKED  (%d names, %d trades, %.0fs)" % (len(names), len(d), time.time() - t0))
     for si, (name, mode, filt, _w) in enumerate(SETUPS):
         col = "r%d" % si
-        g = d[(d.ctrl == 0) & (d.on_side > 0)] if filt else d[d.ctrl == 0]
+        keep = (d.f_over > 0) if filt == "over" else (d.f_rise > 0) if filt == "rising" else (d.ctrl >= 0)
+        g = d[(d.ctrl == 0) & keep]
         g = g[np.isfinite(g[col])]
         rmult = (g[col] / g.risk_pct).values
         whole = describe(g[col].values, rmult)
@@ -260,7 +336,7 @@ def main():
                 s["worst_losing_streak"]))
             return s
         line("everything", g)
-        ctl = d[(d.ctrl == 1) & (d.on_side > 0)] if filt else d[d.ctrl == 1]
+        ctl = d[(d.ctrl == 1) & keep]
         ctl = ctl[np.isfinite(ctl[col])]
         s_ctl = line("CONTROL any bar", ctl)
         if s_ctl:

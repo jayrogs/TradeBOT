@@ -1,5 +1,5 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>The oversold bounce, checked</title>
+<html><head><meta charset="utf-8"><title>Scaling into the dip, checked</title>
 <style>
   :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
         --up:#3ddc97;--dn:#ff5c72;--amber:#ffb84d;--mono:ui-monospace,Consolas,monospace}
@@ -33,15 +33,23 @@
 </style></head>
 <body>
 <header>
-  <h1>The oversold bounce, checked properly</h1>
-  <div class="sub">RSI 14 on the 5m or 15m drops to 30 or under, then crosses back over. Buy the next open.
-    Stop at the nearest structure that kills the idea. Half off at 1x the risk. The rest with the stop walked under
-    each new higher low on the idea chart (the hourly for a 5m entry, the 4-hour for a 15m). Only taken when price
-    is on the right side of that chart's 12 EMA. Shorts mirror it.
-    <br><br>This setup first printed <b>+1.32% a trade</b>. That number was two bugs of mine: a partial booked on
-    trades that never reached it, and a stop measured against a level the trail had already moved past. Below is
-    what it does with those fixed, with trades restricted to a sane risk band, and against a control that takes the
-    same management on any bar at all.</div>
+  <h1>Scaling into the dip, checked properly</h1>
+  <div class="sub">The backburner, your way: <b>buy it at or under 30, and keep buying as it drops</b>.
+    RSI 14 on the 5m or 15m reaches 30 or under &mdash; a first unit goes on at the next open, and up to two more as
+    price keeps falling, each a further half a normal bar down, for as long as the print stays at or under 30. The
+    position is the average of those fills. Stop at the nearest structure below the lowest fill. Half off at 1x the
+    risk. The rest with the stop walked under each new higher low on the idea chart (the hourly for a 5m entry, the
+    4-hour for a 15m). Shorts mirror it.
+    <br><br><b>Strength is measured against the name&rsquo;s own sector leader</b>, not against SPY for everything:
+    each name is matched to the leader it actually moves with (NVDA to XLK, XOM to XLE, every coin to BTC, and so
+    on), using only the first half of its history so the map cannot peek at what gets traded. 709 of 781 names get a
+    leader; the inverse ETFs and the farm futures do not move with any sector and are left out rather than compared
+    to noise.
+    <br><br>Two earlier numbers on this page were wrong and are gone: an <b>+1.32% a trade</b> that was two bugs of
+    mine (a partial booked on trades that never reached it, and a stop measured against a level the trail had
+    already moved past), and a <b>bounce</b> trigger I invented &mdash; waiting for RSI to cross back over 30, which
+    is not the rule. Below is the scale-in, with trades held to a sane risk band, each cut against a control that
+    takes the same management on any bar at all.</div>
 </header>
 <main>
   <div id="nums"></div>
@@ -66,6 +74,7 @@ Promise.all([
     <tr><td class="l">middle trade, in R</td><td class="${cls(s.middle_R)}">${rr(s.middle_R)}</td></tr>
     <tr><td class="l">trades won</td><td>${(100 * s.won).toFixed(0)}%</td></tr>
     <tr><td class="l">reached the 1R partial</td><td>${(100 * s.took_partial).toFixed(0)}%</td></tr>
+    ${s.avg_units ? `<tr><td class="l">units scaled in (average)</td><td>${s.avg_units.toFixed(2)}</td></tr>` : ''}
     <tr><td class="l">risk per trade (middle)</td><td>${s.median_risk.toFixed(2)}%</td></tr></table></div>`;
   if (v && v.table) {
     h += '<div class="card"><b>Every management, all 809 names, each against its own control</b>'
@@ -80,15 +89,16 @@ Promise.all([
         + `<td>${(100 * a.won).toFixed(0)}%</td>`
         + `<td class="${edge == null ? '' : cls(edge)}">${edge == null ? '-' : rr(edge)}</td></tr>`;
     }
-    h += '</table><div class="sub" style="margin-top:8px">The control is the same management and the same 12 EMA '
-      + 'filter, entered on any bar instead of on an oversold bounce. The gap between the two is what the trigger '
-      + 'is worth.</div></div>';
+    h += '</table><div class="sub" style="margin-top:8px">The control is the same management and the same '
+      + 'strength cut, entered on any bar instead of into a dip under 30. The gap between the two is what the '
+      + 'trigger itself is worth.</div></div>';
   }
   $('#nums').innerHTML = h;
   const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
       <div class="line">${c.sym} <span style="color:var(--faint)">${c.tf} ${c.side > 0 ? 'long' : 'short'}</span>
-        &middot; ${c.t} &middot; risked <b>${c.risk_pct.toFixed(2)}%</b> &middot; <b>${rr(c.R)}</b>
-        &middot; ${c.how}${c.took_at ? ' (half came off first)' : ''}</div>
+        &middot; ${c.t} &middot; ${(c.fills || [0]).length} unit${(c.fills || [0]).length == 1 ? '' : 's'}
+        &middot; risked <b>${c.risk_pct.toFixed(2)}%</b> &middot; <b>${rr(c.R)}</b>
+        &middot; ${c.how}${c.took_at ? ' (half came off first)' : ''}${c.leader && c.leader != '-' ? ' &middot; strong vs ' + c.leader : ''}</div>
       <img src="/validation/bb_walk/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym} ${c.tf}">
       <div class="marks" data-id="${c.png}">
         <span class="verdict" data-v="good">would take</span>
