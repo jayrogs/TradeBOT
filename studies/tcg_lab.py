@@ -60,7 +60,12 @@ PAIRS = [("5m", "1h", ["15m", "1h", "4h"]), ("15m", "4h", ["1h", "4h", "1d"])]
 TRIGGERS = ["eq_break", "eq_hl", "hl", "backburner", "regain12"]
 MANAGERS = ["out2r", "walk", "ema_runner"]
 CONDS = ["big_trend", "big_side12", "at_12", "at_level", "big_os", "stack2", "strong", "ratio_rising",
-         "ratio_low_end", "in_eq", "mover"]
+         "ratio_low_end", "in_eq", "mover",
+         # Murphy's, never tested here before 2026-09-12
+         "vol_heavy",      # the bar before the fill traded 1.5x its own 20-bar average
+         "vol_quiet",      # ... or under 0.7x it
+         "role_reversal",  # entry back at a level that was resistance and got broken (support for a long)
+         "retrace_zone"]   # entry is 38-62% back into the idea chart's last leg
 COST = {"crypto": 0.20, "stock": 0.05, "etf": 0.05, "futures": 0.05}
 MAX_BARS = 480                    # give up after this many small bars
 BENCH = {"stock": ("SPY", "etf"), "etf": ("SPY", "etf"), "crypto": ("BTC", "crypto"), "futures": ("ES_F", "futures")}
@@ -230,6 +235,34 @@ def _work(args):
                     low_end = align_to(df, tf, frames, "1d", np.where(pos <= 0.35, 1.0, 0.0))
             half = len(c) // 2                      # measure the trait on the first half, trade the second (#30)
             mover = 1.0 if np.nanmedian(atr[:half] / c[:half]) > 0.004 else 0.0
+            # VOLUME on this chart, against its own recent average
+            v = df["Volume"].values.astype(float)
+            vavg = pd.Series(v).rolling(20, min_periods=10).mean().shift(1).values
+            vrel = np.where(np.isfinite(vavg) & (vavg > 0), v / vavg, np.nan)
+            # ROLE REVERSAL and the last leg, from the idea chart's pivots
+            br_hi = np.full(len(bdf), np.nan)      # the last high price has since broken (support for a long)
+            br_lo = np.full(len(bdf), np.nan)
+            leg_lo = np.full(len(bdf), np.nan); leg_hi = np.full(len(bdf), np.nan)
+            cur_hi = cur_lo = np.nan; brk_hi = brk_lo = np.nan
+            bc = bdf["Close"].values.astype(float)
+            q = 0
+            for k in range(len(bdf)):
+                while q < len(bp) and bp[q][0] <= k:
+                    if bp[q][3] == "low":
+                        cur_lo = float(bp[q][2])
+                    else:
+                        cur_hi = float(bp[q][2])
+                    q += 1
+                if np.isfinite(cur_hi) and bc[k] > cur_hi:
+                    brk_hi = cur_hi
+                if np.isfinite(cur_lo) and bc[k] < cur_lo:
+                    brk_lo = cur_lo
+                br_hi[k] = brk_hi; br_lo[k] = brk_lo
+                leg_lo[k] = cur_lo; leg_hi[k] = cur_hi
+            broke_hi = align_to(df, tf, frames, big, br_hi)
+            broke_lo = align_to(df, tf, frames, big, br_lo)
+            leg_low = align_to(df, tf, frames, big, leg_lo)
+            leg_high = align_to(df, tf, frames, big, leg_hi)
             bells = None
             if kind in ("stock", "etf"):            # index of the last bar of each session
                 day = df.index.normalize().values
@@ -299,6 +332,15 @@ def _work(args):
                 if risk < 0.25 * a:
                     risk = 0.25 * a
                     stop = entry - side * risk
+                # role reversal: price back at a level it broke through, from the right side
+                lvl = broke_hi[m_] if side > 0 else broke_lo[m_]
+                role_rev = 1.0 if (np.isfinite(lvl) and abs(entry - lvl) <= 0.5 * ba) else 0.0
+                # how far back into the idea chart's last leg this entry sits
+                lo_, hi_ = leg_low[m_], leg_high[m_]
+                retr = np.nan
+                if np.isfinite(lo_) and np.isfinite(hi_) and hi_ > lo_:
+                    back = (hi_ - entry) / (hi_ - lo_) if side > 0 else (entry - lo_) / (hi_ - lo_)
+                    retr = 1.0 if 0.38 <= back <= 0.62 else 0.0
                 t_ = df.index[e]
                 era = 0 if t_ < start else 1 if t_ < mid_t else 2
                 flags = [
@@ -312,7 +354,11 @@ def _work(args):
                     (rising[m_] if side > 0 else (1.0 - rising[m_])) if np.isfinite(rising[m_]) else np.nan,
                     low_end[m_] if np.isfinite(low_end[m_]) else np.nan,
                     1.0 if live[m_] else 0.0,
-                    mover]
+                    mover,
+                    1.0 if (np.isfinite(vrel[m_]) and vrel[m_] >= 1.5) else (0.0 if np.isfinite(vrel[m_]) else np.nan),
+                    1.0 if (np.isfinite(vrel[m_]) and vrel[m_] <= 0.7) else (0.0 if np.isfinite(vrel[m_]) else np.nan),
+                    role_rev,
+                    retr]
                 res = [run_trade(kind, o, h, l, c, e, side, stop, risk, b12, big_lo if side > 0 else big_hi,
                                  small12, brsi, m, None if bells is None else bells[e]) for m in MANAGERS]
                 rows.append([tf_i, trig, side, era] + flags + res)

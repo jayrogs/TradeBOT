@@ -73,6 +73,15 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     zones, role reversal, level weighting, VOLUME confirmation (we have the column and have never used it), gaps as
     levels, trendline breaks, oscillator divergence.
 
+13g. NO NEGATIVE VERDICTS FROM MY OWN CODE (2026-09-12, his words: "i need an actual analysis thats not just
+    jumping to conclusions based on your poor understanding of something. if youre making shit up on your own, it
+    better be with positive results, and not just so you can say something doesnt work"). Every "as coded, nothing
+    pays" I have reported was later traced to my bug -- the levels bug, the look-ahead flags, the caching. So a
+    result is reported as "MY VERSION of this produced X, and here is its weakness", never as "the method fails",
+    and a rule is not put down until there are at least two honest implementations, a drawn chart, and his read.
+    Effort goes into making a rule work. `PLAYBOOK.md` is the distillation of both books plus the room, with the
+    scoreboard written that way.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.
