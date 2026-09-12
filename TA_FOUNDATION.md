@@ -182,3 +182,56 @@ trade.
 
 (Note: the extracted text of the book lives in `scratch/` and is gitignored -- it is copyrighted and does not go to
 GitHub.)
+
+---
+
+## 12. John Murphy, *Technical Analysis of the Financial Markets* (2026-09-12, his "gold standard")
+
+Read: the trend chapter, support and resistance, moving averages, money management and trading tactics, and the
+final checklist. What matters here is less the vocabulary (we have it) than the parts of it this desk has never
+touched.
+
+**His three parts of a trade, in order:** price forecasting (what to do), timing (when), money management (how
+much). We have only ever worked on the first two. The third has had one study (`portfolio.py`) and no rules.
+
+**Money management, his numbers**
+- Risk at most ~5% of equity on any one trade; commit at most 10-15% to one market; at most 20-25% to one group.
+- Reward-to-risk at least 3:1 on a trade worth taking. The best traders are right on ~40% of trades and win anyway.
+- Trade MULTIPLE UNITS, split into a "trading" portion (taken off at the first objective / overbought / resistance)
+  and a "trending" portion (loose stop, given room, produces the big wins). This is exactly Jay's partial-plus-rest,
+  written in 1986.
+- Pyramiding: each add smaller than the last, only add to winners, never to losers, and move the stop to breakeven.
+- Increase size after a DIP in equity, not after a winning streak. (Against instinct, and the opposite of tilt.)
+- Never move a stop away; stops belong beyond a valid support or resistance level, with volatility setting the
+  distance: too close and noise takes you out, too far and the loss is not worth the information.
+
+**Timing tactics (the "when")**
+- Breakouts: anticipate, take the break, or buy the pullback -- or split the position across all three.
+- A tight trendline break is an early entry or exit signal.
+- Support and resistance are the best tools for entry and for stop placement.
+- 40-60% retracements of the prior leg are the buying zone in an uptrend (selling zone in a downtrend).
+- Gaps act as support and resistance; buy the dip into the upper end of a gap, stop below it.
+- Work long chart to short: monthly/weekly for context, daily for the decision, intraday only to fine-tune.
+  (Same shape as the TCG room and as Douglas's "other timeframes as filters".)
+
+**What makes a level matter** (his three measures, none of which our code uses): how much TIME price spent there,
+how much VOLUME traded there, and how RECENT it was. Plus role reversal: once a level is decisively penetrated,
+resistance becomes support and support becomes resistance.
+
+### What this desk has never tested, in his own list
+
+| Murphy's tool | Status here |
+|---|---|
+| 40-60% retracement as the entry zone | never tested |
+| Role reversal (broken resistance as support) | never tested |
+| Level significance by time spent / volume / recency | never tested; our levels are just the last pivot |
+| Volume confirming a break or a turn | NEVER TESTED, and we have the volume data |
+| Gaps as support/resistance | never tested |
+| Trendline breaks (as opposed to pivot breaks) | never tested |
+| Oscillator divergence | never tested |
+| 3:1 reward-to-risk as a hard filter | partly (the far-line filter, #26e) |
+| Trading unit vs trending unit | partly (partial + runner) |
+| Sizing, equity path, adding after drawdowns | only `portfolio.py`; no rules |
+
+That table is the research queue. The first four are the cheapest and the most likely to matter, and volume is the
+embarrassing one: every study on this desk so far has ignored the volume column entirely.

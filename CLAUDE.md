@@ -63,6 +63,16 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     Studies now report R multiples and a sample-of-20 view (how many blocks of 20 trades made money), and no
     variant without a predefined stop is reported as a real trade.
 
+13f. MURPHY, TECHNICAL ANALYSIS OF THE FINANCIAL MARKETS, read 2026-09-12 (`TA_FOUNDATION.md` #12, his "gold
+    standard"). A trade has three parts -- forecasting, timing, MONEY MANAGEMENT -- and this desk has only ever
+    worked on the first two. His numbers: risk at most ~5% of equity a trade, aim 3:1 or better, split into a
+    trading unit and a trending unit (Jay's partial and rest, published in 1986), add only to winners and in
+    smaller size, raise size after an equity DIP not after a streak, and put stops beyond a valid level with
+    volatility setting the distance. A level's weight comes from time spent, VOLUME traded and how recent it is,
+    and a broken level reverses role. RESEARCH QUEUE from that chapter, none of it tested here: 40-60% retracement
+    zones, role reversal, level weighting, VOLUME confirmation (we have the column and have never used it), gaps as
+    levels, trendline breaks, oscillator divergence.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.
