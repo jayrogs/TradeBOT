@@ -94,13 +94,24 @@ def resample(d, rule):
 
 
 def _atr(df, n=14):
+    """The average bar height. CACHED ON THE FRAME: studies were recomputing this hundreds of times per name
+    (2026-09-11: one EQ study spent half its run here, 1,383 rebuilds of a 430,000-bar series for one name)."""
+    key = "_atr_%d_%d" % (n, len(df))
+    hit = df.attrs.get(key)
+    if hit is not None and len(hit) == len(df):
+        return hit
     h = df["High"].values.astype(float)
     l = df["Low"].values.astype(float)
     c = df["Close"].values.astype(float)
     pc = np.roll(c, 1)
     pc[0] = c[0]
     tr = np.maximum(h - l, np.maximum(np.abs(h - pc), np.abs(l - pc)))
-    return pd.Series(tr).ewm(alpha=1.0 / n, adjust=False).mean().values
+    out = pd.Series(tr).ewm(alpha=1.0 / n, adjust=False).mean().values
+    try:
+        df.attrs[key] = out
+    except Exception:
+        pass
+    return out
 
 
 def zigzag(df, P=PIVOT_BARS, min_atr=MIN_PIVOT_ATR):
@@ -126,16 +137,19 @@ def zigzag(df, P=PIVOT_BARS, min_atr=MIN_PIVOT_ATR):
     a = _atr(df)
     n = len(h)
     seq = []
-    for i in range(n):
-        j = i - P
-        if j < P or j + P >= n:
-            continue
-        is_low = l[j] == np.nanmin(l[j - P:j + P + 1])
-        is_high = h[j] == np.nanmax(h[j - P:j + P + 1])
+    # The window min/max for EVERY bar at once (2026-09-11). The old version called nanmin/nanmax per bar:
+    # 860,000 calls on one 5m crypto frame, and it was the slowest thing in every study.
+    win = 2 * P + 1
+    lmin = pd.Series(l).rolling(win, center=True, min_periods=1).min().values
+    hmax = pd.Series(h).rolling(win, center=True, min_periods=1).max().values
+    cand = np.nonzero(((l == lmin) | (h == hmax)) & (np.arange(n) >= P) & (np.arange(n) + P < n))[0]
+    for j in cand:
+        j = int(j)
+        i = j + P
+        is_low = l[j] == lmin[j]
+        is_high = h[j] == hmax[j]
         if is_low and is_high:
             is_high = False
-        if not (is_low or is_high):
-            continue
         kind = "low" if is_low else "high"
         price = l[j] if is_low else h[j]
         thresh = min_atr * (a[j] if np.isfinite(a[j]) and a[j] > 0 else 0.0)

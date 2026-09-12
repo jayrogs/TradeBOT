@@ -101,25 +101,41 @@ def one_trade(stop_kind, partial_kind, sell_kind, tf, kind, df, r, side, h1lo, h
     else:
         cut = None
     last = min(n - 1, e + MAX_HOURS * BPH[tf])
-    share, got, how, took = 1.0, 0.0, "still open when time ran out", False
-    j = e
-    for j in range(e, last + 1):
-        if (side > 0 and l[j] <= stop) or (side < 0 and h[j] >= stop):
-            got += share * side * (stop - entry) / entry
-            how = "rest stopped out" if took else "stopped out"
-            share = 0.0
-            break
-        if cut is not None and not took and ((side > 0 and h[j] >= cut) or (side < 0 and l[j] <= cut)):
-            got += 0.5 * side * (cut - entry) / entry
-            share -= 0.5
-            took = True
-        if (side > 0 and h[j] >= target) or (side < 0 and l[j] <= target):
-            got += share * side * (target - entry) / entry
-            how = "sold into the move" if took else "sold into the move, no partial taken"
-            share = 0.0
-            break
-    if share > 0:
-        got += share * side * (c[min(j, n - 1)] - entry) / entry
+    # THE WALK, DONE WITH ARRAY MATH (2026-09-11: the bar-by-bar version was most of every study's run time).
+    # Same rules as before: within one bar the stop comes first, then the partial, then the target.
+    lw, hw, cw = l[e:last + 1], h[e:last + 1], c[e:last + 1]
+
+    def first(mask):
+        return int(np.argmax(mask)) if mask.any() else None
+    i_stop = first(lw <= stop) if side > 0 else first(hw >= stop)
+    i_tgt = first(hw >= target) if side > 0 else first(lw <= target)
+    i_cut = None if cut is None else (first(hw >= cut) if side > 0 else first(lw <= cut))
+    BIG = len(lw) + 1
+    s_, t_, c_ = (BIG if i_stop is None else i_stop), (BIG if i_tgt is None else i_tgt), (BIG if i_cut is None else i_cut)
+    took = False
+    if s_ <= c_ and s_ <= t_:
+        got, j, how = side * (stop - entry) / entry, e + s_, "stopped out"
+    elif c_ <= t_:
+        took = True
+        got = 0.5 * side * (cut - entry) / entry
+        after = c_
+        s2 = first(lw[after:] <= stop) if side > 0 else first(hw[after:] >= stop)
+        t2 = first(hw[after:] >= target) if side > 0 else first(lw[after:] <= target)
+        s2 = BIG if s2 is None else after + s2
+        t2 = BIG if t2 is None else after + t2
+        if s2 <= t2 and s2 < BIG:
+            got += 0.5 * side * (stop - entry) / entry
+            j, how = e + s2, "rest stopped out"
+        elif t2 < BIG:
+            got += 0.5 * side * (target - entry) / entry
+            j, how = e + t2, "sold into the move"
+        else:
+            got += 0.5 * side * (cw[-1] - entry) / entry
+            j, how = last, "still open when time ran out"
+    elif t_ < BIG:
+        got, j, how = side * (target - entry) / entry, e + t_, "sold into the move, no partial taken"
+    else:
+        got, j, how = side * (cw[-1] - entry) / entry, last, "still open when time ran out"
     cost = COST.get(kind, 0.05) * (1.5 if took else 1.0)
     return dict(pct=got * 100 - cost, bars=int(j - e), how=how)
 
