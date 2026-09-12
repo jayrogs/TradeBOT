@@ -38,6 +38,8 @@ import os
 import sys
 import warnings
 
+import weakref
+
 import numpy as np
 import pandas as pd
 
@@ -94,24 +96,13 @@ def resample(d, rule):
 
 
 def _atr(df, n=14):
-    """The average bar height. CACHED ON THE FRAME: studies were recomputing this hundreds of times per name
-    (2026-09-11: one EQ study spent half its run here, 1,383 rebuilds of a 430,000-bar series for one name)."""
-    key = "_atr_%d_%d" % (n, len(df))
-    hit = df.attrs.get(key)
-    if hit is not None and len(hit) == len(df):
-        return hit
     h = df["High"].values.astype(float)
     l = df["Low"].values.astype(float)
     c = df["Close"].values.astype(float)
     pc = np.roll(c, 1)
     pc[0] = c[0]
     tr = np.maximum(h - l, np.maximum(np.abs(h - pc), np.abs(l - pc)))
-    out = pd.Series(tr).ewm(alpha=1.0 / n, adjust=False).mean().values
-    try:
-        df.attrs[key] = out
-    except Exception:
-        pass
-    return out
+    return pd.Series(tr).ewm(alpha=1.0 / n, adjust=False).mean().values
 
 
 def zigzag(df, P=PIVOT_BARS, min_atr=MIN_PIVOT_ATR):

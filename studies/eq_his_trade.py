@@ -81,6 +81,7 @@ def _work(args):
             h1atr = np.array([np.nan if isinstance(x, str) else float(x) for x in al], dtype=float)
             state = EF.higher_state(df, tf, frames, "1h")
             ev = ER.above12(df, tf, frames, "1h")[1]
+            atr_all = P._atr(df)
             for r in recs:
                 if not r["tradeable"] or r["born"] < 60 or r["confirm"] + 2 >= n:
                     continue
@@ -105,10 +106,10 @@ def _work(args):
                 out = [tf_i, era, 1 if lined else 0]
                 for stop_k, part_k, sell_k in PLANS:
                     t = MG.one_trade(MG.STOPS[stop_k], MG.PARTIALS[part_k], MG.SELLS[sell_k],
-                                     tf, kind, df, r, side, h1lo, h1hi, h1atr)
+                                     tf, kind, df, r, side, h1lo, h1hi, h1atr, atr_all)
                     out.append(np.nan if (t is None or t["pct"] is None) else t["pct"])
                 for kd in ("far", "hold"):
-                    t = MG.simple(kd, tf, kind, df, r, side)
+                    t = MG.simple(kd, tf, kind, df, r, side, atr_all)
                     out.append(np.nan if (t is None or t["pct"] is None) else t["pct"])
                 rows.append(out)
         except Exception as ex:

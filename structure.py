@@ -32,6 +32,8 @@ TWO CLOCKS, never confused:
            Prefix-tested causal.
 """
 
+import weakref
+
 import numpy as np
 
 import panel as P
@@ -43,10 +45,6 @@ E_LABELS = ("EH", "EL", "H", "L")
 
 def pivots(df, min_atr=None):
     """[(confirm_bar, form_bar, price, kind, label), ...] in confirm order."""
-    key = "_pivots_%s_%d" % (min_atr, len(df))
-    hit = df.attrs.get(key)
-    if hit is not None:
-        return hit
     seq = (P.zigzag(df) if min_atr is None
            else P.zigzag(df, min_atr=min_atr))
     atr = P._atr(df)
@@ -66,10 +64,6 @@ def pivots(df, min_atr=None):
                    if np.isfinite(prev) else "H")
             highs.append(price)
         out.append((int(ci), int(j), float(price), kind, lab))
-    try:
-        df.attrs[key] = out          # studies ask for the same frame's pivots over and over
-    except Exception:
-        pass
     return out
 
 

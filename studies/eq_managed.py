@@ -56,7 +56,7 @@ def plan_names():
     return out + ["all out at the EQ's far line", "hold 24 hourly bars (the old way)"]
 
 
-def one_trade(stop_kind, partial_kind, sell_kind, tf, kind, df, r, side, h1lo, h1hi, h1atr):
+def one_trade(stop_kind, partial_kind, sell_kind, tf, kind, df, r, side, h1lo, h1hi, h1atr, atr=None):
     o = df["Open"].values.astype(float); c = df["Close"].values.astype(float)
     h = df["High"].values.astype(float); l = df["Low"].values.astype(float)
     n = len(c)
@@ -67,8 +67,8 @@ def one_trade(stop_kind, partial_kind, sell_kind, tf, kind, df, r, side, h1lo, h
     entry = o[e]
     lows = [p for j, p, kd, lab in r["shape"] if kd == "low"]
     highs = [p for j, p, kd, lab in r["shape"] if kd == "high"]
-    atr = P._atr(df)[i]
-    tol = P.SAME_LEVEL_ATR * (atr if np.isfinite(atr) else 0.0)
+    a_i = (atr if atr is not None else P._atr(df))[i]
+    tol = P.SAME_LEVEL_ATR * (a_i if np.isfinite(a_i) else 0.0)
     floor, ceil = lows[-1], highs[-1]
     far = ceil if side > 0 else floor
     eq_stop = (floor - tol) if side > 0 else (ceil + tol)
@@ -140,7 +140,7 @@ def one_trade(stop_kind, partial_kind, sell_kind, tf, kind, df, r, side, h1lo, h
     return dict(pct=got * 100 - cost, bars=int(j - e), how=how)
 
 
-def simple(kind_of, tf, kind, df, r, side):
+def simple(kind_of, tf, kind, df, r, side, atr=None):
     """The two controls: all out at the far line, and the plain hold."""
     o = df["Open"].values.astype(float); c = df["Close"].values.astype(float)
     h = df["High"].values.astype(float); l = df["Low"].values.astype(float)
@@ -154,8 +154,8 @@ def simple(kind_of, tf, kind, df, r, side):
         return dict(pct=side * (c[j] - entry) / entry * 100 - COST.get(kind, 0.05), bars=int(j - e), how="held")
     lows = [p for j_, p, kd, lab in r["shape"] if kd == "low"]
     highs = [p for j_, p, kd, lab in r["shape"] if kd == "high"]
-    atr = P._atr(df)[i]
-    tol = P.SAME_LEVEL_ATR * (atr if np.isfinite(atr) else 0.0)
+    a_i = (atr if atr is not None else P._atr(df))[i]
+    tol = P.SAME_LEVEL_ATR * (a_i if np.isfinite(a_i) else 0.0)
     floor, ceil = lows[-1], highs[-1]
     far = ceil if side > 0 else floor
     stop = (floor - tol) if side > 0 else (ceil + tol)
@@ -222,11 +222,11 @@ def _work(args):
             lined_up = bool(lean and at_pull)
             got = {}
             for s, p, x in itertools.product(STOPS, PARTIALS, SELLS):
-                t = one_trade(STOPS[s], PARTIALS[p], SELLS[x], tf, kind, df, r, side, h1lo, h1hi, h1atr)
+                t = one_trade(STOPS[s], PARTIALS[p], SELLS[x], tf, kind, df, r, side, h1lo, h1hi, h1atr, atr_all)
                 if t:
                     got["stop %s, %s, sell the rest at %s" % (s, p, x)] = t
             for nm, kd in (("all out at the EQ's far line", "far"), ("hold 24 hourly bars (the old way)", "hold")):
-                t = simple(kd, tf, kind, df, r, side)
+                t = simple(kd, tf, kind, df, r, side, atr_all)
                 if t:
                     got[nm] = t
             out.append(dict(id=row["id"], n=row["n"], sym=sym, kind=kind, tf=tf, mark=row["mark"],
