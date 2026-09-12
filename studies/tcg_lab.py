@@ -68,7 +68,14 @@ CONDS = ["big_trend", "big_side12", "at_12", "at_level", "big_os", "stack2", "st
          "vol_heavy",      # the bar before the fill traded 1.5x its own 20-bar average
          "vol_quiet",      # ... or under 0.7x it
          "role_reversal",  # entry back at a level that was resistance and got broken (support for a long)
-         "retrace_zone"]   # entry is 38-62% back into the idea chart's last leg
+         "retrace_zone",   # entry is 38-62% back into the idea chart's last leg
+         # the rest of Murphy's list, 2026-09-12
+         "level_time",     # the level was built over many bars (price spent time there)
+         "level_volume",   # heavy volume traded at the level when it formed
+         "level_fresh",    # the level is recent
+         "at_gap",         # the entry sits in a gap on the idea chart
+         "trendline",      # a tight trendline of the last three pivots broke our way
+         "divergence"]     # price made a lower low while RSI made a higher low (mirrored for shorts)
 COST = {"crypto": 0.20, "stock": 0.05, "etf": 0.05, "futures": 0.05}
 MAX_BARS = 480                    # give up after this many small bars
 BENCH = {"stock": ("SPY", "etf"), "etf": ("SPY", "etf"), "crypto": ("BTC", "crypto"), "futures": ("ES_F", "futures")}
@@ -292,6 +299,69 @@ def _work(args):
                     brk_lo = cur_lo
                 br_hi[k] = brk_hi; br_lo[k] = brk_lo
                 leg_lo[k] = cur_lo; leg_hi[k] = cur_hi
+            # HOW MUCH A LEVEL IS WORTH: time spent there, volume traded there, how recent it is (Murphy ch4)
+            bv = bdf["Volume"].values.astype(float)
+            bvavg = pd.Series(bv).rolling(50, min_periods=20).mean().shift(1).values
+            lv_time = np.full(len(bdf), np.nan); lv_vol = np.full(len(bdf), np.nan); lv_age = np.full(len(bdf), np.nan)
+            bhi_ = bdf["High"].values.astype(float); blo_ = bdf["Low"].values.astype(float)
+            batr_own = P._atr(bdf)
+            for pi in range(len(bp)):
+                ci_, j_, price_, kind_, lab_ = bp[pi]
+                w0 = max(0, j_ - 10); w1 = min(len(bdf), j_ + 11)
+                tol_ = 0.5 * (batr_own[j_] if np.isfinite(batr_own[j_]) else 0.0)
+                near = (blo_[w0:w1] <= price_ + tol_) & (bhi_[w0:w1] >= price_ - tol_)
+                t_bars = float(near.sum())
+                v_here = float(np.nansum(bv[w0:w1][near]))
+                v_norm = v_here / (np.nanmean(bvavg[w0:w1]) * max(t_bars, 1)) if np.isfinite(np.nanmean(bvavg[w0:w1])) else np.nan
+                nxt = bp[pi + 1][0] if pi + 1 < len(bp) else len(bdf)
+                lv_time[ci_:nxt] = t_bars
+                lv_vol[ci_:nxt] = v_norm
+                lv_age[ci_:nxt] = np.arange(nxt - ci_)
+            level_time = align_to(df, tf, frames, big, lv_time)
+            level_vol = align_to(df, tf, frames, big, lv_vol)
+            level_age = align_to(df, tf, frames, big, lv_age)
+            # GAPS on the idea chart: an unfilled gap between one bar's close and the next bar's open
+            gap_lo = np.full(len(bdf), np.nan); gap_hi = np.full(len(bdf), np.nan)
+            bo_ = bdf["Open"].values.astype(float); bc_ = bdf["Close"].values.astype(float)
+            g_lo = g_hi = np.nan
+            for k in range(1, len(bdf)):
+                if bo_[k] > bhi_[k - 1]:
+                    g_lo, g_hi = bhi_[k - 1], bo_[k]
+                elif bo_[k] < blo_[k - 1]:
+                    g_lo, g_hi = bo_[k], blo_[k - 1]
+                gap_lo[k] = g_lo; gap_hi[k] = g_hi
+            gaplo = align_to(df, tf, frames, big, gap_lo)
+            gaphi = align_to(df, tf, frames, big, gap_hi)
+            # A TIGHT TRENDLINE across the last two same-kind pivots on this chart, and whether it broke our way
+            tl_up = np.full(n, np.nan); tl_dn = np.full(n, np.nan)
+            lows_p = [(x[0], x[1], x[2]) for x in piv if x[3] == "low"]
+            highs_p = [(x[0], x[1], x[2]) for x in piv if x[3] == "high"]
+
+            def line_series(pts, out):
+                for a_, b_ in zip(pts, pts[1:]):
+                    (ca, ja, pa), (cb, jb, pb) = a_, b_
+                    if jb <= ja:
+                        continue
+                    slope = (pb - pa) / (jb - ja)
+                    nxt = len(out)
+                    for k2 in range(cb, min(n, cb + 400)):
+                        out[k2] = pb + slope * (k2 - jb)
+            line_series(lows_p, tl_up)
+            line_series(highs_p, tl_dn)
+            # DIVERGENCE: price lower low, RSI higher low (mirrored for shorts)
+            div_up = np.zeros(n); div_dn = np.zeros(n)
+            prev_lo_p = prev_lo_r = prev_hi_p = prev_hi_r = np.nan
+            for ci_, j_, price_, kind_, lab_ in piv:
+                if ci_ >= n:
+                    continue
+                if kind_ == "low":
+                    if np.isfinite(prev_lo_p) and price_ < prev_lo_p and rsi[j_] > prev_lo_r:
+                        div_up[ci_:min(n, ci_ + 30)] = 1.0
+                    prev_lo_p, prev_lo_r = price_, rsi[j_]
+                else:
+                    if np.isfinite(prev_hi_p) and price_ > prev_hi_p and rsi[j_] < prev_hi_r:
+                        div_dn[ci_:min(n, ci_ + 30)] = 1.0
+                    prev_hi_p, prev_hi_r = price_, rsi[j_]
             broke_hi = align_to(df, tf, frames, big, br_hi)
             broke_lo = align_to(df, tf, frames, big, br_lo)
             leg_low = align_to(df, tf, frames, big, leg_lo)
@@ -391,7 +461,15 @@ def _work(args):
                     1.0 if (np.isfinite(vrel[m_]) and vrel[m_] >= 1.5) else (0.0 if np.isfinite(vrel[m_]) else np.nan),
                     1.0 if (np.isfinite(vrel[m_]) and vrel[m_] <= 0.7) else (0.0 if np.isfinite(vrel[m_]) else np.nan),
                     role_rev,
-                    retr]
+                    retr,
+                    1.0 if (np.isfinite(level_time[m_]) and level_time[m_] >= 5) else (0.0 if np.isfinite(level_time[m_]) else np.nan),
+                    1.0 if (np.isfinite(level_vol[m_]) and level_vol[m_] >= 1.2) else (0.0 if np.isfinite(level_vol[m_]) else np.nan),
+                    1.0 if (np.isfinite(level_age[m_]) and level_age[m_] <= 30) else (0.0 if np.isfinite(level_age[m_]) else np.nan),
+                    1.0 if (np.isfinite(gaplo[m_]) and np.isfinite(gaphi[m_]) and
+                            gaplo[m_] - 0.25 * ba <= entry <= gaphi[m_] + 0.25 * ba) else 0.0,
+                    1.0 if ((side > 0 and np.isfinite(tl_dn[m_]) and c[m_] > tl_dn[m_] and c[m_ - 1] <= tl_dn[m_ - 1]) or
+                            (side < 0 and np.isfinite(tl_up[m_]) and c[m_] < tl_up[m_] and c[m_ - 1] >= tl_up[m_ - 1])) else 0.0,
+                    (div_up[m_] if side > 0 else div_dn[m_])]
                 res = [run_trade(kind, o, h, l, c, e, side, stop, risk, b12, big_lo if side > 0 else big_hi,
                                  small12, brsi, m, None if bells is None else bells[e]) for m in MANAGERS]
                 rows.append([tf_i, trig, side, era] + flags + res)

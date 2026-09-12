@@ -21,6 +21,13 @@
   th{color:var(--faint);font-weight:500}
   td.l,th.l{text-align:left}
   .good{color:var(--up)} .bad{color:var(--dn)}
+  .marks{display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap}
+  input.note{flex:1;min-width:280px;background:#1a1e25;border:1px solid var(--line);color:var(--fg);
+             border-radius:8px;padding:8px 10px;font:13px inherit}
+  .saved{font-size:12px;color:var(--up);min-width:130px}
+  .verdict{background:#1a1e25;border:1px solid var(--line);color:var(--dim);padding:7px 16px;border-radius:9px;
+           cursor:pointer;font-size:13px;font-weight:600;user-select:none}
+  .verdict.on{background:rgba(255,184,77,.16);border-color:var(--amber);color:var(--amber)}
   #zoom{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:30;cursor:zoom-out;padding:8px}
   #zoom img{max-width:99vw;max-height:98vh;width:auto}
 </style></head>
@@ -82,9 +89,47 @@ Promise.all([
       <div class="line">${c.sym} <span style="color:var(--faint)">${c.tf} ${c.side > 0 ? 'long' : 'short'}</span>
         &middot; ${c.t} &middot; risked <b>${c.risk_pct.toFixed(2)}%</b> &middot; <b>${rr(c.R)}</b>
         &middot; ${c.how}${c.took_at ? ' (half came off first)' : ''}</div>
-      <img src="/validation/bb_walk/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym} ${c.tf}"></div>`;
+      <img src="/validation/bb_walk/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym} ${c.tf}">
+      <div class="marks" data-id="${c.png}">
+        <span class="verdict" data-v="good">would take</span>
+        <span class="verdict" data-v="bad">would not</span>
+        <span class="verdict" data-v="fix">rule is wrong</span>
+        <input class="note" placeholder="what you see (optional)">
+        <span class="saved"></span>
+      </div></div>`;
   $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
   $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
+  // grading, saved the moment it changes; NOT SAVED in red if the server refuses (rule 12)
+  fetch('/api/tradenote?set=bbwalk').then(r => r.json()).catch(() => ({})).then(notes => {
+    notes = notes || {};
+    document.querySelectorAll('.marks').forEach(m => {
+      const id = m.dataset.id, prev = String(notes[id] || '');
+      const i = prev.indexOf(' | ');
+      const v = (i < 0 ? prev : prev.slice(0, i)).trim();
+      const txt = i < 0 ? '' : prev.slice(i + 3);
+      m.querySelector('.note').value = txt;
+      m.querySelectorAll('.verdict').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+      const save = () => {
+        const on = m.querySelector('.verdict.on');
+        const body = (on ? on.dataset.v : '') + (m.querySelector('.note').value ? ' | ' + m.querySelector('.note').value : '');
+        const s = m.querySelector('.saved');
+        const fail = () => { s.textContent = 'NOT SAVED - tell Claude'; s.style.color = 'var(--dn)'; };
+        fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({set: 'bbwalk', n: id, note: body})})
+          .then(r => { if (!r.ok) return fail(); s.textContent = 'saved'; s.style.color = '';
+                       setTimeout(() => { if (s.textContent === 'saved') s.textContent = ''; }, 1500); })
+          .catch(fail);
+      };
+      m.querySelectorAll('.verdict').forEach(b => b.onclick = () => {
+        const was = b.classList.contains('on');
+        m.querySelectorAll('.verdict').forEach(x => x.classList.remove('on'));
+        if (!was) b.classList.add('on');
+        save();
+      });
+      let t = null;
+      m.querySelector('.note').oninput = () => { clearTimeout(t); t = setTimeout(save, 600); };
+    });
+  });
   document.querySelectorAll('img').forEach(im => im.onclick = () => {
     const z = $('#zoom'); z.innerHTML = `<img src="${im.getAttribute('src')}">`; z.style.display = 'flex';
   });
