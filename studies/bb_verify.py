@@ -40,11 +40,18 @@ import eq_freeride as FR          # noqa: E402
 import eq_freeride2 as FR2        # noqa: E402
 import tcg_lab as L               # noqa: E402
 
+COSTV = L.COST
+
 OUT = os.path.join("validation", "bb_verify.json")
 ERAS = ["before 2022", "first half", "second half"]
-SETUPS = [("the corner: backburner, walked stop, right side of the idea 12 EMA", "walk", True),
-          ("same, no 12 EMA filter", "walk", False),
-          ("same filter, all out at 2x the risk", "out2r", True)]
+# (name, mode, use the 12 EMA filter, which array the stop walks on)
+SETUPS = [("stop walked under the IDEA chart's higher lows", "walk", True, "big"),
+          ("stop walked under the SMALL chart's higher lows", "walk", True, "small"),
+          ("chandelier: 3 normal bars under the highest close", "chand", True, "big"),
+          ("out when a bar closes through the small 12 EMA", "ema_runner", True, "big"),
+          ("all out at 2x the risk", "out2r", True, "big"),
+          ("idea-chart trail, NO 12 EMA filter", "walk", False, "big")]
+CONTROL = "control: any bar, same management and filter"        # rule 15: every result needs a control
 
 
 def _work(args):
@@ -103,7 +110,11 @@ def _work(args):
             ups = np.where(os_[:-1] & ~os_[1:])[0] + 1
             ob = (rsi >= 70)
             dns = np.where(ob[:-1] & ~ob[1:])[0] + 1
-            for side, ks in ((1, ups), (-1, dns)):
+            # the control: the same trade taken on ANY bar, same management, same filter
+            step = max(40, n // 4000)
+            ctrl_up = np.arange(100, n - 6, step)
+            ctrl_dn = np.arange(120, n - 6, step)
+            for side, ks, is_ctrl in ((1, ups, 0), (-1, dns, 0), (1, ctrl_up, 1), (-1, ctrl_dn, 1)):
                 for k in ks:
                     e = k + 1
                     m_ = e - 1
@@ -128,16 +139,22 @@ def _work(args):
                     if risk < 0.25 * a:
                         risk = 0.25 * a
                         stop = entry - side * risk
+                    # A RISK BAND, so the numbers describe trades a person could take: the stop must be at least
+                    # three times the round-trip cost away, and no more than 5% of price (2026-09-12: without this,
+                    # a 0.09%-risk trade printed +44R and a 12%-risk trade counted the same as any other).
+                    rp = risk / entry * 100
+                    if rp < 3 * COSTV.get(kind, 0.05) or rp > 5.0:
+                        continue
                     on_side = 1.0 if (np.isfinite(b12[m_]) and ((side > 0 and c[m_] > b12[m_]) or
                                                                 (side < 0 and c[m_] < b12[m_]))) else 0.0
                     t_ = df.index[e]
                     era = 0 if t_ < start else 1 if t_ < mid_t else 2
                     res = []
-                    for _, mode, _f in SETUPS:
-                        res.append(L.run_trade(kind, o, h, l, c, e, side, stop, risk, b12,
-                                               big_lo if side > 0 else big_hi, small12, None, mode,
-                                               None if bells is None else bells[e]))
-                    rows.append([tf_i, side, era, on_side, risk / entry * 100, float(t_.value)] + res)
+                    for _, mode, _f, which in SETUPS:
+                        trail = (big_lo if side > 0 else big_hi) if which == "big" else                                 (last_lo if side > 0 else last_hi)
+                        res.append(L.run_trade(kind, o, h, l, c, e, side, stop, risk, b12, trail, small12, None,
+                                               mode, None if bells is None else bells[e], atr))
+                    rows.append([tf_i, side, era, on_side, risk / entry * 100, float(t_.value), is_ctrl] + res)
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
     if not rows:
@@ -211,7 +228,7 @@ def main():
                 print("  %d/%d names  (%.0fs)" % (done, len(names), time.time() - t0), flush=True)
     f = np.concatenate(parts)
     kinds = np.array(kinds)
-    cols = ["tf", "side", "era", "on_side", "risk_pct", "t"] + ["r%d" % i for i in range(len(SETUPS))]
+    cols = ["tf", "side", "era", "on_side", "risk_pct", "t", "ctrl"] + ["r%d" % i for i in range(len(SETUPS))]
     d = pd.DataFrame(f, columns=cols)
     d["kind"] = kinds
     d = d.sort_values("t")
@@ -219,9 +236,9 @@ def main():
                          rows=int(len(d)), setups=[s[0] for s in SETUPS], seconds=int(time.time() - t0)),
                table={})
     print("\n  THE BACKBURNER CORNER, CHECKED  (%d names, %d trades, %.0fs)" % (len(names), len(d), time.time() - t0))
-    for si, (name, mode, filt) in enumerate(SETUPS):
+    for si, (name, mode, filt, _w) in enumerate(SETUPS):
         col = "r%d" % si
-        g = d[d.on_side > 0] if filt else d
+        g = d[(d.ctrl == 0) & (d.on_side > 0)] if filt else d[d.ctrl == 0]
         g = g[np.isfinite(g[col])]
         rmult = (g[col] / g.risk_pct).values
         whole = describe(g[col].values, rmult)
@@ -229,20 +246,25 @@ def main():
             continue
         out["table"][name] = dict(all=whole, eras={}, markets={}, charts={})
         print("\n  %s" % name)
-        print("    %-22s %7s %8s %8s %6s %8s %8s %7s %9s %7s" % (
-            "cut", "n", "avg", "middle", "won", "avg win", "avg loss", "avg R", "20-blocks", "streak"))
+        print("    %-22s %7s %8s %8s %6s %8s %8s %7s %7s %9s %7s" % (
+            "cut", "n", "avg", "middle", "won", "avg win", "avg loss", "avg R", "mid R", "20-blocks", "streak"))
 
         def line(lab, sub):
             s = describe(sub[col].values, (sub[col] / sub.risk_pct).values)
             if not s:
                 return None
             bl = s["blocks"]
-            print("    %-22s %7d %+7.3f%% %+7.3f%% %5.0f%% %+7.3f%% %+7.3f%% %+6.2fR %6s %7d" % (
+            print("    %-22s %7d %+7.3f%% %+7.3f%% %5.0f%% %+7.3f%% %+7.3f%% %+6.2fR %+6.2fR %6s %7d" % (
                 lab, s["n"], s["avg"], s["middle"], 100 * s["won"], s["avg_win"] or 0, s["avg_loss"] or 0,
-                s["avg_R"] or 0, ("%d/%d" % (bl["blocks_up"], bl["blocks"])) if bl else "-",
+                s["avg_R"] or 0, s["middle_R"] or 0, ("%d/%d" % (bl["blocks_up"], bl["blocks"])) if bl else "-",
                 s["worst_losing_streak"]))
             return s
         line("everything", g)
+        ctl = d[(d.ctrl == 1) & (d.on_side > 0)] if filt else d[d.ctrl == 1]
+        ctl = ctl[np.isfinite(ctl[col])]
+        s_ctl = line("CONTROL any bar", ctl)
+        if s_ctl:
+            out["table"][name]["control"] = s_ctl
         for e_i, e_name in enumerate(ERAS):
             s = line(e_name, g[g.era == e_i])
             if s:

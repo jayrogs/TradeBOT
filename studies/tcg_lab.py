@@ -82,7 +82,8 @@ def align_to(small, tf, frames, htf, arr):
     return np.array([np.nan if isinstance(x, str) else float(x) for x in al], dtype=float)
 
 
-def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big_rsi, mode, bell=None):
+def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big_rsi, mode, bell=None,
+              atr=None, chand=3.0):
     """One trade, array math, no bar-by-bar loop."""
     n = len(c)
     last = min(n - 1, e + MAX_BARS)
@@ -116,26 +117,55 @@ def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big
         ov = big12[e]
         far = entry + side * risk
         cut = ov if (np.isfinite(ov) and ((side > 0 and ov > far) or (side < 0 and ov < far))) else far
-    hit_cut = first(hw >= cut) if side > 0 else first(lw <= cut)
-    s_ = hit_stop if hit_stop is not None else 10 ** 9
-    c_ = hit_cut if hit_cut is not None else 10 ** 9
     cost = COST.get(kind, 0.05)
-    if s_ <= c_ and hit_stop is not None:
-        return side * (fill(hit_stop) - entry) / entry * 100 - cost
-    got = 0.5 * side * (cut - entry) / entry
-    j0 = e + c_
-    # the rest
-    if mode == "walk":                      # stop walked under each new idea-chart higher low
-        seg = big_hl[j0:last + 1]
-        if side > 0:                        # a long's stop only ever rises
-            stops = np.maximum.accumulate(np.where(np.isfinite(seg), seg, -np.inf))
-            line = np.maximum(stops, stop)
-        else:                               # a short's stop only ever falls
-            stops = np.minimum.accumulate(np.where(np.isfinite(seg), seg, np.inf))
-            line = np.minimum(stops, stop)
-        out = first(l[j0:last + 1] <= line) if side > 0 else first(h[j0:last + 1] >= line)
-        px = (o[j0 + out + 1] if j0 + out + 1 <= last else c[last]) if out is not None else c[last]
-    else:                                   # held until a bar closes through the small chart's 12 EMA
+    if mode == "chand":
+        # a chandelier: the stop sits `chand` normal bars under the highest close since the entry (mirrored short)
+        a0 = float(atr[e - 1]) if (atr is not None and np.isfinite(atr[e - 1])) else risk
+        if side > 0:
+            run_hi = np.maximum.accumulate(cw)
+            cand = run_hi - chand * a0
+            line = np.maximum(np.r_[-np.inf, cand[:-1]], stop)
+            exit_i = first(lw <= line)
+        else:
+            run_lo = np.minimum.accumulate(cw)
+            cand = run_lo + chand * a0
+            line = np.minimum(np.r_[np.inf, cand[:-1]], stop)
+            exit_i = first(hw >= line)
+        cut_i = first(hw >= cut) if side > 0 else first(lw <= cut)
+        took = cut_i is not None and (exit_i is None or cut_i < exit_i)
+        px = (o[e + exit_i + 1] if e + exit_i + 1 <= last else c[last]) if exit_i is not None else c[last]
+        share = 0.5 if took else 1.0
+        got = (1 - share) * side * (cut - entry) / entry
+    elif mode == "walk":
+        # ONE line for the whole trade: the stop starts at `stop` and steps to each new idea-chart higher low that
+        # is below the market when it appears. The line a bar trades against is the one set by the PREVIOUS bar,
+        # which is what the bar-by-bar walk does (2026-09-12: the two versions disagreed on 120 of 658 trades
+        # until this was written the same way in both).
+        seg = big_hl[e:last + 1]
+        if side > 0:
+            ok = np.isfinite(seg) & (seg < lw)
+            acc = np.maximum.accumulate(np.where(ok, seg, -np.inf))
+            line = np.maximum(np.r_[-np.inf, acc[:-1]], stop)
+            exit_i = first(lw <= line)
+        else:
+            ok = np.isfinite(seg) & (seg > hw)
+            acc = np.minimum.accumulate(np.where(ok, seg, np.inf))
+            line = np.minimum(np.r_[np.inf, acc[:-1]], stop)
+            exit_i = first(hw >= line)
+        cut_i = first(hw >= cut) if side > 0 else first(lw <= cut)
+        # same bar: the stop wins, because intrabar order is unknowable (the conservative read)
+        took = cut_i is not None and (exit_i is None or cut_i < exit_i)
+        px = (o[e + exit_i + 1] if e + exit_i + 1 <= last else c[last]) if exit_i is not None else c[last]
+        share = 0.5 if took else 1.0
+        got = (1 - share) * side * (cut - entry) / entry
+    else:
+        hit_cut = first(hw >= cut) if side > 0 else first(lw <= cut)
+        if hit_stop is not None and (hit_cut is None or hit_stop <= hit_cut):
+            return side * (fill(hit_stop) - entry) / entry * 100 - cost
+        if hit_cut is None:
+            got, share, j0 = 0.0, 1.0, e
+        else:
+            got, share, j0 = 0.5 * side * (cut - entry) / entry, 0.5, e + hit_cut
         ev = small12[j0:last + 1]
         bad = (c[j0:last + 1] < ev) if side > 0 else (c[j0:last + 1] > ev)
         stopped = (l[j0:last + 1] <= stop) if side > 0 else (h[j0:last + 1] >= stop)
@@ -146,8 +176,8 @@ def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big
             px = o[j0 + out + 1] if j0 + out + 1 <= last else c[last]
         else:
             px = c[j0 + out]
-    got += 0.5 * side * (px - entry) / entry
-    return got * 100 - cost * 1.5
+    got += share * side * (px - entry) / entry
+    return got * 100 - cost * (1.5 if share < 1.0 else 1.0)
 
 
 def _work(args):

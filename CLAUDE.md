@@ -82,6 +82,23 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     Effort goes into making a rule work. `PLAYBOOK.md` is the distillation of both books plus the room, with the
     scoreboard written that way.
 
+33. TWO BUGS THAT MADE A FAKE WINNER, AND THE TEST THAT CATCHES THEM (2026-09-12, overnight). A backburner
+    setup (RSI 14 to 30 and back over on the 5m/15m, half off at 1x the risk, the rest with the stop walked under
+    the idea chart's higher lows, only on the right side of that chart's 12 EMA) printed +1.32% a trade on 222,277
+    trades, 69% won, positive in every era. All of it was mine:
+      - THE PHANTOM PARTIAL: the fast walk booked "half off at 1R" even when price never reached 1R -- half a risk
+        of free money on ~two thirds of trades.
+      - THE STALE STOP: it measured the stop against the level the trade STARTED with while the trail had already
+        moved, so exits were priced at the wrong level.
+      - RISK SIZES: with no band, a 0.09%-risk trade printed +44R and a 12%-risk trade counted the same as any
+        other. Trades now need the stop at least 3x the round-trip cost away and no more than 5% of price.
+    After the fixes: the setup is -0.09R a trade against a control (any bar, same filter and management) of -0.13R.
+    The trigger is worth about +0.04R over the control and that repeats across five different managements (idea-chart
+    trail, small-chart trail, chandelier 3, small 12 EMA close, all out at 2x) -- real, small, and under the cost
+    line as built. `studies/walk_selftest.py` now runs the vectorised walk beside a bar-by-bar walk on four real
+    names and fails unless they agree on every trade; it found all of the above. RUN IT AFTER ANY CHANGE TO A TRADE
+    WALK.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.
