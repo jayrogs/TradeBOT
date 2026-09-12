@@ -120,7 +120,7 @@ def one_trade(stop_kind, partial_kind, sell_kind, tf, kind, df, r, side, h1lo, h
     BIG = len(lw) + 1
     s_, t_, c_ = (BIG if i_stop is None else i_stop), (BIG if i_tgt is None else i_tgt), (BIG if i_cut is None else i_cut)
     took = False
-    if s_ <= c_ and s_ <= t_:
+    if s_ <= c_ and s_ <= t_ and i_stop is not None:
         got, j, how = side * (stop - entry) / entry, e + s_, "stopped out"
     elif c_ <= t_:
         took = True
@@ -156,9 +156,6 @@ def simple(kind_of, tf, kind, df, r, side, atr=None):
     if e >= n:
         return None
     entry = o[e]
-    if kind_of == "hold":
-        j = min(n - 1, e + 24 * BPH[tf])
-        return dict(pct=side * (c[j] - entry) / entry * 100 - COST.get(kind, 0.05), bars=int(j - e), how="held")
     lows = [p for j_, p, kd, lab in r["shape"] if kd == "low"]
     highs = [p for j_, p, kd, lab in r["shape"] if kd == "high"]
     a_i = (atr if atr is not None else P._atr(df))[i]
@@ -168,6 +165,9 @@ def simple(kind_of, tf, kind, df, r, side, atr=None):
     stop = (floor - tol) if side > 0 else (ceil + tol)
     if (side > 0 and (entry >= far or entry <= stop)) or (side < 0 and (entry <= far or entry >= stop)):
         return dict(pct=None, bars=0, how="no trade: it opened outside the EQ")
+    if kind_of == "hold":                       # the control walks the SAME entries the plans take
+        j = min(n - 1, e + 24 * BPH[tf])
+        return dict(pct=side * (c[j] - entry) / entry * 100 - COST.get(kind, 0.05), bars=int(j - e), how="held")
     last = min(n - 1, e + MAX_HOURS * BPH[tf])
     for j in range(e, last + 1):
         if (side > 0 and l[j] <= stop) or (side < 0 and h[j] >= stop):
@@ -196,13 +196,14 @@ def _work(args):
             continue
         try:
             df = frames[tf]
-            recs = EC.coils(df, min_gap=3, strict_wicks=False)[3]
+            recs = EC.coils(df, min_gap=3)[3]
             confirm = int(row["id"].rsplit("_", 1)[1])
             r = next((x for x in recs if x["confirm"] == confirm), None)
             if r is None:
                 errs.append("%s %s: the EQ at bar %d was not found" % (sym, tf, confirm))
                 continue
             h1lo, h1hi = ED.last_swings(df, tf, frames, "1h")
+            atr_all = P._atr(df)
             hdf = frames.get("1h")
             if hdf is not None and len(hdf) >= 60:
                 al = FR.align(df, tf, hdf, "1h", P._atr(hdf).astype(object))
@@ -219,7 +220,7 @@ def _work(args):
             lows_ = [p_ for j_, p_, kd_, lb_ in r["shape"] if kd_ == "low"]
             highs_ = [p_ for j_, p_, kd_, lb_ in r["shape"] if kd_ == "high"]
             ha = h1atr[e_] if e_ < len(h1atr) and np.isfinite(h1atr[e_]) else np.nan
-            lean = (str(state[e_]) == "up" or (np.isfinite(ev[e_]) and cl[e_] > ev[e_])) if side > 0 else                    (str(state[e_]) == "down" or (np.isfinite(ev[e_]) and cl[e_] < ev[e_]))
+            lean = (str(state[e_ - 1]) == "up" or (np.isfinite(ev[e_]) and cl[e_ - 1] > ev[e_ - 1])) if side > 0 else                    (str(state[e_ - 1]) == "down" or (np.isfinite(ev[e_]) and cl[e_ - 1] < ev[e_ - 1]))
             at_pull = False
             if np.isfinite(ha) and ha > 0:
                 line = lows_[-1] if side > 0 else highs_[-1]

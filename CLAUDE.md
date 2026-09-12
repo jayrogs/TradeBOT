@@ -44,6 +44,18 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     and GitHub differ, and his words (2026-09-11) were "i just dont want to be asked to do something for something
     i didnt do". Keep that bar at zero. Never push TCG_METHOD.md or tcg_slack/ (private TCG Slack content, ignored).
 
+13c. THE BACKGROUND I WORK FROM: `TA_FOUNDATION.md` (2026-09-12, his words: "is there a way i can get you to
+    understand trade psychology and technical analysis fundamentals? because youre acting like only the things we
+    talk about exist for the most part"). Auction/balance vs trend, structure, location and confluence, moving
+    averages as context not signal, volume and liquidity, the expectancy math, variance and sizing, the psychology
+    that decides what is holdable, regimes, and how a test must be built. HIS CONSTRAINTS ARE REQUIREMENTS, NOT
+    NOISE: if he wants a partial, find the best system that takes a partial. Every study now reports enough for a
+    human to judge holdability: expectancy, win rate with average win vs loss, worst losing streak, worst dip, time
+    in trade, trades a year. He is invited to correct that file; his corrections win.
+13d. NEVER TEST ONE FLAG AT A TIME AND CALL IT THE METHOD (2026-09-12). Nobody trades a single condition. Tests are
+    built as a stack -- regime, context, location, trigger, risk, management, size -- one skeleton with switches,
+    and the control must skip exactly what the rule skips.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.

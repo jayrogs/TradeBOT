@@ -163,15 +163,35 @@ def draw_trade(sym, tf, df, hdf, tr, path):
     lo = min(float(np.nanmin(d["Low"].values)), tr["stop"], tr["target"])
     hi = max(float(np.nanmax(d["High"].values)), tr["stop"], tr["target"])
     rng = max(hi - lo, 1e-9)
-    ax.set_ylim(lo - 0.18 * rng, hi + 0.18 * rng)
-    ax.set_xlim(-1, len(d) + 2)
-    mk = "^" if tr["side"] > 0 else "v"
-    ax.scatter([e], [tr["entry"] - tr["side"] * 0.10 * rng], marker=mk, s=150,
-               color=GREEN if tr["side"] > 0 else RED, zorder=9)
+    ax.set_ylim(lo - 0.42 * rng, hi + 0.42 * rng)
+    pad_x = max(16, int(0.10 * len(d)))          # room for the stop/target labels, in proportion to the window
+    ax.set_xlim(-1, len(d) + pad_x)
+    import pics_ride as PR
+
+    def peg(x, y_bar, y_lane, colr, marker, label, below):
+        """Marker and label in an empty lane, joined to the bar by a thin dotted line (rule 11)."""
+        ax.plot([x, x], [y_bar, y_lane], color=colr, lw=0.7, ls=":", alpha=0.6, zorder=6)
+        ax.scatter([x], [y_lane], marker=marker, s=130, color=colr, edgecolor="#ffffff", lw=0.8, zorder=13)
+        an = ax.annotate(label, (x, y_lane), xytext=(0, -10 if below else 10), textcoords="offset points",
+                         ha="center", va="top" if below else "bottom", color=colr, fontsize=8.5,
+                         weight="bold", zorder=20)
+        PR.keep_inside(ax, an)
+    long_ = tr["side"] > 0
+    lane1 = lo - 0.11 * rng if long_ else hi + 0.11 * rng
+    lane2 = lo - 0.22 * rng if long_ else hi + 0.22 * rng
+    lane3 = lo - 0.33 * rng if long_ else hi + 0.33 * rng
+    peg(e, tr["entry"], lane1, GREEN if long_ else RED, "^" if long_ else "v",
+        "buy" if long_ else "short", long_)
     if tr["took_at"] is not None:
-        ax.scatter([tr["took_at"] - x0], [tr["cut"]], marker="o", s=70, facecolor=DARK, edgecolor=AMBER, lw=1.8, zorder=9)
-    ax.scatter([end], [tr["stop"] if "stopped" in tr["how"] else tr["target"] if "sold" in tr["how"]
-                       else float(df["Close"].values[tr["end_at"]])], marker="x", s=110, color="#e6e9ee", lw=2, zorder=9)
+        peg(tr["took_at"] - x0, tr["cut"], lane2, AMBER, "o", "half off", long_)
+    end_px = tr["stop"] if "stopped" in tr["how"] else tr["target"] if "sold" in tr["how"]         else float(df["Close"].values[tr["end_at"]])
+    peg(end, end_px, lane2 if tr["took_at"] is None else lane3, "#e6e9ee", "X",
+        "out %+.2f%%" % tr["pct"], long_)
+    for y_, colr, lab in ((tr["stop"], RED, "stop"), (tr["target"], GREEN, "target")):
+        ax.plot([len(d) - 1, len(d) + 0.35 * pad_x], [y_, y_], color=colr, lw=0.8, ls=":", alpha=0.6, zorder=6)
+        an = ax.annotate(lab, (len(d) + 0.4 * pad_x, y_), xytext=(2, 0), textcoords="offset points", ha="left",
+                         va="center", color=colr, fontsize=8.5, weight="bold", zorder=20)
+        PR.keep_inside(ax, an)
     step_ = max(len(d) // 7, 1)
     ax.set_xticks(xs[::step_]); ax.set_xticklabels([q.strftime("%m-%d %H:%M") for q in d.index[::step_]], fontsize=6.5)
     ax.set_title("%s %s %s   EQ blue, risk %.2f%% red, target %.2f%% green  ->  %+.2f%%" % (
@@ -199,7 +219,6 @@ def draw_trade(sym, tf, df, hdf, tr, path):
         axh.set_title("the hourly", loc="left", color=DIM, fontsize=9.5, pad=3)
         plt.setp(axh.get_xticklabels(), fontsize=6)
         panels.append((axh, hb["d"]))
-    import pics_ride as PR
     probs = PR.overlaps(fig, panels)
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
     plt.close(fig)

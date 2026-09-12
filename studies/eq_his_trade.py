@@ -86,19 +86,22 @@ def _work(args):
                 if not r["tradeable"] or r["born"] < 60 or r["confirm"] + 2 >= n:
                     continue
                 e = r["confirm"] + 1
-                up = str(state[e]) == "up" or (np.isfinite(ev[e]) and c[e] > ev[e])
-                down = str(state[e]) == "down" or (np.isfinite(ev[e]) and c[e] < ev[e])
+                # read at the CLOSE BEFORE the bar we buy at the open of (the reviewer caught this: reading c[e]
+                # lets the rule know how the entry bar finished, which is inside the result)
+                m_ = e - 1
+                up = str(state[m_]) == "up" or (np.isfinite(ev[m_]) and c[m_] > ev[m_])
+                down = str(state[m_]) == "down" or (np.isfinite(ev[m_]) and c[m_] < ev[m_])
                 if up == down:
                     continue
                 side = 1 if up else -1
                 lows_ = [p for j_, p, kd_, lb_ in r["shape"] if kd_ == "low"]
                 highs_ = [p for j_, p, kd_, lb_ in r["shape"] if kd_ == "high"]
-                ha = h1atr[e]
+                ha = h1atr[m_]
                 lined = False
                 if np.isfinite(ha) and ha > 0:
                     line = lows_[-1] if side > 0 else highs_[-1]
-                    sw = h1lo[e] if side > 0 else h1hi[e]
-                    lined = (np.isfinite(ev[e]) and abs(line - ev[e]) <= 0.5 * ha) or \
+                    sw = h1lo[m_] if side > 0 else h1hi[m_]
+                    lined = (np.isfinite(ev[m_]) and abs(line - ev[m_]) <= 0.5 * ha) or \
                             (np.isfinite(sw) and ((side > 0 and sw < line <= sw + ha) or
                                                   (side < 0 and sw - ha <= line < sw)))
                 t_ = df.index[e]
