@@ -127,16 +127,20 @@ def trades_for(sym, kind):
                 if not (np.isfinite(b12[m_]) and ((side > 0 and c[m_] > b12[m_]) or (side < 0 and c[m_] < b12[m_]))):
                     continue
                 entry = o[e]; a = atr[m_]
-                cands = [x for x in ((last_lo[m_] if side > 0 else last_hi[m_]),
-                                     (big_lo[m_] if side > 0 else big_hi[m_]))
-                         if np.isfinite(x) and ((side > 0 and x < entry) or (side < 0 and x > entry))]
-                if not cands:
+                near_small = last_lo[m_] if side > 0 else last_hi[m_]
+                near_big = big_lo[m_] if side > 0 else big_hi[m_]
+                pool = [(x, lab) for x, lab in ((near_small, "this chart's last %s" % ("low" if side > 0 else "high")),
+                                                (near_big, "the %s's last %s" % (big, "low" if side > 0 else "high")))
+                        if np.isfinite(x) and ((side > 0 and x < entry) or (side < 0 and x > entry))]
+                if not pool:
                     continue
-                stop = (max(cands) - 0.15 * a) if side > 0 else (min(cands) + 0.15 * a)
+                base, from_ = max(pool) if side > 0 else min(pool)
+                stop = (base - 0.15 * a) if side > 0 else (base + 0.15 * a)
                 risk = abs(entry - stop)
                 if risk < 0.25 * a:
                     risk = 0.25 * a
                     stop = entry - side * risk
+                    from_ = "floored at a quarter of a normal bar"
                 rp = risk / entry * 100
                 if rp < 3 * COST.get(kind, 0.05) or rp > 5.0:
                     continue
@@ -144,6 +148,7 @@ def trades_for(sym, kind):
                              None if bells is None else bells[e])
                 got.append(dict(sym=sym, kind=kind, tf=tf, big=big, side=int(side), e=int(e), entry=float(entry),
                                 stop=float(stop), risk_pct=float(risk / entry * 100), t=str(df.index[e]),
+                                stop_from=from_, base=float(base) if "floored" not in from_ else float(stop),
                                 R=float(r["pct"] / (risk / entry * 100)), **r))
     return got
 
@@ -175,6 +180,11 @@ def draw(sym, tf, big, df, bdf, tr, path):
     ax.plot(stx, sty, color=RED, lw=1.6, ls="--", zorder=7)
     ax.hlines(tr["cut"], e - x0, min(tr["took_at"] or end, x1) - x0, colors=AMBER, lw=1.4, ls="--", zorder=7)
     ax.hlines(tr["entry"], e - x0, len(d) - 1, colors=DIM, lw=1.0, ls=":", zorder=6)
+    # the risk, shaded: entry down to the first stop is 1R; entry up to the partial is the same distance
+    ax.axhspan(min(tr["entry"], tr["steps"][0][1]), max(tr["entry"], tr["steps"][0][1]),
+               xmin=(e - x0 + 1) / (len(d) + pad_x + 1), color=RED, alpha=0.10, zorder=2)
+    ax.axhspan(min(tr["entry"], tr["cut"]), max(tr["entry"], tr["cut"]),
+               xmin=(e - x0 + 1) / (len(d) + pad_x + 1), color=AMBER, alpha=0.08, zorder=2)
     long_ = tr["side"] > 0
     lane1 = lo - 0.13 * rng if long_ else hi + 0.13 * rng
     lane2 = lo - 0.26 * rng if long_ else hi + 0.26 * rng
@@ -194,7 +204,7 @@ def draw(sym, tf, big, df, bdf, tr, path):
     peg(end - x0, tr["exit_px"], lane3, "#e6e9ee", "X", "out %+.2fR" % tr["R"])
     step_ = max(len(d) // 7, 1)
     ax.set_xticks(xs[::step_]); ax.set_xticklabels([q.strftime("%m-%d %H:%M") for q in d.index[::step_]], fontsize=6.5)
-    ax.set_title("%s %s %s   oversold bounce   risk %.2f%%  ->  %+.2fR" % (
+    ax.set_title("%s %s %s   oversold bounce   1R = %.2f%% of price  ->  %+.2fR" % (
         sym, tf, "long" if long_ else "short", tr["risk_pct"], tr["R"]),
         color="#e6e9ee", fontsize=11, loc="left", pad=8)
     panels = [(ax, d)]
@@ -215,8 +225,9 @@ def draw(sym, tf, big, df, bdf, tr, path):
         axh.set_title("the %s" % big, loc="left", color=DIM, fontsize=9.5, pad=3)
         plt.setp(axh.get_xticklabels(), fontsize=6)
         panels.append((axh, hb["d"]))
-    fig.text(0.045, 0.025, "red dashed = the stop, stepping up under each new %s higher low   orange = where half "
-             "came off at 1R   the %s 12 EMA side is the filter" % (big, big), color=DIM, fontsize=9, ha="left")
+    fig.text(0.045, 0.025, "red band = what is risked (1R), from the entry to the first stop, which sits just past %s"
+             "   orange band = the same distance in profit, where half comes off   red dashed = the stop as it "
+             "stepped up" % tr.get("stop_from", "the nearest structure"), color=DIM, fontsize=9, ha="left")
     probs = PR.overlaps(fig, panels)
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
     plt.close(fig)
