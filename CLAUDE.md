@@ -56,6 +56,13 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     built as a stack -- regime, context, location, trigger, risk, management, size -- one skeleton with switches,
     and the control must skip exactly what the rule skips.
 
+13e. TRADING IN THE ZONE, read in full 2026-09-12 (`TA_FOUNDATION.md` #11). Douglas backs HIS instinct, not my
+    arguing: scaling out to a risk-free stop is the textbook, aim at about 3:1 reward to risk (then a sub-50% win
+    rate still pays), take EVERY occurrence of an edge over a sample of 20 and judge the sample, define the trade in
+    ONE chart size with the bigger charts as filters, and let structure -- not a dollar figure -- set the stop.
+    Studies now report R multiples and a sample-of-20 view (how many blocks of 20 trades made money), and no
+    variant without a predefined stop is reported as a real trade.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.

@@ -130,3 +130,55 @@ Every test is one setup, built in this order, and every layer is optional so its
 7. **Size** -- fixed fractional, with limits; and the equity path that results.
 
 Correct anything here that is wrong, Jay, and add what I have missed. This file wins over my assumptions.
+
+---
+
+## 11. Mark Douglas, *Trading in the Zone* (read in full, 2026-09-12, at his request)
+
+The book's claim: better analysis is not what separates consistent winners. A mind-set is. What it means for
+this desk, in his terms and mine:
+
+**The five fundamental truths**
+1. Anything can happen.
+2. You don't need to know what is going to happen next to make money.
+3. There is a random distribution between wins and losses for any given edge.
+4. An edge is nothing more than a higher probability of one thing over another.
+5. Every moment in the market is unique.
+
+**The seven principles of consistency** (his checklist for "I am a consistent winner")
+objectively identify edges; predefine the risk of every trade; completely accept that risk; act on the edge without
+hesitation; pay yourself as the market makes money available; monitor your own errors; never violate these.
+
+**The casino frame.** A casino has a ~4.5% edge at blackjack and makes money because it takes EVERY hand, over a
+large sample. Picking and choosing which signals to take destroys the edge you measured. His exercise: define an
+edge with no discretion, then take the next 20 occurrences, all of them, no deviation. Judge the SAMPLE, not the
+trade.
+
+**What he says about the things we argue about here**
+- SCALING OUT IS CORRECT, and for the reason Jay gives. Douglas takes a third off as soon as the market gives a
+  little, then a second third at a level, moving the stop to the entry: "risk-free opportunity". He calls the feeling
+  of that state the point of the exercise. So Jay's "partial for security" is the textbook, not a concession, and my
+  job is to find the best system that takes a partial.
+- REWARD TO RISK ~3:1 makes a sub-50% win rate profitable. That is the shape to aim at, and it is why my
+  "target at least as far as the stop" filter was too weak a bar.
+- ONE TIMEFRAME FOR THE TRADE. "All your entry and exit signals have to be based in the same time frame"; other
+  charts are FILTERS (his example: only take 30-minute support trades in the direction of the daily trend). Our EQ
+  trade currently enters on the 5m and takes its stop from the hourly, which mixes the two. That is testable:
+  same-timeframe risk with the hourly as a filter, against what we have now.
+- THE STOP COMES FROM STRUCTURE, not from a dollar amount you are comfortable with: "let the market structure
+  determine where this optimum point is".
+- THE ERRORS HE LISTS are the ones to detect in the live log: hesitating, jumping the gun, no predefined risk,
+  refusing the loss, cutting winners early, letting a winner become a loser, moving the stop closer, oversizing.
+- "Rigid in our rules and flexible in our expectations." The typical trader is the reverse.
+
+**What this changes in the studies, concretely**
+1. Results get reported in R (multiples of the risk taken) as well as percent. R is the unit the whole framework
+   speaks in.
+2. Every rule gets a SAMPLE-OF-20 view: split its trades into blocks of 20 in time order and report how many blocks
+   made money and the spread. That is what a human actually lives through.
+3. No variant without a predefined stop gets reported as a real trade.
+4. A trade is defined in ONE chart size; bigger charts enter as filters, and if a rule needs the bigger chart for its
+   risk, that is a different trade and gets labelled as one.
+
+(Note: the extracted text of the book lives in `scratch/` and is gitignored -- it is copyrighted and does not go to
+GitHub.)

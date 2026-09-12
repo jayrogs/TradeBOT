@@ -28,3 +28,6 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# extracted book text and scratch work: never published
+scratch/
