@@ -15,7 +15,7 @@ import urllib.request
 
 BASE = "http://localhost:5001"
 HERE = os.path.dirname(os.path.abspath(__file__))
-PAGES = ["/", "/eq", "/eqcharts", "/eqcoils", "/eqtrades", "/eqfree", "/eqmark","/rides", "/ridecharts", "/bb", "/trends", "/trendstudy",
+PAGES = ["/", "/eq", "/eqcharts", "/eqcoils", "/eqtrades", "/eqfree", "/eqmark", "/eqrisk","/rides", "/ridecharts", "/bb", "/trends", "/trendstudy",
          "/names", "/cases", "/study", "/rules", "/paint", "/scan", "/markets", "/desk",
          "/exitcharts", "/log", "/backburner", "/trendcases"]
 # file -> how many days old is too old
@@ -37,7 +37,8 @@ INDEXES = ([("validation/eq_cases/eq_cases_index.json", "validation/eq_cases"),
             ("validation/eq_coils/eq_coils_index.json", "validation/eq_coils"),
             ("validation/eq_trades/eq_trades_index.json", "validation/eq_trades"),
             ("validation/eq_free/eq_free_index.json", "validation/eq_free"),
-            ("validation/eq_mark/eq_mark_index.json", "validation/eq_mark")]
+            ("validation/eq_mark/eq_mark_index.json", "validation/eq_mark"),
+            ("validation/eq_risk/eq_risk_index.json", "validation/eq_risk")]
            + [(f.replace("\\", "/"), os.path.dirname(f).replace("\\", "/"))
               for f in sorted(_glob.glob(os.path.join("validation", "exit_cases", "*", "*index*.json")))])
 

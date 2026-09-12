@@ -1,0 +1,3145 @@
+{
+ "meta": {
+  "marks": 26,
+  "cost": {
+   "crypto": 0.2,
+   "stock": 0.05,
+   "etf": 0.05,
+   "futures": 0.05
+  },
+  "max_hours": 48,
+  "plans": [
+   "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk",
+   "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk",
+   "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high",
+   "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk",
+   "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk",
+   "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high",
+   "stop EQ's far side, none, sell the rest at 2x the risk",
+   "stop EQ's far side, none, sell the rest at 3x the risk",
+   "stop EQ's far side, none, sell the rest at the hourly's last swing high",
+   "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk",
+   "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk",
+   "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high",
+   "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk",
+   "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk",
+   "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high",
+   "stop the hourly higher low, none, sell the rest at 2x the risk",
+   "stop the hourly higher low, none, sell the rest at 3x the risk",
+   "stop the hourly higher low, none, sell the rest at the hourly's last swing high",
+   "all out at the EQ's far line",
+   "hold 24 hourly bars (the old way)"
+  ],
+  "seconds": 18
+ },
+ "table": {
+  "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.2244465012214187,
+   "middle": -0.2863780724461664,
+   "won": 0.17391304347826086,
+   "total": -5.16226952809263,
+   "worst": -1.6064939620398258,
+   "best": 1.5516895763305132,
+   "bars": 8.130434782608695
+  },
+  "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.28731127728298017,
+   "middle": -0.30785213210650847,
+   "won": 0.13043478260869565,
+   "total": -6.608159377508544,
+   "worst": -1.6064939620398258,
+   "best": 1.027702729873532,
+   "bars": 13.26086956521739
+  },
+  "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.22223968920496015,
+   "middle": -0.2863780724461664,
+   "won": 0.17391304347826086,
+   "total": -5.1115128517140835,
+   "worst": -1.6064939620398258,
+   "best": 1.2299877600979192,
+   "bars": 13.91304347826087
+  },
+  "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.2530645452297181,
+   "middle": -0.30000000000000004,
+   "won": 0.17391304347826086,
+   "total": -5.820484540283516,
+   "worst": -1.6064939620398258,
+   "best": 1.5595417084370218,
+   "bars": 8.130434782608695
+  },
+  "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.31592932129127954,
+   "middle": -0.30000000000000004,
+   "won": 0.13043478260869565,
+   "total": -7.26637438969943,
+   "worst": -1.6064939620398258,
+   "best": 0.8967023820393358,
+   "bars": 13.26086956521739
+  },
+  "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.25085773321325955,
+   "middle": -0.30000000000000004,
+   "won": 0.17391304347826086,
+   "total": -5.769727863904969,
+   "worst": -1.6064939620398258,
+   "best": 1.2378398922044278,
+   "bars": 13.91304347826087
+  },
+  "stop EQ's far side, none, sell the rest at 2x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.22198638027118853,
+   "middle": -0.43142666492519577,
+   "won": 0.21739130434782608,
+   "total": -5.105686746237336,
+   "worst": -1.6064939620398258,
+   "best": 2.2793889445826956,
+   "bars": 8.130434782608695
+  },
+  "stop EQ's far side, none, sell the rest at 3x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.3477159323943114,
+   "middle": -0.4545607776270186,
+   "won": 0.13043478260869565,
+   "total": -7.997466445069163,
+   "worst": -1.6064939620398258,
+   "best": 1.595053573059004,
+   "bars": 13.26086956521739
+  },
+  "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.21757275623827138,
+   "middle": -0.43142666492519577,
+   "won": 0.17391304347826086,
+   "total": -5.004173393480242,
+   "worst": -1.6064939620398258,
+   "best": 1.6359853121175076,
+   "bars": 13.91304347826087
+  },
+  "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.722702604078221,
+   "middle": -0.48706044548267413,
+   "won": 0.2608695652173913,
+   "total": -16.622159893799083,
+   "worst": -6.952614109633356,
+   "best": 1.0652554351873298,
+   "bars": 122.65217391304348
+  },
+  "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.8501408589946206,
+   "middle": -0.5319834998339739,
+   "won": 0.13043478260869565,
+   "total": -19.553239756876273,
+   "worst": -6.952614109633356,
+   "best": 1.4657367288039052,
+   "bars": 131.43478260869566
+  },
+  "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.35803954676093874,
+   "middle": 0.010434608451837246,
+   "won": 0.5217391304347826,
+   "total": -8.234909575501591,
+   "worst": -6.952614109633356,
+   "best": 1.2299877600979192,
+   "bars": 59.869565217391305
+  },
+  "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.9514138712486558,
+   "middle": -0.30000000000000004,
+   "won": 0.30434782608695654,
+   "total": -21.882519038719085,
+   "worst": -6.952614109633356,
+   "best": 1.4578744213353168,
+   "bars": 122.65217391304348
+  },
+  "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -1.0788521261650552,
+   "middle": -0.30000000000000004,
+   "won": 0.17391304347826086,
+   "total": -24.81359890179627,
+   "worst": -6.952614109633356,
+   "best": 1.4807477139465004,
+   "bars": 131.43478260869566
+  },
+  "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.37691924886299594,
+   "middle": 0.20494901019797013,
+   "won": 0.6086956521739131,
+   "total": -8.669142723848907,
+   "worst": -6.952614109633356,
+   "best": 1.3195406529292792,
+   "bars": 59.869565217391305
+  },
+  "stop the hourly higher low, none, sell the rest at 2x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -1.08967907960905,
+   "middle": -0.9827378822748453,
+   "won": 0.30434782608695654,
+   "total": -25.06261883100815,
+   "worst": -6.952614109633356,
+   "best": 2.143832561780415,
+   "bars": 122.65217391304348
+  },
+  "stop the hourly higher low, none, sell the rest at 3x the risk": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -1.344555589441849,
+   "middle": -1.1065855160752405,
+   "won": 0.17391304347826086,
+   "total": -30.924778557162526,
+   "worst": -6.952614109633356,
+   "best": 2.4711215709197503,
+   "bars": 131.43478260869566
+  },
+  "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.36035296497448593,
+   "middle": 0.20494901019797013,
+   "won": 0.6086956521739131,
+   "total": -8.288118194413176,
+   "worst": -6.952614109633356,
+   "best": 1.6359853121175076,
+   "bars": 59.869565217391305
+  },
+  "all out at the EQ's far line": {
+   "n": 23,
+   "skipped": 3,
+   "avg": -0.15299357869338795,
+   "middle": -0.07250289086487041,
+   "won": 0.21739130434782608,
+   "total": -3.5188523099479228,
+   "worst": -1.6064939620398258,
+   "best": 1.0239902080783312,
+   "bars": 1.5217391304347827
+  },
+  "hold 24 hourly bars (the old way)": {
+   "n": 26,
+   "skipped": 0,
+   "avg": -1.7156704433586047,
+   "middle": -0.6837682292812505,
+   "won": 0.2692307692307692,
+   "total": -44.607431527323726,
+   "worst": -10.529702945456368,
+   "best": 2.7723807735636448,
+   "bars": 184.6153846153846
+  }
+ },
+ "trades": [
+  {
+   "id": "crypto_BTC_5m_95623",
+   "n": 1,
+   "sym": "BTC",
+   "kind": "crypto",
+   "tf": "5m",
+   "mark": "long",
+   "lined_up": false,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": 0.021199083383880934,
+     "bars": 49,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": 0.149924347792039,
+     "bars": 116,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.43363172375294023,
+     "bars": 152,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 0.08617579322447422,
+     "bars": 49,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": 0.21490105763263234,
+     "bars": 116,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.4986084335935336,
+     "bars": 152,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": 0.3149010576326324,
+     "bars": 49,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": 0.5723515864489483,
+     "bars": 116,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": 1.139766338370751,
+     "bars": 152,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": 0.1679609228490081,
+     "bars": 116,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": 0.3700671069897298,
+     "bars": 146,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.43363172375294023,
+     "bars": 152,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 0.306318552422165,
+     "bars": 116,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": 0.5084247365628867,
+     "bars": 146,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.5719893533260971,
+     "bars": 152,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": 0.6084247365628868,
+     "bars": 116,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": 1.0126371048443301,
+     "bars": 146,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 1.139766338370751,
+     "bars": 152,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.07250289086487041,
+     "bars": 1,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": 0.9256761965522298,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "stock_AMZN_15m_18404",
+   "n": 2,
+   "sym": "AMZN",
+   "kind": "stock",
+   "tf": "15m",
+   "mark": "long",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.43142666492519577,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.43142666492519577,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.43142666492519577,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.43142666492519577,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.43142666492519577,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.43142666492519577,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.43142666492519577,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.43142666492519577,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.43142666492519577,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.911090005939525,
+     "bars": 81,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.911090005939525,
+     "bars": 81,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.08216856628675287,
+     "bars": 1,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -1.7815681342545857,
+     "bars": 81,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -1.7815681342545857,
+     "bars": 81,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.20494901019797013,
+     "bars": 1,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -1.7815681342545857,
+     "bars": 81,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -1.7815681342545857,
+     "bars": 81,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.20494901019797013,
+     "bars": 1,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.43142666492519577,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -3.3884823035392815,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "crypto_HYPE_15m_2429",
+   "n": 4,
+   "sym": "HYPE",
+   "kind": "crypto",
+   "tf": "15m",
+   "mark": "long",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": 1.5516895763305132,
+     "bars": 9,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.30785213210650847,
+     "bars": 23,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 1.2299877600979192,
+     "bars": 1,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 1.5595417084370218,
+     "bars": 9,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.30000000000000004,
+     "bars": 23,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 1.2378398922044278,
+     "bars": 1,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": 2.2793889445826956,
+     "bars": 9,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -1.4396944722913478,
+     "bars": 23,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": 1.6359853121175076,
+     "bars": 1,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.3895528928313601,
+     "bars": 23,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.3895528928313601,
+     "bars": 23,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 1.2299877600979192,
+     "bars": 1,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.30000000000000004,
+     "bars": 23,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.30000000000000004,
+     "bars": 23,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 1.3195406529292792,
+     "bars": 1,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -1.6030959937410512,
+     "bars": 23,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -1.6030959937410512,
+     "bars": 23,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 1.6359853121175076,
+     "bars": 1,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": 1.0239902080783312,
+     "bars": 1,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -4.912362301101589,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "stock_AAPL_5m_55611",
+   "n": 5,
+   "sym": "AAPL",
+   "kind": "stock",
+   "tf": "5m",
+   "mark": "long",
+   "lined_up": false,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.15932367386558857,
+     "bars": 39,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.15932367386558857,
+     "bars": 39,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.15932367386558857,
+     "bars": 39,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.07500000000000001,
+     "bars": 39,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.07500000000000001,
+     "bars": 39,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.07500000000000001,
+     "bars": 39,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.4166292100379866,
+     "bars": 39,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.4166292100379866,
+     "bars": 39,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.4166292100379866,
+     "bars": 39,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -1.096620088346929,
+     "bars": 139,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -1.096620088346929,
+     "bars": 139,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -1.096620088346929,
+     "bars": 139,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -2.2912220390006675,
+     "bars": 139,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -2.2912220390006675,
+     "bars": 139,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -2.2912220390006675,
+     "bars": 139,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -2.2912220390006675,
+     "bars": 139,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -2.2912220390006675,
+     "bars": 139,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": -2.2912220390006675,
+     "bars": 139,
+     "how": "stopped out"
+    },
+    "all out at the EQ's far line": {
+     "pct": 0.1479818623068095,
+     "bars": 0,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -4.622742368118537,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "stock_COST_15m_15034",
+   "n": 6,
+   "sym": "COST",
+   "kind": "stock",
+   "tf": "15m",
+   "mark": "short",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "all out at the EQ's far line": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": 2.7723807735636448,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "crypto_LINK_5m_58311",
+   "n": 7,
+   "sym": "LINK",
+   "kind": "crypto",
+   "tf": "5m",
+   "mark": "long",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.7493406954167106,
+     "bars": 7,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.7493406954167106,
+     "bars": 7,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.7493406954167106,
+     "bars": 7,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.7493406954167106,
+     "bars": 7,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.7493406954167106,
+     "bars": 7,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.7493406954167106,
+     "bars": 7,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.7493406954167106,
+     "bars": 7,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.7493406954167106,
+     "bars": 7,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.7493406954167106,
+     "bars": 7,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": 1.0652554351873298,
+     "bars": 34,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.6926189861479815,
+     "bars": 154,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.33614818510665034,
+     "bars": 27,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 1.4578744213353168,
+     "bars": 34,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.2999999999999945,
+     "bars": 154,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.6856180616190561,
+     "bars": 27,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": 2.143832561780415,
+     "bars": 34,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -1.3719162808902075,
+     "bars": 154,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.6856180616190561,
+     "bars": 27,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.7493406954167106,
+     "bars": 7,
+     "how": "stopped out"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": 0.38625420980417363,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "crypto_INJ_15m_43712",
+   "n": 8,
+   "sym": "INJ",
+   "kind": "crypto",
+   "tf": "15m",
+   "mark": "long",
+   "lined_up": false,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": 0.7285271343636979,
+     "bars": 6,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": 1.027702729873532,
+     "bars": 7,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.6170631846851785,
+     "bars": 6,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 0.597526786529502,
+     "bars": 6,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": 0.8967023820393358,
+     "bars": 7,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.4860628368509824,
+     "bars": 6,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": 0.9967023820393359,
+     "bars": 6,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": 1.595053573059004,
+     "bars": 7,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.773774482682297,
+     "bars": 6,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": 1.0205498003172802,
+     "bars": 7,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": 1.4657367288039052,
+     "bars": 7,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.6170631846851785,
+     "bars": 6,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 1.0355607854598752,
+     "bars": 7,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": 1.4807477139465004,
+     "bars": 7,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.6320741698277736,
+     "bars": 6,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": 1.5807477139465005,
+     "bars": 7,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": 2.4711215709197503,
+     "bars": 7,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.773774482682297,
+     "bars": 6,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": 0.66035188668806,
+     "bars": 6,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -6.532300542215341,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "stock_GOOGL_15m_31138",
+   "n": 9,
+   "sym": "GOOGL",
+   "kind": "stock",
+   "tf": "15m",
+   "mark": "short",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.515121023080259,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.515121023080259,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.515121023080259,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.515121023080259,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.515121023080259,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.515121023080259,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.515121023080259,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.515121023080259,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.515121023080259,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -1.1217810274462061,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -1.1217810274462061,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -1.1217810274462061,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -1.1217810274462061,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -1.1217810274462061,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -1.1217810274462061,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -1.1217810274462061,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -1.1217810274462061,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": -1.1217810274462061,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.515121023080259,
+     "bars": 3,
+     "how": "stopped out"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -1.727910396125236,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "futures_SI_F_15m_27538",
+   "n": 10,
+   "sym": "SI_F",
+   "kind": "futures",
+   "tf": "15m",
+   "mark": "long",
+   "lined_up": false,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.23422182712012796,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.23422182712012796,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.23422182712012796,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.23422182712012796,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.23422182712012796,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.23422182712012796,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.23422182712012796,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.23422182712012796,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.23422182712012796,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -1.4031932799267017,
+     "bars": 142,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -1.4031932799267017,
+     "bars": 142,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -1.4031932799267017,
+     "bars": 142,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -2.856536710003554,
+     "bars": 142,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -2.856536710003554,
+     "bars": 142,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -2.856536710003554,
+     "bars": 142,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -2.856536710003554,
+     "bars": 142,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -2.856536710003554,
+     "bars": 142,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": -2.856536710003554,
+     "bars": 142,
+     "how": "stopped out"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.23422182712012796,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -1.079601029601023,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "crypto_AAVE_15m_27386",
+   "n": 11,
+   "sym": "AAVE",
+   "kind": "crypto",
+   "tf": "15m",
+   "mark": "long",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.47674491202186675,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.47674491202186675,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.47674491202186675,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.47674491202186675,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.47674491202186675,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.47674491202186675,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.47674491202186675,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.47674491202186675,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.47674491202186675,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.013922441195174606,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.013922441195174606,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.08143674507310616,
+     "bars": 138,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 0.22911633820724098,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": 0.22911633820724098,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.4198347107438026,
+     "bars": 138,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": 0.22911633820724098,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": 0.22911633820724098,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.4198347107438026,
+     "bars": 138,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.47674491202186675,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -1.0264462809917405,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "stock_COIN_5m_88048",
+   "n": 12,
+   "sym": "COIN",
+   "kind": "stock",
+   "tf": "5m",
+   "mark": "long",
+   "lined_up": false,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -1.6064939620398258,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -1.6064939620398258,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -1.6064939620398258,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -1.6064939620398258,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -1.6064939620398258,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -1.6064939620398258,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -1.6064939620398258,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -1.6064939620398258,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -1.6064939620398258,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -2.7112819075631847,
+     "bars": 209,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -2.7112819075631847,
+     "bars": 209,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.7088445008790798,
+     "bars": 53,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -5.732800189418224,
+     "bars": 209,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -5.732800189418224,
+     "bars": 209,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 1.1074526274663041,
+     "bars": 53,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -5.732800189418224,
+     "bars": 209,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -5.732800189418224,
+     "bars": 209,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 1.1074526274663041,
+     "bars": 53,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": -1.6064939620398258,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -2.203252588396167,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "stock_LLY_5m_27964",
+   "n": 13,
+   "sym": "LLY",
+   "kind": "stock",
+   "tf": "5m",
+   "mark": "long",
+   "lined_up": false,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": 0.11545984574072274,
+     "bars": 0,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": 0.1615862405601891,
+     "bars": 1,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.2473250433776737,
+     "bars": 3,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 0.06337918445839902,
+     "bars": 0,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": 0.10950557927786536,
+     "bars": 1,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.19524438209534994,
+     "bars": 3,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": 0.13450557927786538,
+     "bars": 0,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": 0.22675836891679807,
+     "bars": 1,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.3982359745517673,
+     "bars": 3,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.6765561273519622,
+     "bars": 227,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.6765561273519622,
+     "bars": 227,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.2473250433776737,
+     "bars": 3,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.07500000000000001,
+     "bars": 227,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.07500000000000001,
+     "bars": 227,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.3982359745517673,
+     "bars": 3,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -1.4495263669075047,
+     "bars": 227,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -1.4495263669075047,
+     "bars": 227,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.3982359745517673,
+     "bars": 3,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": 0.14641411220358014,
+     "bars": 0,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -4.642249855407749,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "stock_COIN_15m_25391",
+   "n": 15,
+   "sym": "COIN",
+   "kind": "stock",
+   "tf": "15m",
+   "mark": "short",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "all out at the EQ's far line": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -0.3397984435544223,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "crypto_LINK_15m_134065",
+   "n": 16,
+   "sym": "LINK",
+   "kind": "crypto",
+   "tf": "15m",
+   "mark": "long",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.3819774507878122,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.3819774507878122,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.3819774507878122,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.30000000000000004,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.30000000000000004,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.30000000000000004,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.5530118410773976,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.5530118410773976,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.5530118410773976,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.48706044548267413,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.48706044548267413,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.48706044548267413,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.7631778304671215,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.7631778304671215,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.7631778304671215,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -0.7631778304671215,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -0.7631778304671215,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.7631778304671215,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.010943060498226687,
+     "bars": 0,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": 0.21147686832739132,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "crypto_XRP_15m_31710",
+   "n": 18,
+   "sym": "XRP",
+   "kind": "crypto",
+   "tf": "15m",
+   "mark": "short",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.3597182170973818,
+     "bars": 6,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.3597182170973818,
+     "bars": 6,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.3597182170973818,
+     "bars": 6,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.45963270897946884,
+     "bars": 6,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.45963270897946884,
+     "bars": 6,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.45963270897946884,
+     "bars": 6,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.45963270897946884,
+     "bars": 6,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.45963270897946884,
+     "bars": 6,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.45963270897946884,
+     "bars": 6,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": 0.010434608451837246,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": 0.010434608451837246,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.010434608451837246,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 0.28067294211896915,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": 0.28067294211896915,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.28067294211896915,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": 0.28067294211896915,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": 0.28067294211896915,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.28067294211896915,
+     "bars": 192,
+     "how": "still open when time ran out"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.059803725215294645,
+     "bars": 1,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": 0.8815141197676779,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "stock_MSFT_15m_31633",
+   "n": 19,
+   "sym": "MSFT",
+   "kind": "stock",
+   "tf": "15m",
+   "mark": "long",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.2863780724461664,
+     "bars": 1,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.2863780724461664,
+     "bars": 1,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.2863780724461664,
+     "bars": 1,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.4915270274992302,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.4915270274992302,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.4915270274992302,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.4915270274992302,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.4915270274992302,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.4915270274992302,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.5319834998339739,
+     "bars": 2,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.5319834998339739,
+     "bars": 2,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.5319834998339739,
+     "bars": 2,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.9827378822748453,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.9827378822748453,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.9827378822748453,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -0.9827378822748453,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -0.9827378822748453,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.9827378822748453,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.031229117393102673,
+     "bars": 0,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -1.8732783972169103,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "stock_NFLX_15m_25832",
+   "n": 20,
+   "sym": "NFLX",
+   "kind": "stock",
+   "tf": "15m",
+   "mark": "long",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.18967623331375832,
+     "bars": 1,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.18967623331375832,
+     "bars": 1,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.18967623331375832,
+     "bars": 1,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.5166198014608211,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.5166198014608211,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.5166198014608211,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.5166198014608211,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.5166198014608211,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.5166198014608211,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.41601137901526314,
+     "bars": 28,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.41601137901526314,
+     "bars": 28,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.5161229290243434,
+     "bars": 15,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.07500000000000001,
+     "bars": 28,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.07500000000000001,
+     "bars": 28,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.8571343080396063,
+     "bars": 15,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -0.9692900928638306,
+     "bars": 28,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -0.9692900928638306,
+     "bars": 28,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.8949785232153824,
+     "bars": 15,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": 0.18726733483330438,
+     "bars": 0,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -0.6300777255062295,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "futures_GC_F_5m_101031",
+   "n": 21,
+   "sym": "GC_F",
+   "kind": "futures",
+   "tf": "5m",
+   "mark": "long",
+   "lined_up": false,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.09354458063258106,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.09354458063258106,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.09354458063258106,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.09354458063258106,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.09354458063258106,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.09354458063258106,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.09354458063258106,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.09354458063258106,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.09354458063258106,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.2091775865594371,
+     "bars": 135,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.2091775865594371,
+     "bars": 135,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.03822628095121355,
+     "bars": 6,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.33306466073838653,
+     "bars": 135,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.33306466073838653,
+     "bars": 135,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.008837950478060574,
+     "bars": 6,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -0.33306466073838653,
+     "bars": 135,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -0.33306466073838653,
+     "bars": 135,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.008837950478060574,
+     "bars": 6,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.09354458063258106,
+     "bars": 2,
+     "how": "stopped out"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -0.3932213777886737,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "futures_YM_F_15m_75024",
+   "n": 22,
+   "sym": "YM_F",
+   "kind": "futures",
+   "tf": "15m",
+   "mark": "short",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.12574319633500564,
+     "bars": 5,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.12574319633500564,
+     "bars": 5,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.12574319633500564,
+     "bars": 5,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.16850006741108436,
+     "bars": 5,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.16850006741108436,
+     "bars": 5,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.16850006741108436,
+     "bars": 5,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.16850006741108436,
+     "bars": 5,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.16850006741108436,
+     "bars": 5,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.16850006741108436,
+     "bars": 5,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": 0.3644308974559013,
+     "bars": 52,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.28195519267214575,
+     "bars": 73,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.0685528806278046,
+     "bars": 30,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 0.571386090128047,
+     "bars": 52,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.07500000000000001,
+     "bars": 73,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.2200920865145361,
+     "bars": 30,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": 0.8118481201707294,
+     "bars": 52,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -0.4809240600853647,
+     "bars": 73,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.2200920865145361,
+     "bars": 30,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.03298632525892686,
+     "bars": 0,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -0.34348588928351165,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "crypto_HYPE_5m_17189",
+   "n": 23,
+   "sym": "HYPE",
+   "kind": "crypto",
+   "tf": "5m",
+   "mark": "short",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.38379944749053085,
+     "bars": 4,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.38379944749053085,
+     "bars": 4,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.38379944749053085,
+     "bars": 4,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.47544467551491515,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.47544467551491515,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.47544467551491515,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.47544467551491515,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.47544467551491515,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.47544467551491515,
+     "bars": 4,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -1.232712831385842,
+     "bars": 321,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -1.232712831385842,
+     "bars": 321,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.13823132919922942,
+     "bars": 28,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.30000000000000004,
+     "bars": 321,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.30000000000000004,
+     "bars": 321,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 0.015691561067687765,
+     "bars": 28,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -2.1732714433055373,
+     "bars": 321,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -2.1732714433055373,
+     "bars": 321,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 0.015691561067687765,
+     "bars": 28,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.09215421946614655,
+     "bars": 1,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": 1.4716095982744797,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "stock_TSLA_5m_29092",
+   "n": 25,
+   "sym": "TSLA",
+   "kind": "stock",
+   "tf": "5m",
+   "mark": "long",
+   "lined_up": false,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.15952394017317867,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.15952394017317867,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.15952394017317867,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.15952394017317867,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.15952394017317867,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.15952394017317867,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.15952394017317867,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.15952394017317867,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.15952394017317867,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -6.952614109633356,
+     "bars": 165,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -6.952614109633356,
+     "bars": 165,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -6.952614109633356,
+     "bars": 165,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -6.952614109633356,
+     "bars": 165,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -6.952614109633356,
+     "bars": 165,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -6.952614109633356,
+     "bars": 165,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -6.952614109633356,
+     "bars": 165,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -6.952614109633356,
+     "bars": 165,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": -6.952614109633356,
+     "bars": 165,
+     "how": "stopped out"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.15952394017317867,
+     "bars": 0,
+     "how": "stopped out"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -10.529702945456368,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "futures_NQ_F_5m_229726",
+   "n": 26,
+   "sym": "NQ_F",
+   "kind": "futures",
+   "tf": "5m",
+   "mark": "long",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "all out at the EQ's far line": {
+     "pct": null,
+     "bars": 0,
+     "how": "no trade: it opened outside the EQ"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": 0.2773274446963183,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "crypto_SOL_15m_132384",
+   "n": 27,
+   "sym": "SOL",
+   "kind": "crypto",
+   "tf": "15m",
+   "mark": "long",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.6732559903752109,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.6732559903752109,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.6732559903752109,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.6732559903752109,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.6732559903752109,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.6732559903752109,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.6732559903752109,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.6732559903752109,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.6732559903752109,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.6168814254038295,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.6168814254038295,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.6168814254038295,
+     "bars": 11,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -1.1065855160752405,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -1.1065855160752405,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -1.1065855160752405,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -1.1065855160752405,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -1.1065855160752405,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": -1.1065855160752405,
+     "bars": 11,
+     "how": "stopped out"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.6732559903752109,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -0.5672612801678849,
+     "bars": 96,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "crypto_AVAX_5m_194834",
+   "n": 28,
+   "sym": "AVAX",
+   "kind": "crypto",
+   "tf": "5m",
+   "mark": "short",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.3860855319987867,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.3860855319987867,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.3860855319987867,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.3860855319987867,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.3860855319987867,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.3860855319987867,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.3860855319987867,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.3860855319987867,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.3860855319987867,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": 0.6571233803036695,
+     "bars": 17,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.5169890839375051,
+     "bars": 48,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.5169890839375051,
+     "bars": 48,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": 0.8741124642411746,
+     "bars": 17,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.30000000000000004,
+     "bars": 48,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.30000000000000004,
+     "bars": 48,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": 1.3654832856548995,
+     "bars": 17,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -0.9827416428274498,
+     "bars": 48,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.9827416428274498,
+     "bars": 48,
+     "how": "stopped out"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.3860855319987867,
+     "bars": 1,
+     "how": "stopped out"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -5.65339251743817,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "futures_RTY_F_5m_233391",
+   "n": 29,
+   "sym": "RTY_F",
+   "kind": "futures",
+   "tf": "5m",
+   "mark": "long",
+   "lined_up": true,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.032807762366900445,
+     "bars": 15,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.09318315808324988,
+     "bars": 50,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.09318315808324988,
+     "bars": 50,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.014624604283650575,
+     "bars": 15,
+     "how": "sold into the move"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.07500000000000001,
+     "bars": 50,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.07500000000000001,
+     "bars": 50,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": 0.03050052762179925,
+     "bars": 15,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.09025026381089962,
+     "bars": 50,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.09025026381089962,
+     "bars": 50,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.15625155300934077,
+     "bars": 138,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.15625155300934077,
+     "bars": 138,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.15625155300934077,
+     "bars": 138,
+     "how": "rest stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.21638705366308136,
+     "bars": 138,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.21638705366308136,
+     "bars": 138,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.21638705366308136,
+     "bars": 138,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -0.21638705366308136,
+     "bars": 138,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -0.21638705366308136,
+     "bars": 138,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.21638705366308136,
+     "bars": 138,
+     "how": "stopped out"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.046116052355600116,
+     "bars": 1,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -0.7374587330562714,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  },
+  {
+   "id": "crypto_XRP_5m_89925",
+   "n": 30,
+   "sym": "XRP",
+   "kind": "crypto",
+   "tf": "5m",
+   "mark": "long",
+   "lined_up": false,
+   "plans": {
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.33396198642455815,
+     "bars": 20,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.33396198642455815,
+     "bars": 20,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": -0.33396198642455815,
+     "bars": 20,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -0.30000000000000004,
+     "bars": 20,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -0.30000000000000004,
+     "bars": 20,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": -0.30000000000000004,
+     "bars": 20,
+     "how": "rest stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 2x the risk": {
+     "pct": -0.4545607776270186,
+     "bars": 20,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at 3x the risk": {
+     "pct": -0.4545607776270186,
+     "bars": 20,
+     "how": "stopped out"
+    },
+    "stop EQ's far side, none, sell the rest at the hourly's last swing high": {
+     "pct": -0.4545607776270186,
+     "bars": 20,
+     "how": "stopped out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 2x the risk": {
+     "pct": -0.9812243374393509,
+     "bars": 576,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at 3x the risk": {
+     "pct": -0.9812243374393509,
+     "bars": 576,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at the EQ's far line, sell the rest at the hourly's last swing high": {
+     "pct": 0.49320642030607975,
+     "bars": 66,
+     "how": "sold into the move"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 2x the risk": {
+     "pct": -1.749085479656604,
+     "bars": 576,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at 3x the risk": {
+     "pct": -1.749085479656604,
+     "bars": 576,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, half at 1x the risk, sell the rest at the hourly's last swing high": {
+     "pct": 1.1997760358342573,
+     "bars": 66,
+     "how": "sold into the move, no partial taken"
+    },
+    "stop the hourly higher low, none, sell the rest at 2x the risk": {
+     "pct": -1.749085479656604,
+     "bars": 576,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, none, sell the rest at 3x the risk": {
+     "pct": -1.749085479656604,
+     "bars": 576,
+     "how": "still open when time ran out"
+    },
+    "stop the hourly higher low, none, sell the rest at the hourly's last swing high": {
+     "pct": 1.1997760358342573,
+     "bars": 66,
+     "how": "sold into the move, no partial taken"
+    },
+    "all out at the EQ's far line": {
+     "pct": -0.013363195222097668,
+     "bars": 3,
+     "how": "all out at the far line"
+    },
+    "hold 24 hourly bars (the old way)": {
+     "pct": -0.3306457633445379,
+     "bars": 288,
+     "how": "held"
+    }
+   }
+  }
+ ]
+}

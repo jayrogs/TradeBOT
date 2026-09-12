@@ -873,6 +873,11 @@ def eqmark_page():
     return send_from_directory("static", "eqmark.html")
 
 
+@app.route("/eqrisk")
+def eqrisk_page():
+    return send_from_directory("static", "eqrisk.html")
+
+
 @app.route("/eqtrades")
 def eqtrades_page():
     return send_from_directory("static", "eqtrades.html")
