@@ -78,11 +78,16 @@ def one_trade(stop_kind, partial_kind, sell_kind, tf, kind, df, r, side, h1lo, h
     if stop_kind == "eq":
         stop = eq_stop
     else:
+        # THE CLOSEST structure that kills the idea, not the furthest (2026-09-11, his catch: the hourly swing
+        # could sit 3% away while the target sat 0.6% away, so every trade risked five times what it aimed at).
         hl = h1lo[e] if side > 0 else h1hi[e]
-        if not np.isfinite(hl) or (side > 0 and hl >= entry) or (side < 0 and hl <= entry):
-            return dict(pct=None, bars=0, how="no trade: no hourly higher low under it")
         pad = 0.15 * (h1atr[e] if np.isfinite(h1atr[e]) else 0.0)
-        stop = hl - pad if side > 0 else hl + pad
+        h1_stop = (hl - pad) if side > 0 else (hl + pad)
+        both = [x for x in (eq_stop, h1_stop) if np.isfinite(x) and
+                ((side > 0 and x < entry) or (side < 0 and x > entry))]
+        if not both:
+            return dict(pct=None, bars=0, how="no trade: nothing to stop under")
+        stop = max(both) if side > 0 else min(both)
     risk = abs(entry - stop)
     if risk <= 0:
         return None
@@ -94,6 +99,8 @@ def one_trade(stop_kind, partial_kind, sell_kind, tf, kind, df, r, side, h1lo, h
         sw = h1hi[e] if side > 0 else h1lo[e]
         target = sw if (np.isfinite(sw) and ((side > 0 and sw > entry) or (side < 0 and sw < entry))) \
             else entry + side * 2 * risk
+    if abs(target - entry) < abs(entry - stop):
+        return dict(pct=None, bars=0, how="no trade: the target was closer than the stop")
     if partial_kind == "far":
         cut = far
     elif partial_kind == "1r":

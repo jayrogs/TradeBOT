@@ -91,13 +91,18 @@ def trades_for(sym, kind):
             eq_stop = (lows_[-1] - tol) if side > 0 else (highs_[-1] + tol)
             if (side > 0 and (entry >= far or entry <= eq_stop)) or (side < 0 and (entry <= far or entry >= eq_stop)):
                 continue
-            stop = hl - 0.15 * ha if side > 0 else hl + 0.15 * ha
-            if (side > 0 and stop >= entry) or (side < 0 and stop <= entry):
+            h1_stop = hl - 0.15 * ha if side > 0 else hl + 0.15 * ha
+            both = [x for x in (eq_stop, h1_stop) if np.isfinite(x) and
+                    ((side > 0 and x < entry) or (side < 0 and x > entry))]
+            if not both:
                 continue
+            stop = max(both) if side > 0 else min(both)
             risk = abs(entry - stop)
             sw = h1hi[e] if side > 0 else h1lo[e]
             target = sw if (np.isfinite(sw) and ((side > 0 and sw > entry) or (side < 0 and sw < entry))) \
                 else entry + side * 2 * risk
+            if abs(target - entry) < abs(entry - stop):
+                continue                              # the target was closer than the stop: not a trade
             cut = entry + side * risk
             last = min(n - 1, e + MAX_HOURS * BPH[tf])
             share, pnl, took_at, end_at, how = 1.0, 0.0, None, last, "time ran out"
@@ -242,7 +247,8 @@ def summary_png(rows, path):
     ax2.tick_params(colors=DIM, labelsize=8)
     for sp in ax2.spines.values():
         sp.set_color("#252a33")
-    ax2.set_title("so the wins are smaller than the losses", color="#e6e9ee", fontsize=12, loc="left", pad=8)
+    ax2.set_title("the wins are %s than the losses" % ("bigger" if aw > -al_ else "smaller"),
+                  color="#e6e9ee", fontsize=12, loc="left", pad=8)
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
     plt.close(fig)
 
