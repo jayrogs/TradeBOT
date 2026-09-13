@@ -21,7 +21,7 @@ import exit_managers as XM        # noqa: E402
 import eq_freeride2 as FR2        # noqa: E402
 import tcg_lab as L               # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import pics_bbwalk as W           # noqa: E402
+import pics_scalein as W           # noqa: E402
 
 NAMES = [("NVDA", "stock", "5m", "1h"), ("SOL", "crypto", "15m", "4h"),
          ("ES_F", "futures", "5m", "1h"), ("AAPL", "stock", "15m", "4h")]

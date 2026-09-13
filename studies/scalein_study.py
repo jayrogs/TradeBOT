@@ -1,4 +1,4 @@
-"""bb_verify.py -- put the one positive corner through everything before it is believed (2026-09-12).
+"""scalein_study.py -- put the one positive corner through everything before it is believed (2026-09-12).
 
 The corner (from `tcg_lab.py`, focus list): the BACKBURNER trigger -- RSI 14 at or under 30 on the 5m/15m, then
 back over it -- bought at the next open, half off at 1x the risk, the rest with the stop walked under each new
@@ -16,8 +16,8 @@ judge it, not an average:
     how long trades are held, and how many a name produces a year
     the control: the same trigger and management with no filter, and the same filter with a plain 2R exit
 
-    pythonw studies/bb_verify.py --procs 20 --log logs/bb_verify.log
-Writes validation/bb_verify.json
+    pythonw studies/scalein_study.py --procs 20 --log logs/scalein.log
+Writes validation/scalein.json
 """
 import concurrent.futures as cf
 import io
@@ -43,7 +43,7 @@ import tcg_lab as L               # noqa: E402
 
 COSTV = L.COST
 
-OUT = os.path.join("validation", "bb_verify.json")
+OUT = os.path.join("validation", "scalein.json")
 ERAS = ["before 2022", "first half", "second half"]
 # (name, mode, use the 12 EMA filter, which array the stop walks on)
 # HIS BACKBURNER, 2026-09-12: "its about buying it AT OR UNDER 30 ... its about scaling into a dip".
@@ -76,7 +76,9 @@ BENCH_CLOSE = {}
 
 
 def _work(args):
-    sym, kind, start, benches = args
+    # THE PAIRS TRAVEL IN THE JOB, not in a global: Windows re-imports this module in every worker, so a
+    # `global PAIRS` set in main() never reaches them (2026-09-12, that bug silently re-ran the fast charts).
+    sym, kind, start, benches, pairs = args
     global BENCH_CLOSE
     BENCH_CLOSE = benches
     try:
@@ -87,7 +89,7 @@ def _work(args):
         frames = FR2.regular_hours(frames)
     mid_t = start + (pd.Timestamp.now() - start) / 2
     rows, errs = [], []
-    for tf_i, (tf, big, above) in enumerate(L.PAIRS):
+    for tf_i, (tf, big, above) in enumerate(pairs):
         df = frames.get(tf)
         bdf = frames.get(big)
         if df is None or bdf is None or len(df) < 500 or len(bdf) < 80:
@@ -270,6 +272,11 @@ def describe(v, r_mult):
 
 def main():
     procs, log = max(1, os.cpu_count() or 4), None
+    pairs = L.PAIRS
+    out_path = OUT
+    if "--slow" in sys.argv:                 # the swing charts: 1h idea daily, 4h idea weekly
+        pairs = L.PAIRS_SLOW
+        out_path = os.path.join("validation", "scalein_swing.json")
     for i, a in enumerate(sys.argv):
         if a == "--procs" and i + 1 < len(sys.argv):
             procs = int(sys.argv[i + 1])
@@ -293,7 +300,8 @@ def main():
             except Exception as _ex:
                 print("  LEADER MISSING %s: %s" % (_lead[0], _ex), flush=True)
         print("  leaders loaded: %s" % ", ".join(sorted(benches)), flush=True)
-        for got, err in ex.map(_work, [(s_, k_, start, benches) for s_, k_ in names], chunksize=1):
+        jobs = [(s_, k_, start, benches, pairs) for s_, k_ in names]
+        for got, err in ex.map(_work, jobs, chunksize=1):
             done += 1
             errs += err or []
             if got is not None:
@@ -310,7 +318,8 @@ def main():
     out = dict(meta=dict(generated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), names=len(names),
                          rows=int(len(d)), setups=[s[0] for s in SETUPS], seconds=int(time.time() - t0)),
                table={})
-    print("\n  THE BACKBURNER CORNER, CHECKED  (%d names, %d trades, %.0fs)" % (len(names), len(d), time.time() - t0))
+    print("\n  THE SCALE-IN, %s CHARTS  (%d names, %d trades, %.0fs)" % (
+        "SWING" if pairs is L.PAIRS_SLOW else "FAST", len(names), len(d), time.time() - t0))
     for si, (name, mode, filt, _w) in enumerate(SETUPS):
         col = "r%d" % si
         keep = (d.f_over > 0) if filt == "over" else (d.f_rise > 0) if filt == "rising" else (d.ctrl >= 0)
@@ -349,7 +358,7 @@ def main():
             s = line(kd, g[g.kind == kd])
             if s:
                 out["table"][name]["markets"][kd] = s
-        for tf_i, tf in enumerate(["5m", "15m"]):
+        for tf_i, tf in enumerate([q[0] for q in pairs]):
             s = line(tf, g[g.tf == tf_i])
             if s:
                 out["table"][name]["charts"][tf] = s
@@ -357,7 +366,7 @@ def main():
             s = line(lab, g[g.side == sd])
             if s:
                 out["table"][name][lab] = s
-    json.dump(out, open(OUT, "w"))
+    json.dump(out, open(out_path, "w"))
     for e_ in errs[:10]:
         print("  ERR " + e_)
     if log:

@@ -1,4 +1,4 @@
-"""swing_verify.py -- the swing EQ entry, checked the way bb_verify checks things (2026-09-12, overnight).
+"""swing_verify.py -- the swing EQ entry, checked the way scalein_study checks things (2026-09-12, overnight).
 
 The setup: on the 1h (idea chart the daily) or the 4h (idea chart the weekly), a higher low confirms INSIDE a live
 EQ; buy the next open; stop at the nearest structure; half off at 1x the risk; the rest with the stop walked under
@@ -24,8 +24,8 @@ judge it, not an average:
     how long trades are held, and how many a name produces a year
     the control: the same trigger and management with no filter, and the same filter with a plain 2R exit
 
-    pythonw studies/bb_verify.py --procs 20 --log logs/bb_verify.log
-Writes validation/bb_verify.json
+    pythonw studies/scalein_study.py --procs 20 --log logs/scalein_study.log
+Writes validation/scalein_study.json
 """
 import concurrent.futures as cf
 import json

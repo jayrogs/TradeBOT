@@ -64,8 +64,8 @@ const rr = v => (v > 0 ? '+' : '') + v.toFixed(2) + 'R';
 const cls = v => v > 0 ? 'good' : v < 0 ? 'bad' : '';
 
 Promise.all([
-  fetch('/validation/bb_walk/bb_walk_index.json?v=' + Date.now()).then(r => r.json()),
-  fetch('/validation/bb_verify.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('/validation/scale_in/scale_in_index.json?v=' + Date.now()).then(r => r.json()),
+  fetch('/validation/scalein.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
 ]).then(([d, v]) => {
   const s = d.stats;
   let h = `<div class="card"><b>These charts come from ${s.n.toLocaleString()} trades on the focus list</b><table>
@@ -99,7 +99,7 @@ Promise.all([
         &middot; ${c.t} &middot; ${(c.fills || [0]).length} unit${(c.fills || [0]).length == 1 ? '' : 's'}
         &middot; risked <b>${c.risk_pct.toFixed(2)}%</b> &middot; <b>${rr(c.R)}</b>
         &middot; ${c.how}${c.took_at ? ' (half came off first)' : ''}${c.leader && c.leader != '-' ? ' &middot; strong vs ' + c.leader : ''}</div>
-      <img src="/validation/bb_walk/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym} ${c.tf}">
+      <img src="/validation/scale_in/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym} ${c.tf}">
       <div class="marks" data-id="${c.png}">
         <span class="verdict" data-v="good">would take</span>
         <span class="verdict" data-v="bad">would not</span>
@@ -110,7 +110,7 @@ Promise.all([
   $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
   $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
   // grading, saved the moment it changes; NOT SAVED in red if the server refuses (rule 12)
-  fetch('/api/tradenote?set=bbwalk').then(r => r.json()).catch(() => ({})).then(notes => {
+  fetch('/api/tradenote?set=scalein').then(r => r.json()).catch(() => ({})).then(notes => {
     notes = notes || {};
     document.querySelectorAll('.marks').forEach(m => {
       const id = m.dataset.id, prev = String(notes[id] || '');
@@ -125,7 +125,7 @@ Promise.all([
         const s = m.querySelector('.saved');
         const fail = () => { s.textContent = 'NOT SAVED - tell Claude'; s.style.color = 'var(--dn)'; };
         fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({set: 'bbwalk', n: id, note: body})})
+          body: JSON.stringify({set: "scalein", n: id, note: body})})
           .then(r => { if (!r.ok) return fail(); s.textContent = 'saved'; s.style.color = '';
                        setTimeout(() => { if (s.textContent === 'saved') s.textContent = ''; }, 1500); })
           .catch(fail);

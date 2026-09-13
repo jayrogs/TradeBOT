@@ -878,9 +878,16 @@ def eqrisk_page():
     return send_from_directory("static", "eqrisk.html")
 
 
+@app.route("/scalein")
+def scalein_page():
+    return send_from_directory("static", "scalein.html")
+
+
 @app.route("/bbwalk")
-def bbwalk_page():
-    return send_from_directory("static", "bbwalk.html")
+def bbwalk_old():
+    """"bbwalk" was my invented name for it (2026-09-12: "who thought of that name? its nothing ive
+    ever said"). His words are scaling into a dip, so the page is /scalein."""
+    return redirect("/scalein")
 
 
 @app.route("/eqtrades")

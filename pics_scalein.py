@@ -1,6 +1,6 @@
-"""pics_bbwalk.py -- the backburner trade drawn, winners and losers (2026-09-12).
+"""pics_scalein.py -- the backburner trade drawn, winners and losers (2026-09-12).
 
-THE TRADE (`studies/bb_verify.py`), in his words: "its about buying it AT OR UNDER 30 ... its about scaling into a
+THE TRADE (`studies/scalein_study.py`), in his words: "its about buying it AT OR UNDER 30 ... its about scaling into a
 dip". RSI 14 on the 5m/15m reaches 30 or under: a first unit goes on at the next open, and up to two more as price
 keeps falling, each a further half a normal bar down, while the print STAYS at or under 30. The position is the
 average of those fills. Stop at the nearest structure below the LOWEST fill that kills the idea (this chart's last
@@ -10,8 +10,8 @@ sector leader. Shorts mirror it.
 
 Nothing is claimed about this trade until these are looked at.
 
-    pythonw pics_bbwalk.py --procs 20 --log logs\\pics_bbwalk.log
-Writes validation/bb_walk/*.png + bb_walk_index.json  ->  /bbwalk
+    pythonw pics_scalein.py --procs 20 --log logs\\pics_scalein.log
+Writes validation/scale_in/*.png + scale_in_index.json  ->  /scalein
 """
 import concurrent.futures as cf
 import json
@@ -34,11 +34,11 @@ import indicators as IND          # noqa: E402
 import exit_managers as XM        # noqa: E402
 import eq_freeride2 as FR2        # noqa: E402
 import tcg_lab as L               # noqa: E402
-import bb_verify as BB            # noqa: E402
+import scalein_study as BB            # noqa: E402
 
 DARK, DIM = "#0d0f12", "#8b93a1"
 PURPLE, GREEN, RED, AMBER, BLUE = "#b48cff", "#3ddc97", "#ff5c72", "#ffb84d", "#5aa9ff"
-OUT = os.path.join("validation", "bb_walk")
+OUT = os.path.join("validation", "scale_in")
 PAIRS = L.PAIRS
 COST = L.COST
 L_ADDS = BB.ADDS
@@ -46,7 +46,7 @@ L_ADD_GAP = BB.ADD_GAP
 
 
 def walk_one(kind, o, h, l, c, e, side, stop, risk, big_hl, bell, entry_px=None):
-    """The same walk bb_verify runs, but recording every step so it can be drawn.
+    """The same walk scalein_study runs, but recording every step so it can be drawn.
     `e` is the LAST fill of the scale-in and `entry_px` the average of the fills."""
     n = len(c)
     last = min(n - 1, e + L.MAX_BARS)
@@ -125,7 +125,7 @@ def trades_for(sym, kind):
         if kind in ("stock", "etf"):
             day = df.index.normalize().values
             bells = np.searchsorted(day, day, side="right") - 1
-        # RELATIVE STRENGTH against the name's OWN sector leader, exactly as bb_verify measures it
+        # RELATIVE STRENGTH against the name's OWN sector leader, exactly as scalein_study measures it
         strong = np.zeros(n)
         lead_name = "-"
         lead = BB.SECTOR_MAP.get("%s|%s" % (kind, sym))
@@ -363,7 +363,7 @@ def main():
     drawn.sort(key=lambda x: -x["R"])
     for i, tr in enumerate(drawn, 1):
         tr["n"] = i
-    keep = {d["png"] for d in drawn} | {"bb_walk_index.json"}
+    keep = {d["png"] for d in drawn} | {"scale_in_index.json"}
     for f in os.listdir(OUT):
         if f not in keep:
             os.remove(os.path.join(OUT, f))
@@ -374,7 +374,7 @@ def main():
                  took_partial=float(np.mean([r["took_at"] is not None for r in rows])),
                  avg_units=float(np.mean([len(r["fills"]) for r in rows])))
     slim = [{k: v for k, v in d.items() if k != "steps"} for d in drawn]
-    json.dump(dict(stats=stats, charts=slim), open(os.path.join(OUT, "bb_walk_index.json"), "w"), indent=1)
+    json.dump(dict(stats=stats, charts=slim), open(os.path.join(OUT, "scale_in_index.json"), "w"), indent=1)
     print("  drawn %d, problems %d  (%.0fs)" % (len(drawn), sum(1 for d in drawn if d["problems"]), time.time() - t0))
     for d in drawn:
         print("    #%-2d %-6s %-3s %-5s %+6.2fR  risk %.2f%%  %-18s %s" % (
