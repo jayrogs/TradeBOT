@@ -69,6 +69,11 @@ SECTOR_MAP = json.load(io.open(os.path.join("validation", "sector_map.json"), en
 # A name only HAS a sector if it actually moves with one. Below this the "leader" is noise and the name gets no
 # strength read at all (72 of 781: the inverse ETFs, which sit at -0.87 to their index, and the farm futures).
 MIN_R = 0.30
+# MURPHY'S BREADTH (studies/breadth.py): how many of the market's names are above their own 200-day, each day.
+# Breadth turns before the index does at a bottom, which is the bull-vs-bear question in his own words.
+_BR = os.path.join("validation", "breadth.json")
+BREADTH = json.load(io.open(_BR, encoding="utf-8")) if os.path.exists(_BR) else {}
+BR_GROUP = {"stock": "stocks", "etf": "stocks", "crypto": "crypto", "futures": "futures"}
 SECTOR_MAP = {k: v for k, v in SECTOR_MAP.items() if v[1] >= MIN_R}
 CONTROL = "control: any bar, same management and filter"        # rule 15: every result needs a control
 
@@ -86,6 +91,15 @@ def _work(args):
         frames = B.frames_for(sym, kind)
     except Exception as ex:
         return None, ["%s %s: %s" % (kind, sym, ex)]
+    # KEEP ONLY THE CHARTS THIS RUN USES. A daily run never touches the 5m frame, and SOL's is 430,000 bars;
+    # holding all of them in 20 workers is what froze the machine (2026-09-12).
+    need = set()
+    for q in pairs:
+        need.add(q[0])
+        need.add(q[1])
+        need.update(q[2])
+    need.add("1d")                 # the strength ratio, the run, and the leader's regime are all read here
+    frames = {k_: v_ for k_, v_ in frames.items() if k_ in need}
     if kind in ("stock", "etf"):
         frames = FR2.regular_hours(frames)
     mid_t = start + (pd.Timestamp.now() - start) / 2
@@ -133,6 +147,11 @@ def _work(args):
             over = np.full(n, np.nan)
             rising = np.full(n, np.nan)
             lead_age = np.full(n, np.nan)
+            br = np.full(n, np.nan)
+            br_turn = np.full(n, np.nan)
+            div = np.full(n, np.nan)
+            lead_dd = np.full(n, np.nan)
+            lead_turn = np.full(n, np.nan)
             d1 = frames.get("1d")
             lead = SECTOR_MAP.get("%s|%s" % (kind, sym))
             if d1 is not None and len(d1) > 60 and lead:
@@ -157,10 +176,42 @@ def _work(args):
                             run_ = run_ + 1 if abv[k_] else 0
                             age[k_] = run_ if abv[k_] else -1.0
                         lead_age = L.align_to(df, tf, frames, "1d", age)
+                        # HOW DEEP the leader is under its own 200-day, and whether it has TURNED UP off that
+                        # low. "Under the 200-day" on its own is a crude proxy for his bear-to-bull turn: it is
+                        # true for most of a long grind down as well as for the bounce out of a crash.
+                        dd = (bxa / np.where(b200 > 0, b200, np.nan) - 1.0) * 100.0
+                        e20 = XM.ema(bxa, 20)
+                        turn = np.zeros(len(bxa))
+                        turn[5:] = (e20[5:] > e20[:-5]).astype(float)
+                        lead_dd = L.align_to(df, tf, frames, "1d", dd)
+                        lead_turn = L.align_to(df, tf, frames, "1d", turn)
                         over = L.align_to(df, tf, frames, "1d",
                                           np.where(ratio > r12, 1.0, 0.0))
                         rising = L.align_to(df, tf, frames, "1d",
                                             np.where((ratio > r12) & (up5 > 0), 1.0, 0.0))
+            # BREADTH, on the name's own market, read on its daily clock
+            bg = BREADTH.get(BR_GROUP.get(kind, kind))
+            if bg is not None and d1 is not None and len(d1) > 60:
+                bidx = pd.to_datetime(bg["dates"])
+                a200 = pd.Series(bg["above200"], index=bidx).reindex(d1.index).ffill()
+                t20 = pd.Series([np.nan if x is None else float(x) for x in bg["turn20"]],
+                                index=bidx).reindex(d1.index).ffill()
+                br = L.align_to(df, tf, frames, "1d", a200.values.astype(float))
+                br_turn = L.align_to(df, tf, frames, "1d", t20.values.astype(float))
+            # MURPHY'S DIVERGENCE, on the name's own daily: price at a 40-day low while momentum is HIGHER than
+            # it was 40 days ago -- the selling is running out of force. His named bottom signal.
+            if d1 is not None and len(d1) > 80:
+                dc = d1["Close"].values.astype(float)
+                dl = d1["Low"].values.astype(float)
+                drsi = IND.rsi(dc, 14)
+                lo40 = pd.Series(dl).rolling(40, min_periods=40).min().values
+                dat = P._atr(d1)
+                tol = np.where(np.isfinite(dat), 0.25 * dat, 0.0)
+                dv = np.zeros(len(dc))
+                # NEAR the 40-day low, not exactly on it: an exact touch fired on 0.2% of trades, which is not
+                # a measurable sample and is not what Murphy describes (he describes the RETEST).
+                dv[40:] = ((dl[40:] <= lo40[40:] + tol[40:]) & (drsi[40:] > drsi[:-40])).astype(float)
+                div = L.align_to(df, tf, frames, "1d", dv)
             bells = None
             if kind in ("stock", "etf"):
                 day = df.index.normalize().values
@@ -261,6 +312,11 @@ def _work(args):
                     on_run = (rn if side > 0 else -rn) if np.isfinite(rn) else np.nan
                     la = lead_age[m_]
                     la = float(la) if np.isfinite(la) else -2.0
+                    ldd = float(lead_dd[m_]) if np.isfinite(lead_dd[m_]) else 0.0
+                    brv = float(br[m_]) if np.isfinite(br[m_]) else -1.0
+                    brt = float(br_turn[m_]) if np.isfinite(br_turn[m_]) else -1.0
+                    dvv = float(div[m_]) if np.isfinite(div[m_]) else 0.0
+                    ltn = float(lead_turn[m_]) if np.isfinite(lead_turn[m_]) else 0.0
                     u2 = up200[m_]
                     on_200 = (u2 if side > 0 else (1.0 - u2)) if np.isfinite(u2) else 0.0
                     fresh = since["long" if side > 0 else "short"][max(0, k - 1)]
@@ -277,7 +333,8 @@ def _work(args):
                                                None, mode, None if bells is None else bells[e_last], atr,
                                                chand=chd, entry_px=entry))
                     rows.append([tf_i, side, era, f_over, f_rise,
-                                 on_run if np.isfinite(on_run) else 0.0, float(fresh), on_200, la,
+                                 on_run if np.isfinite(on_run) else 0.0, float(fresh), on_200, la, ldd, ltn,
+                                 brv, brt, dvv,
                                  risk / entry * 100, float(t_.value), is_ctrl] + res)
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
@@ -375,7 +432,7 @@ def main():
                 print("  %d/%d names  (%.0fs)" % (done, len(names), time.time() - t0), flush=True)
     f = np.concatenate(parts)
     kinds = np.array(kinds)
-    cols = ["tf", "side", "era", "f_over", "f_rise", "on_run", "fresh", "on_200", "lead_age", "risk_pct", "t", "ctrl"] +         ["r%d" % i for i in range(len(SETUPS))]
+    cols = ["tf", "side", "era", "f_over", "f_rise", "on_run", "fresh", "on_200", "lead_age", "lead_dd", "lead_turn", "breadth", "br_turn", "diverge", "risk_pct", "t", "ctrl"] +         ["r%d" % i for i in range(len(SETUPS))]
     d = pd.DataFrame(f, columns=cols)
     d["kind"] = kinds
     d = d.sort_values("t")
@@ -477,8 +534,10 @@ def main():
                     kd, sk["n"], sk["avg"], sk["middle"], 100 * sk["won"], sk["avg_R"] or 0))
                 out["preconditions"][lab][kd] = sk
     # THE REGIME HE NAMED: where the name's own sector leader stands against its 200-day when the dip prints.
-    REG = [("the leader is UNDER its 200-day (bear)", lambda x: x.lead_age < 0),
-           ("just turned up, under 90 days (bear -> bull)", lambda x: (x.lead_age >= 0) & (x.lead_age < 90)),
+    REG = [("leader 10%+ UNDER its 200-day, still falling", lambda x: (x.lead_dd <= -10) & (x.lead_turn < 0.5)),
+           ("leader 10%+ UNDER it but TURNING UP (the turn)", lambda x: (x.lead_dd <= -10) & (x.lead_turn > 0.5)),
+           ("leader a little under its 200-day", lambda x: (x.lead_dd > -10) & (x.lead_dd < 0)),
+           ("leader just over its 200-day, under 90 days", lambda x: (x.lead_age >= 0) & (x.lead_age < 90)),
            ("early bull, 90-365 days up", lambda x: (x.lead_age >= 90) & (x.lead_age < 365)),
            ("mature bull, 365+ days up", lambda x: x.lead_age >= 365)]
     out["regime"] = {}
@@ -509,7 +568,53 @@ def main():
                         kd, sk["n"], sk["avg"], sk["middle"], 100 * sk["won"], sk["avg_R"] or 0,
                         "", "-" if sk["top5_share"] is None else "%.0f%%" % (100 * sk["top5_share"])))
                     out["regime"][SETUPS[si2][0]][lab][kd] = sk
+    # MURPHY'S BULL-VS-BEAR READS, the ones this machine can actually build (2026-09-12, his question:
+    # "is there anything you can use from trading in the zone or the other book on ways to test when something
+    # is bullish vs bearish?"). Douglas has nothing here on purpose. These are Murphy's.
+    MUR = [("breadth washed out, under 20% over their 200-day", lambda x: (x.breadth >= 0) & (x.breadth < 0.20)),
+           ("breadth 20-40%", lambda x: (x.breadth >= 0.20) & (x.breadth < 0.40)),
+           ("breadth 40-60%", lambda x: (x.breadth >= 0.40) & (x.breadth < 0.60)),
+           ("breadth 60-80%", lambda x: (x.breadth >= 0.60) & (x.breadth < 0.80)),
+           ("breadth over 80%, everything is up", lambda x: x.breadth >= 0.80),
+           ("breadth under 30 AND turning up (his bottom)",
+            lambda x: (x.breadth >= 0) & (x.breadth < 0.30) & (x.br_turn > 0.5)),
+           ("breadth under 30 and still falling",
+            lambda x: (x.breadth >= 0) & (x.breadth < 0.30) & (x.br_turn == 0)),
+           ("momentum divergence at a 40-day low", lambda x: x.diverge > 0.5),
+           ("divergence AND breadth under 40",
+            lambda x: (x.diverge > 0.5) & (x.breadth >= 0) & (x.breadth < 0.40))]
+    out["murphy"] = {}
+    for si2 in (0, 3):
+        colm = "r%d" % si2
+        print("\n  MURPHY'S BULL-VS-BEAR READS  (%s)" % SETUPS[si2][0])
+        print("    %-46s %7s %8s %8s %6s %7s %7s" % (
+            "the read", "n", "avg", "middle", "won", "avg R", "ctrl R"))
+        for lab, fn in MUR:
+            g = d[(d.ctrl == 0) & fn(d)]
+            g = g[np.isfinite(g[colm])]
+            cc = d[(d.ctrl == 1) & fn(d)]
+            cc = cc[np.isfinite(cc[colm])]
+            s_ = describe(g[colm].values, (g[colm] / g.risk_pct).values)
+            sc = describe(cc[colm].values, (cc[colm] / cc.risk_pct).values)
+            if not s_:
+                continue
+            print("    %-46s %7d %+7.3f%% %+7.3f%% %5.0f%% %+6.2fR %+6.2fR" % (
+                lab, s_["n"], s_["avg"], s_["middle"], 100 * s_["won"], s_["avg_R"] or 0,
+                (sc["avg_R"] or 0) if sc else 0))
+            out["murphy"].setdefault(SETUPS[si2][0], {})[lab] = dict(setup=s_, control=sc)
+            for kd in ("stock", "crypto"):
+                gk = g[g.kind == kd]
+                sk = describe(gk[colm].values, (gk[colm] / gk.risk_pct).values)
+                if sk:
+                    print("        %-42s %7d %+7.3f%% %+7.3f%% %5.0f%% %+6.2fR" % (
+                        kd, sk["n"], sk["avg"], sk["middle"], 100 * sk["won"], sk["avg_R"] or 0))
+                    out["murphy"][SETUPS[si2][0]][lab][kd] = sk
     json.dump(out, open(out_path, "w"))
+    # keep the rows so a question can be answered without re-running the whole study
+    try:
+        d.to_parquet(os.path.splitext(out_path)[0] + "_rows.parquet")
+    except Exception as _ex:
+        np.save(os.path.splitext(out_path)[0] + "_rows.npy", d.to_records(index=False))
     for e_ in errs[:10]:
         print("  ERR " + e_)
     if log:
