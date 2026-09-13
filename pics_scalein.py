@@ -186,7 +186,7 @@ def trades_for(sym, kind):
                     stop = entry - side * risk
                     from_ = "floored at a quarter of a normal bar"
                 rp = risk / entry * 100
-                if rp < 3 * COST.get(kind, 0.05) or rp > 5.0:
+                if rp < 3 * COST.get(kind, 0.05) or risk > 4.0 * a or rp > 25.0:
                     continue
                 if not (strong[e_last] > 0):        # his filter: strength against its own sector leader
                     continue

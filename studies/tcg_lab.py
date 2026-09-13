@@ -128,8 +128,10 @@ def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big
         far = entry + side * risk
         cut = ov if (np.isfinite(ov) and ((side > 0 and ov > far) or (side < 0 and ov < far))) else far
     cost = COST.get(kind, 0.05)
-    if mode == "chand":
-        # a chandelier: the stop sits `chand` normal bars under the highest close since the entry (mirrored short)
+    if mode in ("chand", "ride"):
+        # a chandelier: the stop sits `chand` normal bars under the highest close since the entry (mirrored short).
+        # "ride" is the same line with NO partial at all -- the management for chasing the giant winners
+        # (2026-09-12, his words: "its those giant winners we are chasing").
         a0 = float(atr[e - 1]) if (atr is not None and np.isfinite(atr[e - 1])) else risk
         if side > 0:
             run_hi = np.maximum.accumulate(cw)
@@ -142,7 +144,7 @@ def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big
             line = np.minimum(np.r_[np.inf, cand[:-1]], stop)
             exit_i = first(hw >= line)
         cut_i = first(hw >= cut) if side > 0 else first(lw <= cut)
-        took = cut_i is not None and (exit_i is None or cut_i < exit_i)
+        took = mode == "chand" and cut_i is not None and (exit_i is None or cut_i < exit_i)
         px = (o[e + exit_i + 1] if e + exit_i + 1 <= last else c[last]) if exit_i is not None else c[last]
         share = 0.5 if took else 1.0
         got = (1 - share) * side * (cut - entry) / entry

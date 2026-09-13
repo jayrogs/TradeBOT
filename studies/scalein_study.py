@@ -55,12 +55,13 @@ ADD_GAP = 0.5          # a new unit only after price falls another half a normal
 #   "any"    every scale-in
 #   "over"   the name's ratio to ITS OWN SECTOR LEADER is above that ratio's 12 EMA on the daily
 #   "rising" the same, and the ratio has been climbing for a week (the ratio trending, not just above)
-SETUPS = [("scale-in, walked stop, ANY name", "walk", "any", "big"),
-          ("scale-in, walked stop, OVER its sector leader", "walk", "over", "big"),
-          ("scale-in, walked stop, sector ratio RISING", "walk", "rising", "big"),
-          ("scale-in, small-chart trail, ratio rising", "walk", "rising", "small"),
-          ("scale-in, chandelier 3, ratio rising", "chand", "rising", "big"),
-          ("scale-in, all out at 2x, ratio rising", "out2r", "rising", "big")]
+SETUPS = [("scale-in, walked stop, ANY name", "walk", "any", "big", 3.0),
+          ("scale-in, chandelier 3, ANY name", "chand", "any", "big", 3.0),
+          ("scale-in, chandelier 8, ANY name", "chand", "any", "big", 8.0),
+          ("scale-in, RIDE it, no partial, chandelier 8", "ride", "any", "big", 8.0),
+          ("scale-in, RIDE it, no partial, chandelier 12", "ride", "any", "big", 12.0),
+          ("scale-in, all out at 2x, ANY name", "out2r", "any", "big", 3.0),
+          ("scale-in, walked stop, OVER its sector leader", "walk", "over", "big", 3.0)]
 # EVERY NAME IS MEASURED AGAINST ITS OWN SECTOR LEADER (2026-09-12, his words: "The bench arm is obvious dude,
 # whatever is the sector leader or etf of the sector. Like we compare to BTC for all crypto"). The map is built by
 # studies/sector_map.py on the FIRST HALF of each name's history, so it cannot peek at what gets traded.
@@ -131,6 +132,7 @@ def _work(args):
             # on the daily. Stocks and ETFs are measured against SPY and QQQ, strong against EITHER counts.
             over = np.full(n, np.nan)
             rising = np.full(n, np.nan)
+            lead_age = np.full(n, np.nan)
             d1 = frames.get("1d")
             lead = SECTOR_MAP.get("%s|%s" % (kind, sym))
             if d1 is not None and len(d1) > 60 and lead:
@@ -143,6 +145,18 @@ def _work(args):
                         rr = np.where(ok, ratio, np.nan)
                         r12 = XM.ema(rr, 12)
                         up5 = r12 - np.r_[np.full(5, np.nan), r12[:-5]]
+                        # THE REGIME, read on the LEADER: bear, the turn, early bull, mature bull. His words
+                        # (2026-09-12): "its when markets go from bear to bull, that backburners are back in
+                        # play". -1 means the leader is under its own 200-day; otherwise it is how many daily
+                        # bars since it crossed back above.
+                        b200 = XM.ema(bxa, 200)
+                        abv = bxa > b200
+                        age = np.full(len(abv), -1.0)
+                        run_ = 0
+                        for k_ in range(len(abv)):
+                            run_ = run_ + 1 if abv[k_] else 0
+                            age[k_] = run_ if abv[k_] else -1.0
+                        lead_age = L.align_to(df, tf, frames, "1d", age)
                         over = L.align_to(df, tf, frames, "1d",
                                           np.where(ratio > r12, 1.0, 0.0))
                         rising = L.align_to(df, tf, frames, "1d",
@@ -153,6 +167,35 @@ def _work(args):
                 bells = np.searchsorted(day, day, side="right") - 1
             os_ = (rsi <= 30)
             ob = (rsi >= 70)
+            # HIS TWO PRECONDITIONS (2026-09-12): "backburners ... is only engaged when the name has a huge run
+            # going on", and "first daily oversold in a long time has a huge bounce if you buy that dip".
+            #   run60  how far the name has TRAVELLED in the last 60 bars, counted in normal bars so every
+            #          market is on the same scale (a 20-bar run in NVDA and in SOL mean the same thing here)
+            #   since  how many bars since the PREVIOUS print of the same kind: a first-in-a-long-time dip
+            #          scores high, a name printing oversold every week scores low
+            # THE RUN IS READ ON THE DAILY, always. Measuring it on the entry chart made "a huge run" mean
+            # the last 60 FIVE-MINUTE bars -- five hours -- and it co-occurred with an oversold print 993
+            # times in 720,577 (2026-09-12). A name that is running is running on the daily.
+            run60 = np.full(n, np.nan)
+            up200 = np.full(n, np.nan)
+            dd = frames.get("1d")
+            if dd is not None and len(dd) > 220:
+                dc = dd["Close"].values.astype(float)
+                da = P._atr(dd)
+                rd = np.full(len(dc), np.nan)
+                rd[60:] = (dc[60:] - dc[:-60]) / np.where(da[60:] > 0, da[60:], np.nan)
+                run60 = L.align_to(df, tf, frames, "1d", rd)
+                up200 = L.align_to(df, tf, frames, "1d",
+                                   np.where(dc > XM.ema(dc, 200), 1.0, 0.0))
+            since = {}
+            for nm, flag in (("long", os_), ("short", ob)):
+                gap = np.zeros(n)
+                last_seen = -10 ** 6
+                for k_ in range(n):
+                    gap[k_] = k_ - last_seen
+                    if flag[k_]:
+                        last_seen = k_
+                since[nm] = gap
             # the first oversold bar of each run: that is where the scale-in starts
             ups = np.where(os_[1:] & ~os_[:-1])[0] + 1
             dns = np.where(ob[1:] & ~ob[:-1])[0] + 1
@@ -203,10 +246,24 @@ def _work(args):
                     # A RISK BAND, so the numbers describe trades a person could take: the stop must be at least
                     # three times the round-trip cost away, and no more than 5% of price (2026-09-12: without this,
                     # a 0.09%-risk trade printed +44R and a 12%-risk trade counted the same as any other).
+                    # THE RISK BAND, in the units the stop is actually set in. It used to cap the stop at 5% OF
+                    # PRICE, which is fine on a 5m chart and impossible on a daily: a daily dip's nearest structure
+                    # sits 0.8-1.3 normal bars away, which IS 10-16% of price, so the cap threw out 89-100% of
+                    # every daily backburner (2026-09-12). Murphy's 5% is 5% of the ACCOUNT, which is a sizing
+                    # question, not a reason to skip the trade. So: the stop must be at least three times the
+                    # round-trip cost away (or cost eats the edge) and no more than four normal bars (further than
+                    # that and it is not "the nearest structure" any more), with a loose sanity cap on price.
                     rp = risk / entry * 100
-                    if rp < 3 * COSTV.get(kind, 0.05) or rp > 5.0:
+                    if rp < 3 * COSTV.get(kind, 0.05) or risk > 4.0 * a or rp > 25.0:
                         continue
                     # a SHORT is strong when the name is WEAK against its leader, so the flag mirrors
+                    rn = run60[m_]
+                    on_run = (rn if side > 0 else -rn) if np.isfinite(rn) else np.nan
+                    la = lead_age[m_]
+                    la = float(la) if np.isfinite(la) else -2.0
+                    u2 = up200[m_]
+                    on_200 = (u2 if side > 0 else (1.0 - u2)) if np.isfinite(u2) else 0.0
+                    fresh = since["long" if side > 0 else "short"][max(0, k - 1)]
                     o_ = over[e_last]
                     r_ = rising[e_last]
                     f_over = (o_ if side > 0 else (1.0 - o_)) if np.isfinite(o_) else 0.0
@@ -214,13 +271,14 @@ def _work(args):
                     t_ = df.index[e]
                     era = 0 if t_ < start else 1 if t_ < mid_t else 2
                     res = []
-                    for _, mode, _f, which in SETUPS:
+                    for _, mode, _f, which, chd in SETUPS:
                         trail = (big_lo if side > 0 else big_hi) if which == "big" else                                 (last_lo if side > 0 else last_hi)
                         res.append(L.run_trade(kind, o, h, l, c, e_last, side, stop, risk, b12, trail, small12,
                                                None, mode, None if bells is None else bells[e_last], atr,
-                                               entry_px=entry))
-                    rows.append([tf_i, side, era, f_over, f_rise, risk / entry * 100,
-                                 float(t_.value), is_ctrl] + res)
+                                               chand=chd, entry_px=entry))
+                    rows.append([tf_i, side, era, f_over, f_rise,
+                                 on_run if np.isfinite(on_run) else 0.0, float(fresh), on_200, la,
+                                 risk / entry * 100, float(t_.value), is_ctrl] + res)
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
     if not rows:
@@ -265,7 +323,10 @@ def describe(v, r_mult):
              avg_loss=float(losses.mean()) if len(losses) else None,
              avg_R=float(np.mean(r_mult)) if len(r_mult) else None,
              middle_R=float(np.median(r_mult)) if len(r_mult) else None,
-             worst_losing_streak=int(streak), worst_dip_pct=dip)
+             worst_losing_streak=int(streak), worst_dip_pct=dip,
+             total=float(v.sum()),
+             top5_share=float(np.sort(v)[-max(1, len(v) // 20):].sum() / v.sum()) if v.sum() > 0 else None,
+             best=float(v.max()))
     d["blocks"] = blocks_of_20(v)
     return d
 
@@ -277,6 +338,9 @@ def main():
     if "--slow" in sys.argv:                 # the swing charts: 1h idea daily, 4h idea weekly
         pairs = L.PAIRS_SLOW
         out_path = os.path.join("validation", "scalein_swing.json")
+    if "--daily" in sys.argv:                # HIS bear-market case: the daily dip, the weekly as the idea
+        pairs = [("1d", "1w", ["1w"]), ("4h", "1d", ["1d", "1w"])]
+        out_path = os.path.join("validation", "scalein_daily.json")
     for i, a in enumerate(sys.argv):
         if a == "--procs" and i + 1 < len(sys.argv):
             procs = int(sys.argv[i + 1])
@@ -311,7 +375,7 @@ def main():
                 print("  %d/%d names  (%.0fs)" % (done, len(names), time.time() - t0), flush=True)
     f = np.concatenate(parts)
     kinds = np.array(kinds)
-    cols = ["tf", "side", "era", "f_over", "f_rise", "risk_pct", "t", "ctrl"] +         ["r%d" % i for i in range(len(SETUPS))]
+    cols = ["tf", "side", "era", "f_over", "f_rise", "on_run", "fresh", "on_200", "lead_age", "risk_pct", "t", "ctrl"] +         ["r%d" % i for i in range(len(SETUPS))]
     d = pd.DataFrame(f, columns=cols)
     d["kind"] = kinds
     d = d.sort_values("t")
@@ -319,8 +383,8 @@ def main():
                          rows=int(len(d)), setups=[s[0] for s in SETUPS], seconds=int(time.time() - t0)),
                table={})
     print("\n  THE SCALE-IN, %s CHARTS  (%d names, %d trades, %.0fs)" % (
-        "SWING" if pairs is L.PAIRS_SLOW else "FAST", len(names), len(d), time.time() - t0))
-    for si, (name, mode, filt, _w) in enumerate(SETUPS):
+        "SWING" if pairs is L.PAIRS_SLOW else "DAILY" if "--daily" in sys.argv else "FAST", len(names), len(d), time.time() - t0))
+    for si, (name, mode, filt, _w, _ch) in enumerate(SETUPS):
         col = "r%d" % si
         keep = (d.f_over > 0) if filt == "over" else (d.f_rise > 0) if filt == "rising" else (d.ctrl >= 0)
         g = d[(d.ctrl == 0) & keep]
@@ -366,6 +430,85 @@ def main():
             s = line(lab, g[g.side == sd])
             if s:
                 out["table"][name][lab] = s
+    # HIS PRECONDITIONS, cut on the best management: did the name have to be RUNNING, and did the dip have
+    # to be the first in a long time? Each cut gets its own control (any bar, same cut) so the trigger is what
+    # is being measured and not the market the cut happens to select.
+    col = "r0"
+    out["preconditions"] = {}
+    print("\n  HIS TWO PRECONDITIONS  (walked stop, any name)")
+    print("    %-34s %8s %8s %8s %6s %7s %7s %9s" % (
+        "cut", "n", "avg", "middle", "won", "avg R", "ctrl R", "20-blocks"))
+    cuts = [("every dip (no precondition)", None),
+            ("the name is over its 200-day", ("on_200", 0.5))]
+    for b in (2, 4, 6, 10):
+        cuts.append(("ran %d+ daily bars in 60 days" % b, ("on_run", b)))
+    for b in (30, 60, 120, 250):
+        cuts.append(("first dip in %d+ bars" % b, ("fresh", b)))
+    for rb, fb in ((4, 60), (6, 120)):
+        cuts.append(("ran %d+ AND first in %d+ bars" % (rb, fb), ("both", (rb, fb))))
+    cuts.append(("over the 200-day AND first in 120+", ("t200", 120)))
+    for lab, spec in cuts:
+        if spec is None:
+            m = d.ctrl >= 0
+        elif spec[0] == "both":
+            m = (d.on_run >= spec[1][0]) & (d.fresh >= spec[1][1])
+        elif spec[0] == "t200":
+            m = (d.on_200 > 0.5) & (d.fresh >= spec[1])
+        else:
+            m = d[spec[0]] >= spec[1]
+        g = d[(d.ctrl == 0) & m]
+        g = g[np.isfinite(g[col])]
+        cc = d[(d.ctrl == 1) & m]
+        cc = cc[np.isfinite(cc[col])]
+        s = describe(g[col].values, (g[col] / g.risk_pct).values)
+        sc = describe(cc[col].values, (cc[col] / cc.risk_pct).values)
+        if not s:
+            continue
+        bl = s["blocks"]
+        print("    %-34s %8d %+7.3f%% %+7.3f%% %5.0f%% %+6.2fR %+6.2fR %9s" % (
+            lab, s["n"], s["avg"], s["middle"], 100 * s["won"], s["avg_R"] or 0,
+            (sc["avg_R"] or 0) if sc else 0, ("%d/%d" % (bl["blocks_up"], bl["blocks"])) if bl else "-"))
+        out["preconditions"][lab] = dict(setup=s, control=sc)
+        for kd in ("stock", "crypto"):
+            sk = describe(g[g.kind == kd][col].values,
+                          (g[g.kind == kd][col] / g[g.kind == kd].risk_pct).values)
+            if sk:
+                print("        %-30s %8d %+7.3f%% %+7.3f%% %5.0f%% %+6.2fR" % (
+                    kd, sk["n"], sk["avg"], sk["middle"], 100 * sk["won"], sk["avg_R"] or 0))
+                out["preconditions"][lab][kd] = sk
+    # THE REGIME HE NAMED: where the name's own sector leader stands against its 200-day when the dip prints.
+    REG = [("the leader is UNDER its 200-day (bear)", lambda x: x.lead_age < 0),
+           ("just turned up, under 90 days (bear -> bull)", lambda x: (x.lead_age >= 0) & (x.lead_age < 90)),
+           ("early bull, 90-365 days up", lambda x: (x.lead_age >= 90) & (x.lead_age < 365)),
+           ("mature bull, 365+ days up", lambda x: x.lead_age >= 365)]
+    out["regime"] = {}
+    for si2 in (0, 3):
+        colr = "r%d" % si2
+        print("\n  THE BEAR-TO-BULL TURN  (%s)" % SETUPS[si2][0])
+        print("    %-44s %7s %8s %8s %6s %7s %7s %8s" % (
+            "where the leader stood", "n", "avg", "middle", "won", "avg R", "ctrl R", "top 5%"))
+        for lab, fn in REG:
+            g = d[(d.ctrl == 0) & fn(d)]
+            g = g[np.isfinite(g[colr])]
+            cc = d[(d.ctrl == 1) & fn(d)]
+            cc = cc[np.isfinite(cc[colr])]
+            s_ = describe(g[colr].values, (g[colr] / g.risk_pct).values)
+            sc = describe(cc[colr].values, (cc[colr] / cc.risk_pct).values)
+            if not s_:
+                continue
+            print("    %-44s %7d %+7.3f%% %+7.3f%% %5.0f%% %+6.2fR %+6.2fR %7s" % (
+                lab, s_["n"], s_["avg"], s_["middle"], 100 * s_["won"], s_["avg_R"] or 0,
+                (sc["avg_R"] or 0) if sc else 0,
+                "-" if s_["top5_share"] is None else "%.0f%%" % (100 * s_["top5_share"])))
+            out["regime"].setdefault(SETUPS[si2][0], {})[lab] = dict(setup=s_, control=sc)
+            for kd in ("stock", "crypto"):
+                gk = g[g.kind == kd]
+                sk = describe(gk[colr].values, (gk[colr] / gk.risk_pct).values)
+                if sk:
+                    print("        %-40s %7d %+7.3f%% %+7.3f%% %5.0f%% %+6.2fR %7s %7s" % (
+                        kd, sk["n"], sk["avg"], sk["middle"], 100 * sk["won"], sk["avg_R"] or 0,
+                        "", "-" if sk["top5_share"] is None else "%.0f%%" % (100 * sk["top5_share"])))
+                    out["regime"][SETUPS[si2][0]][lab][kd] = sk
     json.dump(out, open(out_path, "w"))
     for e_ in errs[:10]:
         print("  ERR " + e_)
