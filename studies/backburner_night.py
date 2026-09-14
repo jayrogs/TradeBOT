@@ -63,7 +63,7 @@ ENTRIES = [("one unit at 30, no scaling", 30, 1, 0.0, 0),
 
 # (label, mode, chandelier distance)
 MANAGERS = [("stop walked under the idea chart's higher lows, half off at 1x", "walk", 3.0),
-            ("chandelier 3, half off at 1x", "chand", 3.0),
+            ("chandelier 3, half off at 1x", "chand1r", 3.0),
             ("RIDE it: chandelier 8, no partial", "ride", 8.0),
             ("RIDE it: chandelier 12, no partial", "ride", 12.0),
             ("all out at 2x", "out2r", 3.0),

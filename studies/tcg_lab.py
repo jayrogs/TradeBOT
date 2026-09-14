@@ -116,7 +116,7 @@ def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big
             if (side > 0 and l[j] <= line_) or (side < 0 and h[j] >= line_):
                 out_i = j
                 break
-            if mode in ("chand", "ride"):
+            if mode in ("chand", "chand1r", "ride"):
                 run_ = max(run_, c[j]) if side > 0 else min(run_, c[j])
                 cand = (run_ - chand * a0_) if side > 0 else (run_ + chand * a0_)
                 line_ = max(line_, cand) if side > 0 else min(line_, cand)
@@ -169,14 +169,17 @@ def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big
             return side * (tgt - entry) / entry * 100 - COST.get(kind, 0.05)
         return side * (cw[-1] - entry) / entry * 100 - COST.get(kind, 0.05)
     # both managed modes take half off first
-    if mode == "walk":
+    if mode in ("walk", "chand1r"):
+        # half off at ONE TIMES THE RISK, flat. "chand" instead takes it at the idea chart's 12 EMA when that is
+        # further away, which is a different trade -- and it silently made the drawings disagree with the study
+        # on 34 of 59 checked trades (2026-09-13). If a study says "half off at 1x", it wants this one.
         cut = entry + side * risk
     else:
         ov = big12[e]
         far = entry + side * risk
         cut = ov if (np.isfinite(ov) and ((side > 0 and ov > far) or (side < 0 and ov < far))) else far
     cost = COST.get(kind, 0.05)
-    if mode in ("chand", "ride"):
+    if mode in ("chand", "chand1r", "ride"):
         # a chandelier: the stop sits `chand` normal bars under the highest close since the entry (mirrored short).
         # "ride" is the same line with NO partial at all -- the management for chasing the giant winners
         # (2026-09-12, his words: "its those giant winners we are chasing").
@@ -192,7 +195,7 @@ def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big
             line = np.minimum(np.r_[np.inf, cand[:-1]], stop)
             exit_i = first(hw >= line)
         cut_i = first(hw >= cut) if side > 0 else first(lw <= cut)
-        took = mode == "chand" and cut_i is not None and (exit_i is None or cut_i < exit_i)
+        took = mode in ("chand", "chand1r") and cut_i is not None and (exit_i is None or cut_i < exit_i)
         px = (o[e + exit_i + 1] if e + exit_i + 1 <= last else c[last]) if exit_i is not None else c[last]
         share = 0.5 if took else 1.0
         got = (1 - share) * side * (cut - entry) / entry

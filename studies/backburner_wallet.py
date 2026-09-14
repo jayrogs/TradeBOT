@@ -124,7 +124,7 @@ def _work(args):
             if rp < 3 * cost or risk > 4.0 * a or rp > 25.0:
                 continue
             pct, exit_i = L.run_trade(kind, o, h, l, c, e_last, 1, stop, risk, b12, big_lo, small12, rsi,
-                                      "chand", None, atr, chand=3.0, entry_px=entry, want_exit=True)
+                                      "chand1r", None, atr, chand=3.0, entry_px=entry, want_exit=True)
             out.append(dict(sym=sym, kind=kind, t_in=str(df.index[e].date()),
                             t_out=str(df.index[min(exit_i + 1, n - 1)].date()),
                             pct=float(pct), risk_pct=float(rp), R=float(pct / rp),
@@ -233,8 +233,11 @@ def main():
             100 * dips.mean()))
         out["wallets"]["weak_%d" % slots] = dict(a_year=float(ann.mean()), worst_dip=float(dips.mean()),
                                                  n=len(weak))
-    out["trades"] = trades
+    # the page only needs the summary; the 5,946 trades go in their own file so /scalein is not waiting on a
+    # megabyte of rows it never reads
     json.dump(out, io.open(OUT, "w", encoding="utf-8"))
+    out["trades"] = trades
+    json.dump(out, io.open(os.path.splitext(OUT)[0] + "_trades.json", "w", encoding="utf-8"))
     for e_ in errs[:5]:
         print("  ERR " + e_)
 

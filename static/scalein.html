@@ -40,7 +40,8 @@
   <div class="sub">Two days of your corrections turned this into a different trade. It is a
     <b>daily</b> trade, not a 5-minute one. It is <b>scaled into</b>, not bought once. And the single strongest
     thing about it is one you never mentioned and neither did I until the machine found it: the name
-    <b>gapped down through yesterday's low</b> on the way in.</div>
+    <b>gapped down through yesterday's low</b> on the way in &mdash; worth +0.65R a trade
+    against +0.12R for buying any bar at all, and positive in 10 of 10 years.</div>
   <div class="rule">
     1. The <b>daily</b> chart. RSI 14 at or under <b>30</b>.<br>
     2. The name <b>opened below yesterday's low</b> — the fear gap.<br>
@@ -91,21 +92,23 @@ Promise.all([
     <b>Survivorship.</b> The 809 names are the ones that exist <i>today</i>. Every company that gapped down, went
     under 30 and never came back is missing from the data. A dip-buying rule is the most exposed of anything we
     could test to that bias, and it cannot be measured without delisted-company history, which this desk does not
-    have. Treat +49% as a ceiling, not a number.<br><br>
-    <b>It is a tail trade.</b> The top 5% of trades make 73% of all the profit, and the middle trade loses money
-    (&minus;0.83%). You have to take every one of them to get the few that pay.<br><br>
-    <b>The drawdown is real.</b> &minus;32% at ten slots. That is the price of the number above it.</div></div>`;
+    have. Treat +40% as a ceiling, not a number.<br><br>
+    <b>It leans on its tail.</b> The top 5% of trades make 67% of all the profit. The middle trade does make
+    money (+0.68%) and 58% of them win, but you still have to take every one to get the few that pay for the
+    year.<br><br>
+    <b>The drawdown is real.</b> &minus;26% at ten slots. That is the price of the number above it.</div></div>`;
   h += `<div class="card"><b>Why each rule is in there</b><table>
     <tr><th class="l">the rule</th><th>with it</th><th>without it</th></tr>
-    <tr><td class="l">scale in, rather than buy the dip once</td><td class="good">+0.37R</td><td class="bad">&minus;0.08R</td></tr>
-    <tr><td class="l">the fear gap</td><td class="good">+0.84R</td><td>+0.37R</td></tr>
-    <tr><td class="l">the daily chart, rather than the 5m</td><td class="good">+0.37R</td><td>+0.29R</td></tr>
-    <tr><td class="l">buying any bar at all (the control)</td><td>&mdash;</td><td>+0.13R</td></tr></table>
+    <tr><td class="l">scale in, rather than buy the dip once</td><td class="good">+0.35R</td><td class="bad">&minus;0.06R</td></tr>
+    <tr><td class="l">the fear gap</td><td class="good">+0.65R</td><td>+0.35R</td></tr>
+    <tr><td class="l">the daily chart, rather than the hourly</td><td class="good">+0.35R</td><td>+0.27R</td></tr>
+    <tr><td class="l">buying any bar at all (the control)</td><td>&mdash;</td><td>+0.12R</td></tr></table>
     <div class="sub" style="margin-top:8px">Every one of these is measured against a control that takes the same
     management on any bar at all, over three eras and year by year. The fear gap was positive in 10 of 10 years.
     <b>What did not survive:</b> momentum divergence (looked best on 183 trades, died at 1,115), waiting for the
     market to turn up (costs more than half the edge), and filtering to weak markets only &mdash; better per
-    trade at +1.36R, but it fires so rarely the account makes less.</div></div>`;
+    trade at +0.99R against +0.70R, but it fires 219 times a year instead of 627, so the account makes
+    +15.8% instead of +40.2%.</div></div>`;
   if (s) {
     h += `<div class="card"><b>The ${s.n.toLocaleString()} trades these charts come from</b><table>
       <tr><th class="l">measure</th><th>value</th></tr>
