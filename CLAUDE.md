@@ -135,6 +135,53 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     something real; the shape is not yet holdable.
     NOT VERIFIED, NOT CLAIMED: nothing from tonight is tradeable as it stands.
 
+35. THE BACKBURNER, FINISHED (2026-09-13). Two days of his corrections turned it into a different trade, and it is
+    the best thing this desk has found. `studies/backburner_night.py` (7 ways in x 22 reads x 6 ways out, 809 names,
+    3.0M rows), `studies/backburner_wallet.py` (what it is worth to an ACCOUNT), `studies/breadth.py`,
+    `studies/sector_map.py`, drawings `pics_scalein.py` -> /scalein.
+    THE RULE: the DAILY chart; RSI 14 at or under 30; the name OPENED BELOW YESTERDAY'S LOW (the fear gap); scaled
+    into as it keeps falling, up to five units a quarter of a normal bar apart while the print stays at or under 30;
+    stop at the nearest level under the LOWEST fill; half off at 1x; the rest on a chandelier 3 normal bars under
+    the highest close.
+    WHAT EACH PART IS WORTH (avg R, control in brackets): scale in +0.37 (buy the dip ONCE -0.08, which is WORSE
+    than buying a random bar at +0.13); the fear gap +0.84 (+0.14), positive in 10 of 10 years; the daily rather
+    than the 5m +0.37 vs +0.29 -- and on the 4h and below the market condition stops mattering at all.
+    THE ACCOUNT: 5,946 trades in 9.5 years, ~627 a year, and they are NOT independent (worst day: 172 at once).
+    A wallet, 1% of the running account per trade, 60 runs: 3 slots +14.7%/yr, 5 +25.7%, 10 +49.2% (worst dip
+    -32%), 20 +78.1% (-44%). SPY over the same window +13.1%. Ten slots positive in all ten calendar years.
+    THE THING THAT COULD KILL IT: SURVIVORSHIP. The 809 names are the ones alive TODAY; every name that gapped
+    down, printed 30 and never came back is missing. A dip-buying rule is the most exposed of anything to that, and
+    it cannot be measured without delisted history. +49% is a CEILING, not a number. Also: top 5% of trades make
+    73% of the profit and the middle trade loses (-0.83%).
+    WHAT DID NOT SURVIVE: momentum divergence (best thing on 183 trades, +0.13R and 3 of 8 years on 1,115);
+    WAITING FOR THE TURN (on both the 200-day and breadth, "turning up" costs more than half the edge -- you are
+    paid for buying while it is still falling); and filtering to weak markets only, which is better per trade
+    (+1.36R) but makes the ACCOUNT less because it fires 219 times a year instead of 627 (his #29 point).
+    MURPHY'S BREADTH (`studies/breadth.py` -> validation/breadth.json): share of each market's names above their
+    own 200-day, per day. Reads true (stocks 77% at the Feb 2020 top, 4% at the COVID low, 17% at the Oct 2022 low).
+    Douglas has NOTHING for calling bull vs bear and says so on purpose; what he gives is the standard for judging.
+    SECTOR LEADERS (`studies/sector_map.py` -> validation/sector_map.json): every name matched to the leader it
+    actually moves with, on the FIRST HALF of its history. 72 of 781 (the inverse ETFs at -0.87, the farm futures)
+    get no leader rather than a noise one. THE LEADER CARRIES ITS MARKET ("crypto|BTC"): ticker BTC is a coin AND
+    an ETF here, and looking it up by symbol handed every crypto name a 527-bar $35 trust.
+
+36. THREE BUGS OF MINE FROM THESE TWO DAYS, all of which made a rule look better or worse than it was.
+    THE DISCARDED LOSERS: when no structure lay under the lowest fill the trade was thrown away. Those are the dips
+    that crashed through every level -- the losers -- and scaling reaches lower, so it discarded MORE of them than
+    the one-unit rule did (45,767 trades vs 11,809 kept). It made averaging down look free. Now the stop goes one
+    normal bar under the position and nothing is ever discarded. THE TELL was a sanity check: trades where only one
+    unit filled must be identical between the two rules, and they were not.
+    THE 5%-OF-PRICE CAP: the risk band capped the stop at 5% of price, which is fine on a 5m chart and impossible
+    on a daily (the nearest structure is 0.8-1.3 normal bars away, which IS 10-16% of price). It threw out
+    89-100% of every daily backburner, which is why this desk had never seen one. Murphy's 5% is 5% of the ACCOUNT.
+    The band is now 3x the round-trip cost to 4 normal bars.
+    THE RUN MEASURED ON THE WRONG CHART: "the name has a huge run going on" was read over the last 60 bars of the
+    ENTRY chart -- five hours on a 5m chart. It co-occurred with a dip 993 times in 720,577. It is a DAILY read.
+    AND ONE ABOUT MEMORY: every worker loaded every timeframe, so a daily run held SOL's 430,000-bar 5m frame 20
+    times over and froze his machine. Studies now keep only the charts they use, and run on 8 cores, not 20.
+    AND ONE ABOUT ANALYSIS, not the trade: results must never be split by HOW MANY UNITS filled. Whether a second
+    unit fills depends on what price did after the buy, so that split reads the future.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.

@@ -1,5 +1,5 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Scaling into the dip, checked</title>
+<html><head><meta charset="utf-8"><title>The backburner, finished</title>
 <style>
   :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
         --up:#3ddc97;--dn:#ff5c72;--amber:#ffb84d;--mono:ui-monospace,Consolas,monospace}
@@ -8,10 +8,11 @@
   header{padding:22px 26px 4px;max-width:1500px}
   h1{font-size:21px;margin:0 0 6px}
   h2{font-size:16px;margin:26px 0 8px}
-  .sub{color:var(--dim);max-width:960px}
+  .sub{color:var(--dim);max-width:980px}
   .sub b{color:var(--fg)}
   main{padding:4px 26px 80px;max-width:1500px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;margin:14px 0}
+  .warn{border-color:#5a3a20;background:#1a1410}
   img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;cursor:zoom-in}
   .line{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-bottom:7px}
   .line b{color:var(--fg)}
@@ -21,6 +22,8 @@
   th{color:var(--faint);font-weight:500}
   td.l,th.l{text-align:left}
   .good{color:var(--up)} .bad{color:var(--dn)}
+  .rule{font-family:var(--mono);font-size:13px;line-height:1.9;margin:6px 0 0}
+  .rule b{color:var(--amber)}
   .marks{display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap}
   input.note{flex:1;min-width:280px;background:#1a1e25;border:1px solid var(--line);color:var(--fg);
              border-radius:8px;padding:8px 10px;font:13px inherit}
@@ -33,23 +36,19 @@
 </style></head>
 <body>
 <header>
-  <h1>Scaling into the dip, checked properly</h1>
-  <div class="sub">The backburner, your way: <b>buy it at or under 30, and keep buying as it drops</b>.
-    RSI 14 on the 5m or 15m reaches 30 or under &mdash; a first unit goes on at the next open, and up to two more as
-    price keeps falling, each a further half a normal bar down, for as long as the print stays at or under 30. The
-    position is the average of those fills. Stop at the nearest structure below the lowest fill. Half off at 1x the
-    risk. The rest with the stop walked under each new higher low on the idea chart (the hourly for a 5m entry, the
-    4-hour for a 15m). Shorts mirror it.
-    <br><br><b>Strength is measured against the name&rsquo;s own sector leader</b>, not against SPY for everything:
-    each name is matched to the leader it actually moves with (NVDA to XLK, XOM to XLE, every coin to BTC, and so
-    on), using only the first half of its history so the map cannot peek at what gets traded. 709 of 781 names get a
-    leader; the inverse ETFs and the farm futures do not move with any sector and are left out rather than compared
-    to noise.
-    <br><br>Two earlier numbers on this page were wrong and are gone: an <b>+1.32% a trade</b> that was two bugs of
-    mine (a partial booked on trades that never reached it, and a stop measured against a level the trail had
-    already moved past), and a <b>bounce</b> trigger I invented &mdash; waiting for RSI to cross back over 30, which
-    is not the rule. Below is the scale-in, with trades held to a sane risk band, each cut against a control that
-    takes the same management on any bar at all.</div>
+  <h1>The backburner, finished</h1>
+  <div class="sub">Two days of your corrections turned this into a different trade. It is a
+    <b>daily</b> trade, not a 5-minute one. It is <b>scaled into</b>, not bought once. And the single strongest
+    thing about it is one you never mentioned and neither did I until the machine found it: the name
+    <b>gapped down through yesterday's low</b> on the way in.</div>
+  <div class="rule">
+    1. The <b>daily</b> chart. RSI 14 at or under <b>30</b>.<br>
+    2. The name <b>opened below yesterday's low</b> — the fear gap.<br>
+    3. <b>Scale in</b> as it keeps falling: up to five units, each a quarter of a normal bar lower, while the
+       print stays at or under 30. The position is the average of the fills.<br>
+    4. Stop at the nearest level <b>under the lowest fill</b>. Half off at 1x the risk.<br>
+    5. The rest on a <b>chandelier three normal bars</b> under the highest close.
+  </div>
 </header>
 <main>
   <div id="nums"></div>
@@ -65,41 +64,65 @@ const cls = v => v > 0 ? 'good' : v < 0 ? 'bad' : '';
 
 Promise.all([
   fetch('/validation/scale_in/scale_in_index.json?v=' + Date.now()).then(r => r.json()),
-  fetch('/validation/scalein.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
-]).then(([d, v]) => {
+  fetch('/validation/backburner_wallet.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+]).then(([d, w]) => {
   const s = d.stats;
-  let h = `<div class="card"><b>These charts come from ${s.n.toLocaleString()} trades on the focus list</b><table>
-    <tr><th class="l">measure</th><th>value</th></tr>
-    <tr><td class="l">average, in R</td><td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td></tr>
-    <tr><td class="l">middle trade, in R</td><td class="${cls(s.middle_R)}">${rr(s.middle_R)}</td></tr>
-    <tr><td class="l">trades won</td><td>${(100 * s.won).toFixed(0)}%</td></tr>
-    <tr><td class="l">reached the 1R partial</td><td>${(100 * s.took_partial).toFixed(0)}%</td></tr>
-    ${s.avg_units ? `<tr><td class="l">units scaled in (average)</td><td>${s.avg_units.toFixed(2)}</td></tr>` : ''}
-    <tr><td class="l">risk per trade (middle)</td><td>${s.median_risk.toFixed(2)}%</td></tr></table></div>`;
-  if (v && v.table) {
-    h += '<div class="card"><b>Every management, all 809 names, each against its own control</b>'
-      + '<table><tr><th class="l">how the trade was managed</th><th>trades</th><th>average</th><th>middle</th>'
-      + '<th>won</th><th>vs its control</th></tr>';
-    for (const [name, row] of Object.entries(v.table)) {
-      const a = row.all, c = row.control;
-      if (!a) continue;
-      const edge = c ? a.avg_R - c.avg_R : null;
-      h += `<tr><td class="l">${name}</td><td>${a.n.toLocaleString()}</td>`
-        + `<td class="${cls(a.avg_R)}">${rr(a.avg_R)}</td><td class="${cls(a.middle_R)}">${rr(a.middle_R)}</td>`
-        + `<td>${(100 * a.won).toFixed(0)}%</td>`
-        + `<td class="${edge == null ? '' : cls(edge)}">${edge == null ? '-' : rr(edge)}</td></tr>`;
+  let h = '';
+  if (w && w.wallets) {
+    h += `<div class="card"><b>What it is worth to an account, not to a trade</b>
+      <div class="sub" style="margin:4px 0 6px">${w.meta.trades.toLocaleString()} trades over ${w.meta.years}
+      years, about ${w.meta.per_year} a year across every stock and ETF. They are not independent &mdash; the worst
+      single day had 172 fire at once &mdash; so the only honest measure is a wallet with a fixed number of slots,
+      1% of the running account risked on each, a random pick when more signals arrive than there is room for,
+      averaged over 60 runs.</div>
+      <table><tr><th class="l">slots</th><th>a year</th><th>10&ndash;90% of runs</th><th>worst drawdown</th>
+      <th>trades taken</th></tr>`;
+    for (const k of ['3', '5', '10', '20', '40']) {
+      const r = w.wallets[k]; if (!r) continue;
+      h += `<tr><td class="l">${k}</td><td class="good">+${(100 * r.a_year).toFixed(1)}%</td>
+        <td>+${(100 * r.lo).toFixed(0)} to +${(100 * r.hi).toFixed(0)}%</td>
+        <td class="bad">${(100 * r.worst_dip).toFixed(0)}%</td><td>${Math.round(r.taken)}</td></tr>`;
     }
-    h += '</table><div class="sub" style="margin-top:8px">The control is the same management and the same '
-      + 'strength cut, entered on any bar instead of into a dip under 30. The gap between the two is what the '
-      + 'trigger itself is worth.</div></div>';
+    h += `</table><div class="sub" style="margin-top:8px">SPY over the same window was <b>+13.1% a year</b>.
+      Ten slots was positive in all ten calendar years, 2018 and 2022 included.</div></div>`;
+  }
+  h += `<div class="card warn"><b>What could still kill this number</b>
+    <div class="sub" style="margin-top:4px">
+    <b>Survivorship.</b> The 809 names are the ones that exist <i>today</i>. Every company that gapped down, went
+    under 30 and never came back is missing from the data. A dip-buying rule is the most exposed of anything we
+    could test to that bias, and it cannot be measured without delisted-company history, which this desk does not
+    have. Treat +49% as a ceiling, not a number.<br><br>
+    <b>It is a tail trade.</b> The top 5% of trades make 73% of all the profit, and the middle trade loses money
+    (&minus;0.83%). You have to take every one of them to get the few that pay.<br><br>
+    <b>The drawdown is real.</b> &minus;32% at ten slots. That is the price of the number above it.</div></div>`;
+  h += `<div class="card"><b>Why each rule is in there</b><table>
+    <tr><th class="l">the rule</th><th>with it</th><th>without it</th></tr>
+    <tr><td class="l">scale in, rather than buy the dip once</td><td class="good">+0.37R</td><td class="bad">&minus;0.08R</td></tr>
+    <tr><td class="l">the fear gap</td><td class="good">+0.84R</td><td>+0.37R</td></tr>
+    <tr><td class="l">the daily chart, rather than the 5m</td><td class="good">+0.37R</td><td>+0.29R</td></tr>
+    <tr><td class="l">buying any bar at all (the control)</td><td>&mdash;</td><td>+0.13R</td></tr></table>
+    <div class="sub" style="margin-top:8px">Every one of these is measured against a control that takes the same
+    management on any bar at all, over three eras and year by year. The fear gap was positive in 10 of 10 years.
+    <b>What did not survive:</b> momentum divergence (looked best on 183 trades, died at 1,115), waiting for the
+    market to turn up (costs more than half the edge), and filtering to weak markets only &mdash; better per
+    trade at +1.36R, but it fires so rarely the account makes less.</div></div>`;
+  if (s) {
+    h += `<div class="card"><b>The ${s.n.toLocaleString()} trades these charts come from</b><table>
+      <tr><th class="l">measure</th><th>value</th></tr>
+      <tr><td class="l">average, in R</td><td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td></tr>
+      <tr><td class="l">middle trade, in R</td><td class="${cls(s.middle_R)}">${rr(s.middle_R)}</td></tr>
+      <tr><td class="l">trades won</td><td>${(100 * s.won).toFixed(0)}%</td></tr>
+      <tr><td class="l">reached the 1R partial</td><td>${(100 * s.took_partial).toFixed(0)}%</td></tr>
+      <tr><td class="l">units scaled in (average)</td><td>${s.avg_units.toFixed(2)}</td></tr>
+      <tr><td class="l">risk per trade (middle)</td><td>${s.median_risk.toFixed(2)}%</td></tr></table></div>`;
   }
   $('#nums').innerHTML = h;
   const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
-      <div class="line">${c.sym} <span style="color:var(--faint)">${c.tf} ${c.side > 0 ? 'long' : 'short'}</span>
+      <div class="line">${c.sym} <span style="color:var(--faint)">daily</span>
         &middot; ${c.t} &middot; ${(c.fills || [0]).length} unit${(c.fills || [0]).length == 1 ? '' : 's'}
         &middot; risked <b>${c.risk_pct.toFixed(2)}%</b> &middot; <b>${rr(c.R)}</b>
-        &middot; ${c.how}${c.took_at ? ' (half came off first)' : ''}${c.leader && c.leader != '-' ? ' &middot; strong vs ' + c.leader : ''}</div>
-      <img src="/validation/scale_in/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym} ${c.tf}">
+        &middot; ${c.how}${c.took_at ? ' (half came off first)' : ''}</div>
+      <img src="/validation/scale_in/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym}">
       <div class="marks" data-id="${c.png}">
         <span class="verdict" data-v="good">would take</span>
         <span class="verdict" data-v="bad">would not</span>
@@ -109,7 +132,6 @@ Promise.all([
       </div></div>`;
   $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
   $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
-  // grading, saved the moment it changes; NOT SAVED in red if the server refuses (rule 12)
   fetch('/api/tradenote?set=scalein').then(r => r.json()).catch(() => ({})).then(notes => {
     notes = notes || {};
     document.querySelectorAll('.marks').forEach(m => {
@@ -122,12 +144,12 @@ Promise.all([
       const save = () => {
         const on = m.querySelector('.verdict.on');
         const body = (on ? on.dataset.v : '') + (m.querySelector('.note').value ? ' | ' + m.querySelector('.note').value : '');
-        const s = m.querySelector('.saved');
-        const fail = () => { s.textContent = 'NOT SAVED - tell Claude'; s.style.color = 'var(--dn)'; };
+        const sp = m.querySelector('.saved');
+        const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
         fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({set: "scalein", n: id, note: body})})
-          .then(r => { if (!r.ok) return fail(); s.textContent = 'saved'; s.style.color = '';
-                       setTimeout(() => { if (s.textContent === 'saved') s.textContent = ''; }, 1500); })
+          body: JSON.stringify({set: 'scalein', n: id, note: body})})
+          .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
+                       setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
           .catch(fail);
       };
       m.querySelectorAll('.verdict').forEach(b => b.onclick = () => {

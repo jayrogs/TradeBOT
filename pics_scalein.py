@@ -1,16 +1,20 @@
-"""pics_scalein.py -- the backburner trade drawn, winners and losers (2026-09-12).
+"""pics_scalein.py -- the backburner drawn, winners and losers (2026-09-13).
 
-THE TRADE (`studies/scalein_study.py`), in his words: "its about buying it AT OR UNDER 30 ... its about scaling into a
-dip". RSI 14 on the 5m/15m reaches 30 or under: a first unit goes on at the next open, and up to two more as price
-keeps falling, each a further half a normal bar down, while the print STAYS at or under 30. The position is the
-average of those fills. Stop at the nearest structure below the LOWEST fill that kills the idea (this chart's last
-low or the idea chart's, plus a little). Half off at 1x the risk. The rest with the stop walked under each new
-higher low on the idea chart (1h for a 5m entry, 4h for a 15m). Only in names with relative strength to their own
-sector leader. Shorts mirror it.
+THE TRADE, exactly as `studies/backburner_wallet.py` measures it -- his rules, the overnight run's answers:
 
-Nothing is claimed about this trade until these are looked at.
+    the DAILY chart. A daily dip is worth about four times what a 5m one is, and on the fast charts the
+      market condition stops mattering at all.
+    RSI 14 at or under 30, and the name OPENED BELOW YESTERDAY'S LOW -- the fear gap. That one read is the
+      biggest in the whole study: +0.84R against a control of +0.14R, positive in 10 of 10 years.
+    SCALED INTO as it keeps falling: up to five units, each a quarter of a normal bar lower, while the print
+      stays at or under 30. Buying the dip ONCE is worse than buying a random bar (-0.08R); the averaging is
+      the edge.
+    stop at the nearest structure under the LOWEST fill, half off at 1x the risk, the rest on a chandelier
+      three normal bars under the highest close.
 
-    pythonw pics_scalein.py --procs 20 --log logs\\pics_scalein.log
+Nothing is claimed about this trade until these are looked at (rule 10).
+
+    pythonw pics_scalein.py --procs 8 --log logs\\pics_scalein.log
 Writes validation/scale_in/*.png + scale_in_index.json  ->  /scalein
 """
 import concurrent.futures as cf
@@ -34,170 +38,126 @@ import indicators as IND          # noqa: E402
 import exit_managers as XM        # noqa: E402
 import eq_freeride2 as FR2        # noqa: E402
 import tcg_lab as L               # noqa: E402
-import scalein_study as BB            # noqa: E402
+import backburner_wallet as W     # noqa: E402
 
 DARK, DIM = "#0d0f12", "#8b93a1"
 PURPLE, GREEN, RED, AMBER, BLUE = "#b48cff", "#3ddc97", "#ff5c72", "#ffb84d", "#5aa9ff"
 OUT = os.path.join("validation", "scale_in")
-PAIRS = L.PAIRS
 COST = L.COST
-L_ADDS = BB.ADDS
-L_ADD_GAP = BB.ADD_GAP
 
 
-def walk_one(kind, o, h, l, c, e, side, stop, risk, big_hl, bell, entry_px=None):
-    """The same walk scalein_study runs, but recording every step so it can be drawn.
-    `e` is the LAST fill of the scale-in and `entry_px` the average of the fills."""
+def walk_one(kind, o, h, l, c, e, side, stop, risk, atr, entry_px, chand=3.0):
+    """The same trade tcg_lab.run_trade books in "chand" mode, walked bar by bar so each step can be drawn."""
     n = len(c)
     last = min(n - 1, e + L.MAX_BARS)
-    if bell is not None:
-        last = min(last, int(bell))
-    entry = o[e] if entry_px is None else float(entry_px)
+    entry = float(entry_px)
     cut = entry + side * risk
+    a0 = float(atr[e - 1]) if np.isfinite(atr[e - 1]) else risk
     took_at = None
     line = stop
+    run = -np.inf if side > 0 else np.inf
     steps = [(int(e), float(stop))]
     for j in range(e, last + 1):
         if (side > 0 and l[j] <= line) or (side < 0 and h[j] >= line):
             px = o[j + 1] if j + 1 <= last else c[last]
-            pnl = (0.5 * side * (cut - entry) / entry + 0.5 * side * (px - entry) / entry) if took_at is not None \
-                else side * (px - entry) / entry
-            return dict(end=int(j), exit_px=float(px), pct=float(pnl * 100 - COST.get(kind, 0.05) * (1.5 if took_at else 1)),
+            pnl = (0.5 * side * (cut - entry) / entry + 0.5 * side * (px - entry) / entry) \
+                if took_at is not None else side * (px - entry) / entry
+            return dict(end=int(j), exit_px=float(px),
+                        pct=float(pnl * 100 - COST.get(kind, 0.05) * (1.5 if took_at else 1)),
                         took_at=None if took_at is None else int(took_at), cut=float(cut), steps=steps,
-                        how="rest stopped out" if took_at is not None else "stopped out")
+                        how="the rest trailed out" if took_at is not None else "stopped out")
         if took_at is None and ((side > 0 and h[j] >= cut) or (side < 0 and l[j] <= cut)):
             took_at = j
-        if np.isfinite(big_hl[j]):
-            cand = big_hl[j]
-            if side > 0 and cand < l[j] and cand > line:
-                line = cand
-                steps.append((int(j), float(line)))
-            if side < 0 and cand > h[j] and cand < line:
-                line = cand
-                steps.append((int(j), float(line)))
+        run = max(run, c[j]) if side > 0 else min(run, c[j])
+        cand = (run - chand * a0) if side > 0 else (run + chand * a0)
+        if (side > 0 and cand > line) or (side < 0 and cand < line):
+            line = cand
+            steps.append((int(j), float(line)))
     px = c[last]
-    pnl = (0.5 * side * (cut - entry) / entry + 0.5 * side * (px - entry) / entry) if took_at is not None \
-        else side * (px - entry) / entry
-    return dict(end=int(last), exit_px=float(px), pct=float(pnl * 100 - COST.get(kind, 0.05) * (1.5 if took_at else 1)),
+    pnl = (0.5 * side * (cut - entry) / entry + 0.5 * side * (px - entry) / entry) \
+        if took_at is not None else side * (px - entry) / entry
+    return dict(end=int(last), exit_px=float(px),
+                pct=float(pnl * 100 - COST.get(kind, 0.05) * (1.5 if took_at else 1)),
                 took_at=None if took_at is None else int(took_at), cut=float(cut), steps=steps,
                 how="time ran out")
 
 
 def trades_for(sym, kind):
     frames = S.frames_for(sym, kind)
+    frames = {k: v for k, v in frames.items() if k in ("1d", "1w")}
     if kind in ("stock", "etf"):
         frames = FR2.regular_hours(frames)
+    df, bdf = frames.get("1d"), frames.get("1w")
+    if df is None or bdf is None or len(df) < 300 or len(bdf) < 80:
+        return []
+    o = df["Open"].values.astype(float); c = df["Close"].values.astype(float)
+    h = df["High"].values.astype(float); l = df["Low"].values.astype(float)
+    n = len(c)
+    atr = P._atr(df); rsi = IND.rsi(c, 14)
+    piv = ST.pivots(df)
+    last_lo = np.full(n, np.nan); cl = np.nan; q = 0
+    for k in range(n):
+        while q < len(piv) and piv[q][0] <= k:
+            if piv[q][3] == "low":
+                cl = float(piv[q][2])
+            q += 1
+        last_lo[k] = cl
+    bp = ST.pivots(bdf)
+    bl = np.full(len(bdf), np.nan); cl2 = np.nan; p2 = 0
+    for k in range(len(bdf)):
+        while p2 < len(bp) and bp[p2][0] <= k:
+            if bp[p2][3] == "low":
+                cl2 = float(bp[p2][2])
+            p2 += 1
+        bl[k] = cl2
+    big_lo = L.align_to(df, "1d", frames, "1w", bl)
+    gap_down = np.zeros(n)
+    gap_down[1:] = (o[1:] < l[:-1]).astype(float)
+    cost = COST.get(kind, 0.05)
     got = []
-    for tf, big, _ in PAIRS:
-        df, bdf = frames.get(tf), frames.get(big)
-        if df is None or bdf is None or len(df) < 500 or len(bdf) < 80:
+    os_ = rsi <= W.LEVEL
+    for k in np.where(os_[1:] & ~os_[:-1])[0] + 1:
+        e = k + 1
+        m_ = e - 1
+        if e < 120 or e + 6 >= n or not np.isfinite(atr[m_]) or atr[m_] <= 0:
             continue
-        o = df["Open"].values.astype(float); c = df["Close"].values.astype(float)
-        h = df["High"].values.astype(float); l = df["Low"].values.astype(float)
-        n = len(c)
-        atr = P._atr(df); rsi = IND.rsi(c, 14)
-        piv = ST.pivots(df)
-        last_lo = np.full(n, np.nan); last_hi = np.full(n, np.nan)
-        cl = ch = np.nan; q = 0
-        for k in range(n):
-            while q < len(piv) and piv[q][0] <= k:
-                if piv[q][3] == "low":
-                    cl = float(piv[q][2])
-                else:
-                    ch = float(piv[q][2])
-                q += 1
-            last_lo[k] = cl; last_hi[k] = ch
-        b12 = L.align_to(df, tf, frames, big, XM.ema(bdf["Close"].values.astype(float), 12))
-        bp = ST.pivots(bdf)
-        bl = np.full(len(bdf), np.nan); bh = np.full(len(bdf), np.nan)
-        cl2 = ch2 = np.nan; p2 = 0
-        for k in range(len(bdf)):
-            while p2 < len(bp) and bp[p2][0] <= k:
-                if bp[p2][3] == "low":
-                    cl2 = float(bp[p2][2])
-                else:
-                    ch2 = float(bp[p2][2])
-                p2 += 1
-            bl[k] = cl2; bh[k] = ch2
-        big_lo = L.align_to(df, tf, frames, big, bl)
-        big_hi = L.align_to(df, tf, frames, big, bh)
-        bells = None
-        if kind in ("stock", "etf"):
-            day = df.index.normalize().values
-            bells = np.searchsorted(day, day, side="right") - 1
-        # RELATIVE STRENGTH against the name's OWN sector leader, exactly as scalein_study measures it
-        strong = np.zeros(n)
-        lead_name = "-"
-        lead = BB.SECTOR_MAP.get("%s|%s" % (kind, sym))
-        d1 = frames.get("1d")
-        if lead and d1 is not None and len(d1) > 60:
-            lk, ls = lead[0].split("|")
-            try:
-                bx = S.frames_for(ls, lk)["1d"]["Close"]
-            except Exception:
-                bx = None
-            if bx is not None:
-                bxa = bx.reindex(d1.index).ffill().values.astype(float)
-                ratio = d1["Close"].values.astype(float) / bxa
-                ok = np.isfinite(ratio)
-                if ok.sum() >= 60:
-                    lead_name = ls
-                    r12 = XM.ema(np.where(ok, ratio, np.nan), 12)
-                    up5 = r12 - np.r_[np.full(5, np.nan), r12[:-5]]
-                    flag = np.where((ratio > r12) & (up5 > 0), 1.0, 0.0)
-                    al = L.align_to(df, tf, frames, "1d", flag)
-                    strong = np.where(np.isfinite(al), al, 0.0)
-        os_ = rsi <= 30; ob = rsi >= 70
-        # the FIRST bar of each oversold run: that is where the scale-in starts (not the cross back over)
-        for side, ks in ((1, np.where(os_[1:] & ~os_[:-1])[0] + 1), (-1, np.where(ob[1:] & ~ob[:-1])[0] + 1)):
-            for k in ks:
-                e = k + 1; m_ = e - 1
-                if e < 120 or e + 10 >= n or not np.isfinite(atr[m_]) or atr[m_] <= 0:
-                    continue
-                a = atr[m_]
-                # SCALE IN while the print stays at or under 30, each unit half a normal bar lower
-                fills = [o[e]]
-                fill_bars = [e]
-                j = e
-                while len(fills) < L_ADDS and j + 1 < n:
-                    j += 1
-                    if not ((rsi[j - 1] <= 30) if side > 0 else (rsi[j - 1] >= 70)):
-                        break
-                    gap = L_ADD_GAP * a
-                    lower = (o[j] <= fills[-1] - gap) if side > 0 else (o[j] >= fills[-1] + gap)
-                    if lower:
-                        fills.append(o[j])
-                        fill_bars.append(j)
-                entry = float(np.mean(fills))
-                e_last = fill_bars[-1]
-                worst = min(fills) if side > 0 else max(fills)
-                near_small = last_lo[e_last] if side > 0 else last_hi[e_last]
-                near_big = big_lo[e_last] if side > 0 else big_hi[e_last]
-                pool = [(x, lab) for x, lab in ((near_small, "this chart's last %s" % ("low" if side > 0 else "high")),
-                                                (near_big, "the %s's last %s" % (big, "low" if side > 0 else "high")))
-                        if np.isfinite(x) and ((side > 0 and x < worst) or (side < 0 and x > worst))]
-                if not pool:
-                    continue
-                base, from_ = max(pool) if side > 0 else min(pool)
-                stop = (base - 0.15 * a) if side > 0 else (base + 0.15 * a)
-                risk = abs(entry - stop)
-                if risk < 0.25 * a:
-                    risk = 0.25 * a
-                    stop = entry - side * risk
-                    from_ = "floored at a quarter of a normal bar"
-                rp = risk / entry * 100
-                if rp < 3 * COST.get(kind, 0.05) or risk > 4.0 * a or rp > 25.0:
-                    continue
-                if not (strong[e_last] > 0):        # his filter: strength against its own sector leader
-                    continue
-                r = walk_one(kind, o, h, l, c, e_last, side, stop, risk, big_lo if side > 0 else big_hi,
-                             None if bells is None else bells[e_last], entry_px=entry)
-                got.append(dict(sym=sym, kind=kind, tf=tf, big=big, side=int(side), e=int(e_last), first=int(e),
-                                entry=float(entry), fills=[float(x) for x in fills],
-                                fill_bars=[int(x) for x in fill_bars], leader=lead_name,
-                                stop=float(stop), risk_pct=float(risk / entry * 100), t=str(df.index[e]),
-                                stop_from=from_, base=float(base) if "floored" not in from_ else float(stop),
-                                R=float(r["pct"] / (risk / entry * 100)), **r))
+        if gap_down[m_] < 0.5:                      # the fear gap, read on the bar before the fill
+            continue
+        a = atr[m_]
+        fills = [o[e]]; fill_bars = [e]; j = e
+        while len(fills) < W.ADDS and j + 1 < n:
+            j += 1
+            if rsi[j - 1] > W.LEVEL:
+                break
+            if o[j] <= fills[-1] - W.GAP * a:
+                fills.append(o[j]); fill_bars.append(j)
+        entry = float(np.mean(fills))
+        e_last = fill_bars[-1]
+        worst = min(fills)
+        pool = [(x, lab) for x, lab in ((last_lo[e_last], "the daily's last low"),
+                                        (big_lo[e_last], "the weekly's last low"))
+                if np.isfinite(x) and x < worst]
+        if pool:
+            base, from_ = max(pool)
+            stop = base - 0.15 * a
+        else:
+            base, from_ = worst - a, "no level left, so a normal bar under the fill"
+            stop = base
+        risk = abs(entry - stop)
+        if risk < 0.25 * a:
+            risk = 0.25 * a
+            stop = entry - risk
+            base, from_ = stop, "floored at a quarter of a normal bar"
+        rp = risk / entry * 100
+        if rp < 3 * cost or risk > 4.0 * a or rp > 25.0:
+            continue
+        r = walk_one(kind, o, h, l, c, e_last, 1, stop, risk, atr, entry)
+        got.append(dict(sym=sym, kind=kind, tf="1d", big="1w", side=1, e=int(e_last), first=int(e),
+                        entry=float(entry), fills=[float(x) for x in fills],
+                        fill_bars=[int(x) for x in fill_bars], leader="-",
+                        stop=float(stop), risk_pct=float(rp), t=str(df.index[e].date()),
+                        stop_from=from_, base=float(base),
+                        R=float(r["pct"] / rp), **r))
     return got
 
 
@@ -219,7 +179,7 @@ def draw(sym, tf, big, df, bdf, tr, path):
     lo = min(float(np.nanmin(d["Low"].values)), tr["stop"], min(fx))
     hi = max(float(np.nanmax(d["High"].values)), tr["cut"], max(fx))
     rng = max(hi - lo, 1e-9)
-    ax.set_ylim(lo - 0.46 * rng, hi + 0.46 * rng)
+    ax.set_ylim(lo - 0.62 * rng, hi + 0.62 * rng)
     pad_x = max(20, int(0.18 * len(d)))
     ax.set_xlim(-1, len(d) + pad_x)
     # the stop as it was walked
@@ -246,9 +206,9 @@ def draw(sym, tf, big, df, bdf, tr, path):
     def lane(frac):
         return (lo if long_ else hi) + sgn * frac * rng
     # ONE LANE PER UNIT: three fills a bar apart landed on the same spot and read as a single entry
-    fill_lanes = [lane(0.10 + 0.055 * i_) for i_ in range(len(fx))]
-    lane2 = lane(0.10 + 0.055 * len(fx) + 0.055)
-    lane3 = lane(0.10 + 0.055 * len(fx) + 0.145)
+    fill_lanes = [lane(0.10 + 0.06 * i_) for i_ in range(len(fx))]
+    lane2 = lane(0.10 + 0.06 * len(fx) + 0.10)      # the partial often lands a bar or two after the buy, so
+    lane3 = lane(0.10 + 0.06 * len(fx) + 0.24)      # its marker needs real space, not a hair's gap
     import pics_ride as PR
 
     def peg(x, y_bar, y_lane, colr, marker, label):
@@ -273,8 +233,9 @@ def draw(sym, tf, big, df, bdf, tr, path):
     peg(end - x0, tr["exit_px"], lane3, "#e6e9ee", "X", "out %+.2fR" % tr["R"])
     step_ = max(len(d) // 7, 1)
     ax.set_xticks(xs[::step_]); ax.set_xticklabels([q.strftime("%m-%d %H:%M") for q in d.index[::step_]], fontsize=6.5)
-    ax.set_title("%s %s %s   scaled into the dip, %d unit%s   1R = %.2f%% of price  ->  %+.2fR" % (
-        sym, tf, "long" if long_ else "short", len(fx), "" if len(fx) == 1 else "s", tr["risk_pct"], tr["R"]),
+    ax.set_title("%s daily   gapped under yesterday's low, RSI %d   scaled in %d unit%s   "
+                 "1R = %.2f%%  ->  %+.2fR" % (
+                     sym, 30, len(fx), "" if len(fx) == 1 else "s", tr["risk_pct"], tr["R"]),
         color="#e6e9ee", fontsize=11, loc="left", pad=8)
     panels = [(ax, d)]
     t_now = df.index[e]
@@ -297,9 +258,8 @@ def draw(sym, tf, big, df, bdf, tr, path):
     fig.text(0.045, 0.048, "arrows = each unit going on while RSI stayed at or under 30    "
              "white dotted = the average they add up to    red dashed = the stop as it stepped up",
              color=DIM, fontsize=8.5, ha="left")
-    fig.text(0.045, 0.016, "red band = what is risked (1R), from that average down to the first stop, just past %s"
-             "    orange band = the same distance up, where half comes off    strong vs %s"
-             % (tr.get("stop_from", "the nearest structure"), tr.get("leader", "its leader")),
+    fig.text(0.045, 0.016, "red band = 1R, the average down to the first stop, just past %s    orange band = "
+             "the same distance up, where half comes off" % tr.get("stop_from", "the nearest level"),
              color=DIM, fontsize=8.5, ha="left")
     probs = PR.overlaps(fig, panels)
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
@@ -319,12 +279,13 @@ def _draw(args):
     sym, kind, picks = args
     try:
         frames = S.frames_for(sym, kind)
+        frames = {k: v for k, v in frames.items() if k in ("1d", "1w")}
         if kind in ("stock", "etf"):
             frames = FR2.regular_hours(frames)
         out = []
         for tr in picks:
             png = "%s_%s_%s_%d.png" % (kind, sym, tr["tf"], tr["e"])
-            probs = draw(sym, tr["tf"], tr["big"], frames[tr["tf"]], frames[tr["big"]], tr, os.path.join(OUT, png))
+            probs = draw(sym, tr["tf"], tr["big"], frames["1d"], frames["1w"], tr, os.path.join(OUT, png))
             out.append(dict(tr, png=png, problems=probs))
         return out, []
     except Exception as ex:
@@ -341,8 +302,7 @@ def main():
             sys.stdout = sys.stderr = open(nxt, "w", buffering=1, encoding="utf-8", errors="replace")
     t0 = time.time()
     os.makedirs(OUT, exist_ok=True)
-    import focus
-    names = [(s_, k_) for s_, k_ in focus.names() if focus.have(s_, k_)]
+    names = [(s_, k_) for s_, k_ in S.universe() if k_ in ("stock", "etf")]
     rows, errs = [], []
     with cf.ProcessPoolExecutor(max_workers=procs) as ex:
         for got, err in ex.map(_one, names, chunksize=1):
@@ -372,7 +332,8 @@ def main():
                  won=float((allR > 0).mean()), avg_pct=float(np.mean([r["pct"] for r in rows])),
                  median_risk=float(np.median([r["risk_pct"] for r in rows])),
                  took_partial=float(np.mean([r["took_at"] is not None for r in rows])),
-                 avg_units=float(np.mean([len(r["fills"]) for r in rows])))
+                 avg_units=float(np.mean([len(r["fills"]) for r in rows])),
+                 per_year=float(len(rows) / 9.5))
     slim = [{k: v for k, v in d.items() if k != "steps"} for d in drawn]
     json.dump(dict(stats=stats, charts=slim), open(os.path.join(OUT, "scale_in_index.json"), "w"), indent=1)
     print("  drawn %d, problems %d  (%.0fs)" % (len(drawn), sum(1 for d in drawn if d["problems"]), time.time() - t0))

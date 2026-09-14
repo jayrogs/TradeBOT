@@ -93,8 +93,40 @@ def align_to(small, tf, frames, htf, arr):
 
 
 def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big_rsi, mode, bell=None,
-              atr=None, chand=3.0, entry_px=None):
-    """One trade, array math, no bar-by-bar loop."""
+              atr=None, chand=3.0, entry_px=None, want_exit=False):
+    """One trade, array math, no bar-by-bar loop.
+
+    `want_exit` also returns the bar the position was finally closed on, which a wallet needs to know when the
+    slot frees up. It changes nothing about the result."""
+    if want_exit:
+        _box = {}
+        pct = run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big_rsi, mode, bell,
+                        atr, chand, entry_px)
+        # re-walk only to find the exit bar, with the same lines the result was built from
+        n_ = len(c)
+        last_ = min(n_ - 1, e + MAX_BARS)
+        if bell is not None:
+            last_ = min(last_, int(bell))
+        entry_ = o[e] if entry_px is None else float(entry_px)
+        a0_ = float(atr[e - 1]) if (atr is not None and np.isfinite(atr[e - 1])) else risk
+        line_ = stop
+        run_ = -np.inf if side > 0 else np.inf
+        out_i = last_
+        for j in range(e, last_ + 1):
+            if (side > 0 and l[j] <= line_) or (side < 0 and h[j] >= line_):
+                out_i = j
+                break
+            if mode in ("chand", "ride"):
+                run_ = max(run_, c[j]) if side > 0 else min(run_, c[j])
+                cand = (run_ - chand * a0_) if side > 0 else (run_ + chand * a0_)
+                line_ = max(line_, cand) if side > 0 else min(line_, cand)
+            elif mode == "walk" and np.isfinite(big_hl[j]):
+                cand = big_hl[j]
+                if side > 0 and cand < l[j]:
+                    line_ = max(line_, cand)
+                if side < 0 and cand > h[j]:
+                    line_ = min(line_, cand)
+        return pct, int(out_i)
     n = len(c)
     last = min(n - 1, e + MAX_BARS)
     if bell is not None:                       # his rule: a 5m/15m stock trade is out at the bell
@@ -110,6 +142,22 @@ def run_trade(kind, o, h, l, c, e, side, stop, risk, big12, big_hl, small12, big
         j = e + k + 1
         return o[j] if j <= last else c[last]
     hit_stop = first(lw <= stop) if side > 0 else first(hw >= stop)
+    if mode == "obout":
+        # HIS OWN EXIT: "once it makes the move in your favor, just sell everything". Out on the first bar that
+        # closes overbought (oversold for a short); the stop is the only other way out. `big_rsi` carries it.
+        seg = big_rsi[e:last + 1] if big_rsi is not None else None
+        hit_ob = None
+        if seg is not None:
+            ok = (seg >= 70) if side > 0 else (seg <= 30)
+            hit_ob = first(np.isfinite(seg) & ok)
+        s_ = hit_stop if hit_stop is not None else 10 ** 9
+        t_ = hit_ob if hit_ob is not None else 10 ** 9
+        if s_ <= t_ and hit_stop is not None:
+            return side * (fill(hit_stop) - entry) / entry * 100 - COST.get(kind, 0.05)
+        if hit_ob is not None:
+            px_ = o[e + hit_ob + 1] if e + hit_ob + 1 <= last else c[last]
+            return side * (px_ - entry) / entry * 100 - COST.get(kind, 0.05)
+        return side * (cw[-1] - entry) / entry * 100 - COST.get(kind, 0.05)
     if mode == "out2r":
         tgt = entry + side * 2 * risk
         hit_t = first(hw >= tgt) if side > 0 else first(lw <= tgt)

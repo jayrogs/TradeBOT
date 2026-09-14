@@ -286,10 +286,11 @@ def _work(args):
                         cands.append(bigline)
                     worst = min(fills) if side > 0 else max(fills)
                     cands = [x for x in cands if np.isfinite(x) and ((side > 0 and x < worst) or (side < 0 and x > worst))]
-                    if not cands:
-                        continue
-                    stop = max(cands) if side > 0 else min(cands)
-                    stop = stop - 0.15 * a if side > 0 else stop + 0.15 * a
+                    if cands:
+                        stop = max(cands) if side > 0 else min(cands)
+                        stop = stop - 0.15 * a if side > 0 else stop + 0.15 * a
+                    else:
+                        stop = worst - a if side > 0 else worst + a     # never discard: see backburner_night
                     risk = abs(entry - stop)
                     if risk < 0.25 * a:
                         risk = 0.25 * a
