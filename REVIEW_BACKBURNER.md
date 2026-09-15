@@ -1,87 +1,174 @@
-# The backburner, reviewed
+# The backburner, checked twice, explained plainly
 
-2026-09-15. A second pass over the two days of backburner work, done as a skeptic would do it: read the code paths
-the numbers depend on, test the things that could be wrong, fix what is, and say plainly what cannot be fixed here.
+2026-09-15. Two full passes over everything from the last three days. Written so that nothing needs a
+dictionary. Where a number changed, the old one is shown crossed out so you can see what moved.
 
-## The short version
+---
 
-1. **The wallet was 2.2x leveraged.** The +40% a year was borrowed money nobody mentioned. In a cash account it
-   is **+16.9% a year at ten slots**, worst drawdown −17%. SPY over the same years: +13.1%, worst drawdown −34%.
-2. **23 names had bad data** (split and reorganisation glitches). One was carrying a +107% "trade". They are out.
-3. **Survivorship cannot be fixed on this machine**, only bounded. The ETF-only wallet, which the bias cannot
-   flatter, makes **+11.2% — below SPY**. The truth is somewhere between +11% and +17%.
-4. What survives is real and modest: a trade that **earns its keep in bear years** (2018 +8.4% vs −6.3%, 2022
-   +12.7% vs −19.5%) and **lags in bull ones**. Positive in all ten years; beat SPY in four.
+## Part 1 — What the trade is
 
-## What was checked and passed
+A **backburner** is your word for buying something that just got hit hard.
 
-| the thing | how it was checked | result |
-|---|---|---|
-| ATR, RSI | read the code | both exponential, both causal |
-| pivots | tuple is (confirm bar, form bar, price, kind); code keys on confirm bar | no look-ahead |
-| the fear gap | `open[k] < low[k-1]`, read on bar k, filled at k+1's open | known before the fill |
-| the scale-in | each later fill needs RSI ≤ 30 on the bar before and a lower open | known at each open |
-| the weekly stop level | aligned by bar CLOSE time | a Wednesday sees only weeks already closed |
-| breadth | cross-sectional on closed daily bars, read the day before the fill | causal |
-| the chandelier | one-bar lag on the running high; vectorised and bar-by-bar agree | 91 trades, 0 mismatches |
-| the top trades | opened the price series around each | March 2020: CELH, TSLA, DKNG, BX, SCCO — real |
+Here is the exact recipe the computer tested:
 
-## What was wrong, and what was done
+1. Look at the **daily chart** — one candle per day.
+2. The **RSI** — a 0-to-100 dial that says how beaten-up a stock is — reads **30 or lower**.
+3. Today the stock **opened lower than yesterday's lowest price**. There is a gap on the chart. Someone panicked
+   overnight. We call this the **fear gap**.
+4. **Buy.** If it keeps falling, **buy more** — up to five times, a little lower each time, as long as the dial stays
+   at 30 or under. Your price is the average of what you paid.
+5. Put a **stop** (the "I was wrong, get me out" price) just under the lowest thing you bought.
+6. When it bounces up by the same distance as your stop is below, **sell half**. Keep the rest with a stop that
+   follows the price up. Sell the rest when that stop is hit.
 
-**1. Leverage.** `wallet()` sized each position as 1% of the account divided by the stop distance. A 3.9% stop
-(the median) is a 26% position; ten slots of those is 260% of the account. The only cap was 3/slots = 30% per
-name. Measured: median exposure 218%, peak 288%. Rebuilt as a cash account — dollars fixed at entry, at most an
-equal share of the account, never more than free cash. Every wallet now prints its deployed share.
+That is the whole thing.
 
-| slots | levered (before) | cash account (now) | worst drawdown now |
-|---|---|---|---|
-| 5 | +21.3% | +14.0% | −14% |
-| 10 | +40.2% | **+16.9%** | **−17%** |
-| 20 | +60.9% | +17.3% | −20% |
+---
 
-**2. Bad data.** A scan for one-day close-to-close moves over 60% found 23 names. APLD at exactly 2.000x, QXO at
-4.9x, KDP at 0.18x, OVV at 0.28x, SOXS at 0.054x are adjustment errors; ARGX, PCG, RKT are real one-day moves.
-All 23 are excluded together (`validation/suspect_names.json`, read by the wallet and the drawings). Cost: 4% of
-the profit. QXO's +107% trade had a 240% day inside it.
+## Part 2 — What is a good result, in plain words
 
-**3. The drawings booked a different trade from the study** (found the night before, recorded here). The shared
-chandelier mode takes its partial at the weekly 12 EMA when that is further than 1x the risk; the page said 1x.
-34 of 59 trades disagreed, by up to 17%. Fixed with a flat-1x mode; the self-test now owns its reference and
-checks this.
+- **R** means "how many times your stop-distance you made." If your stop was $1 below your buy, and you made $2,
+  that is +2R. If you lost the $1, that is −1R. It lets a $5 stock and a $500 stock be compared.
+- **The control** is the same trade started on a random day instead of on a backburner day. If the backburner
+  is not better than random, it is not worth anything.
+- **A drawdown** is how far the account fell from its best day to its worst day after that. −28% means at the
+  worst moment you were down 28% from your high.
+- **Slots** are how many trades you can hold at once. Ten slots means ten positions, each about a tenth of your
+  money.
 
-**4. "The daily is the chart" was not shown.** The page compared +0.35R on the daily to +0.27R on the hourly —
-different charts, different controls. By edge over its own control the 4-hour is better (+0.71R vs +0.53R) with
-about as many trades. Only the daily has been through the wallet. Left open, and the page now says so.
+---
 
-## What cannot be fixed here
+## Part 3 — What the computer found (the good part)
 
-**Survivorship.** The 601 stock and ETF names are the ones on disk today, history backfilled: 509 have data from
-before mid-2017 and none of them went to zero. A dip-buying rule is the single most exposed thing there is to
-that. Bounded two ways:
+**Buying once loses. Buying more as it falls wins.**
 
-| population | 10 slots, a year |
+| how you buy the dip | R |
 |---|---|
-| every name | +16.9% (the ceiling) |
-| names with a trade before 2018 | +18.3% (removes late joiners, not leavers) |
-| **ETFs only** — sector ETFs do not delist | **+11.2% (the floor; under SPY)** |
+| buy once and stop | **−0.06R** (worse than random) |
+| buy up to five times as it falls | **+0.35R** |
 
-Fixing it needs delisted-company history, which costs money. Until then the honest statement is "between +11%
-and +17% a year, with half of SPY's drawdown".
+This was checked two ways: it is not just that the stop is wider, and no trades were quietly dropped. Your rule
+"scale into it" is the whole edge.
 
-## Things worth knowing that are not bugs
+**The fear gap makes it much better.**
 
-- **2020 made +2.4%.** The year of the biggest fear gaps, and the account barely moved: the ten slots were full
-  of early-March stop-outs when the March 17th trades fired. Capacity is the constraint in a crash, not edge.
-- **Most scale-ins fill once.** 72% of daily dips never get a second unit. The averaging is still worth +0.4R
-  over buying once, matched on stop width — but it is not the picture of five arrows stepping down.
-- **Twenty-two reads, one winner.** The fear gap was the best of 22 market reads. It held in 10 of 10 years and
-  against its own control, which is the right defence, but a best-of-22 deserves a discount the tables do not show.
-- **Costs are 0.05% round trip.** At ~75 trades a year per account that is not the story here; it was on the 1h
-  wallet in #29.
+| | R |
+|---|---|
+| any backburner | +0.35R |
+| backburner **with** a fear gap | **+0.65R** |
+| a random day | +0.12R |
 
-## What to do next, in order
+It worked in 10 out of 10 years. This is the strongest single thing found in the whole project.
 
-1. Grade the sixteen drawings on /scalein. Nothing above is settled until you have looked at them.
-2. Put the 4-hour chart through the wallet. It has a bigger edge over its control than the daily and the same
-   trade count; it may be the better account.
-3. Delisted history, if this trade is going to be run with money. It is the one number that could halve this.
+**On the daily chart it works. On the 5-minute chart, whether the market is healthy stops mattering.** The
+big-picture dips are the ones that pay.
+
+---
+
+## Part 4 — What was wrong, and got fixed
+
+### 1. The account was using borrowed money (the big one)
+
+The first "how much does this make a year" number was **+40%**. It was fake.
+
+Why: if your stop is 4% below your buy and you want to risk 1% of your account, you have to buy a position worth
+26% of your account. Ten of those is 260% of your account. You do not have 260%. The computer was pretending you
+did.
+
+Fixed: a real cash account. You can only spend what you have.
+
+| 10 slots | before | now |
+|---|---|---|
+| a year | ~~+40%~~ | **+17%** |
+
+### 2. Twenty-three stocks had broken data
+
+A stock split (one share becomes two, the price halves) was not adjusted in 23 names. The computer saw a fake
+one-day crash or a fake one-day doubling. One of them, QXO, was carrying a fake +107% "trade" with a 240% day
+inside it. All 23 are out. It cost 4% of the profit.
+
+### 3. The pictures and the numbers were two different trades
+
+The charts said "sell half at 1× the stop." The study was secretly selling half at a different price (the weekly
+average line) when that was further away. 34 of 59 trades disagreed. Fixed so they are the same trade, and there
+is now a test that fails if they ever drift apart again.
+
+### 4. The drawdown was measured wrong
+
+The account was only checked on days something **sold**. But in March 2020 you were holding ten falling
+positions for days. Checked every day, like SPY is:
+
+| | drawdown |
+|---|---|
+| first number (only on sell days) | ~~−17%~~ |
+| **real, checked every day** | **−28%** |
+| SPY, the same years | −34% |
+
+The worst day was 2020-03-23. Same day as SPY's worst.
+
+### 5. "The daily chart is best" was not proved
+
+The daily was compared to the hourly by raw R. But each chart has its own random-day control, and against those,
+the **4-hour chart has a bigger edge** (+0.71R over random vs the daily's +0.53R). Only the daily was run through
+the account. So "daily is best" is a guess for now, and the page says so.
+
+---
+
+## Part 5 — What was checked and was fine
+
+| the question | the answer |
+|---|---|
+| Does the computer peek at tomorrow's prices? | No. Every rule uses only what you could see at that moment. |
+| Is the "open" a price you could really buy at? | Yes. On 300 of 300 days it was the real 9:30 open. |
+| Are the biggest winners real? | Yes. They are the March 2020 crash bottom: TSLA, DKNG, BX, SCCO. |
+| Do the fast maths and the slow maths agree? | Yes. 91 trades checked, 0 disagreements. |
+| How long is money tied up? | Middle trade 24 days. One in ten over four months. |
+| Does buying a name you already hold matter? | No. Blocking it: same result. |
+| Does trading cost matter? | Barely. Each extra 0.10% of cost takes 3% of the average trade. |
+
+---
+
+## Part 6 — What cannot be fixed on this computer
+
+**The list of stocks is today's list.** Every company that crashed, hit 30, gapped down, and then **died** is not
+in the data. A buy-the-crash rule is the one kind of rule that this makes look better than it is.
+
+We can put a fence around it:
+
+| which stocks | 10 slots, a year |
+|---|---|
+| all of them | +17% — the most it could be |
+| **only ETFs** (baskets of stocks; these do not die) | **+11% — the least it could be** |
+| SPY, just holding it | +13% |
+
+The truth is between +11% and +17%. Fixing this needs a paid list of dead companies.
+
+---
+
+## Part 7 — So what is it actually worth?
+
+In plain words, with a cash account and ten slots:
+
+- **About +17% a year, maybe as low as +11%.** SPY did +13%.
+- **Worst fall: −28%.** SPY's was −34%.
+- **It made money in all 10 years. It beat SPY in only 4 of them.**
+- **Where it shines: bad years.** 2018: +8% while SPY lost 6%. 2022: +13% while SPY lost 20%.
+- **Where it lags: good years.** It sat in cash waiting for crashes while SPY just went up.
+- **2020 was a letdown:** +2%. All ten slots were full of early-March losers when the real bottom fired.
+
+A few big winners carry it: the top 5% of trades make about two-thirds of the profit. You have to take every
+trade to catch the few that pay.
+
+**Honest one-line summary:** a real but modest trade that is worth having in a bear market, is roughly a wash
+with the index in a bull market, and whose true value sits somewhere between "a bit worse than SPY" and "a bit
+better than SPY with a gentler worst day."
+
+---
+
+## Part 8 — What to do next, in order
+
+1. **Look at the sixteen pictures on /scalein and grade them.** Nothing above counts until you have seen the
+   trades and said whether they look like something you would take.
+2. **Run the 4-hour chart through the account.** It might be the better version.
+3. **Get the list of dead companies**, if this is ever going to be traded with real money. It is the one thing
+   that could cut the number in half.

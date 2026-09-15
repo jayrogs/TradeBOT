@@ -150,8 +150,10 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     chart" is not yet proven.
     THE ACCOUNT (reviewed 2026-09-15, see #37): 5,790 trades in 9.5 years, ~611 a year, NOT independent (worst
     day: 172 at once). A CASH account, nothing borrowed, each position at most an equal share and at most 1% at
-    the stop, 60 runs: 3 slots +10.6%/yr, 5 +14.0%, 10 +16.9% (worst dip -17%), 20 +17.3%. SPY over the same
-    window +13.1% with a -34% worst dip. Ten slots positive in all ten calendar years but BEAT SPY IN ONLY FOUR:
+    the stop, 60 runs: 3 slots +10.6%/yr, 5 +14.0%, 10 +16.9%, 20 +17.3%. WORST DIP, MARKED EVERY DAY
+    (`studies/backburner_marks.py`): -28% at ten slots, low on 2020-03-23 -- the wallet's own -17% only looks at
+    the account when a trade closes and is not comparable to anything. SPY over the same window +13.1% with a
+    -34% worst dip. Ten slots positive in all ten calendar years but BEAT SPY IN ONLY FOUR:
     its value is the bear years (2018 +8.4% vs -6.3%, 2022 +12.7% vs -19.5%) and it lags in bull ones. In 2020,
     the year of the biggest fear gaps, it made +2.4%: the slots were full of early-March stop-outs when the
     March 17th trades fired -- capacity, not edge.
@@ -210,6 +212,14 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     under SPY, is the floor; the all-names wallet, +16.9%, is the ceiling. The truth is between them.
     RULE THAT COMES OUT OF IT: every wallet reports its DEPLOYED share of the account, and no wallet may exceed
     100% without saying the word leverage on the page.
+    THE SECOND PASS (same day, his ask: "review everything again"). Checked and passed: the daily open IS the
+    9:30 print and the daily low IS the regular-session low (300 of 300 days on NVDA, META, XLV), so the gap and
+    the fill are prices a person could get; hold times middle 24 days, 90th 115, 52 trades over a year; 15% of
+    trades open in a name already held, and forbidding that changes nothing (+17.1%, -29%); each extra 0.10% of
+    cost takes 3% of the average trade. FOUND: THE DRAWDOWN WAS THE WRONG MEASURE. The wallet marked the account
+    only when a trade closed (-16%); marked every day like SPY is, ten slots was -28% with the low on 2020-03-23,
+    the same day as SPY's -34%. "Half of SPY's drawdown" was wrong; it is about four fifths of it.
+    RULE: a drawdown is marked every day or it is not called a drawdown. `studies/backburner_marks.py` does it.
 
 ## What is settled (do not re-litigate)
 
