@@ -41,7 +41,10 @@
     <b>daily</b> trade, not a 5-minute one. It is <b>scaled into</b>, not bought once. And the single strongest
     thing about it is one you never mentioned and neither did I until the machine found it: the name
     <b>gapped down through yesterday's low</b> on the way in &mdash; worth +0.65R a trade
-    against +0.12R for buying any bar at all, and positive in 10 of 10 years.</div>
+    against +0.12R for buying any bar at all, and positive in 10 of 10 years.
+    <br><br><b>Reviewed 2026-09-15.</b> The review found the wallet was 2.2x leveraged and 23 names had split
+    glitches in their data; both fixed below. What survives is real and modest: about +17% a year in a cash
+    account against SPY's +13%, with half the drawdown, earning its keep in bear years and lagging in bull ones.</div>
   <div class="rule">
     1. The <b>daily</b> chart. RSI 14 at or under <b>30</b>.<br>
     2. The name <b>opened below yesterday's low</b> — the fear gap.<br>
@@ -73,36 +76,54 @@ Promise.all([
     h += `<div class="card"><b>What it is worth to an account, not to a trade</b>
       <div class="sub" style="margin:4px 0 6px">${w.meta.trades.toLocaleString()} trades over ${w.meta.years}
       years, about ${w.meta.per_year} a year across every stock and ETF. They are not independent &mdash; the worst
-      single day had 172 fire at once &mdash; so the only honest measure is a wallet with a fixed number of slots,
-      1% of the running account risked on each, a random pick when more signals arrive than there is room for,
-      averaged over 60 runs.</div>
+      single day had 172 fire at once &mdash; so the only honest measure is a wallet with a fixed number of slots.
+      <b>A cash account, nothing borrowed:</b> each position at most an equal share of the account and at most 1%
+      of it at the stop, a random pick when more signals arrive than there is room for, averaged over 60 runs.
+      <b>The first version of this table was 2.2x leveraged</b> (a 1% risk on a 4% stop is a 26% position, and ten
+      of those is 260% of the account) and said +40% a year. That number is gone.</div>
       <table><tr><th class="l">slots</th><th>a year</th><th>10&ndash;90% of runs</th><th>worst drawdown</th>
-      <th>trades taken</th></tr>`;
-    for (const k of ['3', '5', '10', '20', '40']) {
-      const r = w.wallets[k]; if (!r) continue;
-      h += `<tr><td class="l">${k}</td><td class="good">+${(100 * r.a_year).toFixed(1)}%</td>
+      <th>deployed</th><th>trades taken</th></tr>`;
+    const row = (lab, r) => `<tr><td class="l">${lab}</td><td class="${r.a_year > 0.131 ? 'good' : ''}">+${(100 * r.a_year).toFixed(1)}%</td>
         <td>+${(100 * r.lo).toFixed(0)} to +${(100 * r.hi).toFixed(0)}%</td>
-        <td class="bad">${(100 * r.worst_dip).toFixed(0)}%</td><td>${Math.round(r.taken)}</td></tr>`;
-    }
-    h += `</table><div class="sub" style="margin-top:8px">SPY over the same window was <b>+13.1% a year</b>.
-      Ten slots was positive in all ten calendar years, 2018 and 2022 included.</div></div>`;
+        <td class="bad">${(100 * r.worst_dip).toFixed(0)}%</td><td>${(100 * r.deployed).toFixed(0)}%</td>
+        <td>${Math.round(r.taken)}</td></tr>`;
+    for (const k of ['3', '5', '10', '20', '40']) { if (w.wallets[k]) h += row(k, w.wallets[k]); }
+    if (w.wallets['etf_10']) h += row('10, ETFs only', w.wallets['etf_10']);
+    if (w.wallets['old_10']) h += row('10, names traded before 2018', w.wallets['old_10']);
+    h += `</table><div class="sub" style="margin-top:8px">SPY over the same window was <b>+13.1% a year</b> with a
+      worst drawdown of about &minus;34%. Ten slots was positive in all ten calendar years, but <b>beat SPY in only
+      four of them</b> &mdash; its value is the bear years: 2018 <b>+8.4%</b> against SPY &minus;6.3%, 2022
+      <b>+12.7%</b> against &minus;19.5%. In 2020, the year of the biggest fear gaps, it made just +2.4%: the slots
+      were full of early-March stop-outs when the March 17th trades fired. <b>ETFs only</b> is the row survivorship
+      cannot flatter, because sector ETFs do not go to zero: it does not beat SPY.</div></div>`;
   }
   h += `<div class="card warn"><b>What could still kill this number</b>
     <div class="sub" style="margin-top:4px">
     <b>Survivorship.</b> The 809 names are the ones that exist <i>today</i>. Every company that gapped down, went
     under 30 and never came back is missing from the data. A dip-buying rule is the most exposed of anything we
     could test to that bias, and it cannot be measured without delisted-company history, which this desk does not
-    have. Treat +40% as a ceiling, not a number.<br><br>
+    have. The ETF-only row above is the version this bias cannot reach, and it is the weakest row.<br><br>
+    <b>Twenty-three names are out for bad data.</b> A one-day move over 60% somewhere in their history &mdash;
+    APLD at exactly 2.0x, QXO at 4.9x, KDP at 0.18x are split and reorganisation glitches, and QXO's was carrying a
+    +107% "trade". Some of the 23 are real moves (ARGX, PCG, RKT); all 23 are out together, costing 4% of the
+    profit.<br><br>
     <b>It leans on its tail.</b> The top 5% of trades make 67% of all the profit. The middle trade does make
     money (+0.68%) and 58% of them win, but you still have to take every one to get the few that pay for the
     year.<br><br>
-    <b>The drawdown is real.</b> &minus;26% at ten slots. That is the price of the number above it.</div></div>`;
+    <b>The drawdown is real.</b> &minus;17% at ten slots, against SPY's &minus;34% over the same years. That, and
+    the two bear years, is what you are buying.</div></div>`;
   h += `<div class="card"><b>Why each rule is in there</b><table>
     <tr><th class="l">the rule</th><th>with it</th><th>without it</th></tr>
     <tr><td class="l">scale in, rather than buy the dip once</td><td class="good">+0.35R</td><td class="bad">&minus;0.06R</td></tr>
     <tr><td class="l">the fear gap</td><td class="good">+0.65R</td><td>+0.35R</td></tr>
-    <tr><td class="l">the daily chart, rather than the hourly</td><td class="good">+0.35R</td><td>+0.27R</td></tr>
     <tr><td class="l">buying any bar at all (the control)</td><td>&mdash;</td><td>+0.12R</td></tr></table>
+    <table style="margin-top:10px"><tr><th class="l">which chart (scale-in, fear gap, chandelier 3)</th><th>R</th>
+    <th>its control</th><th>edge over it</th></tr>
+    <tr><td class="l">daily</td><td>+0.65R</td><td>+0.12R</td><td class="good">+0.53R</td></tr>
+    <tr><td class="l">4-hour</td><td>+0.60R</td><td>&minus;0.11R</td><td class="good">+0.71R</td></tr></table>
+    <div class="sub" style="margin-top:6px"><b>Open:</b> the 4-hour chart has a BIGGER edge over its own control
+    than the daily does, with about the same number of trades. Only the daily has been put through the wallet.
+    The 4-hour wallet has not been built, so "the daily is the chart" is not yet a proven claim.</div>
     <div class="sub" style="margin-top:8px">Every one of these is measured against a control that takes the same
     management on any bar at all, over three eras and year by year. The fear gap was positive in 10 of 10 years.
     <b>What did not survive:</b> momentum divergence (looked best on 183 trades, died at 1,115), waiting for the

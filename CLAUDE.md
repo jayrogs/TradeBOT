@@ -143,16 +143,23 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     into as it keeps falling, up to five units a quarter of a normal bar apart while the print stays at or under 30;
     stop at the nearest level under the LOWEST fill; half off at 1x; the rest on a chandelier 3 normal bars under
     the highest close.
-    WHAT EACH PART IS WORTH (avg R, control in brackets): scale in +0.37 (buy the dip ONCE -0.08, which is WORSE
-    than buying a random bar at +0.13); the fear gap +0.84 (+0.14), positive in 10 of 10 years; the daily rather
-    than the 5m +0.37 vs +0.29 -- and on the 4h and below the market condition stops mattering at all.
-    THE ACCOUNT: 5,946 trades in 9.5 years, ~627 a year, and they are NOT independent (worst day: 172 at once).
-    A wallet, 1% of the running account per trade, 60 runs: 3 slots +14.7%/yr, 5 +25.7%, 10 +49.2% (worst dip
-    -32%), 20 +78.1% (-44%). SPY over the same window +13.1%. Ten slots positive in all ten calendar years.
-    THE THING THAT COULD KILL IT: SURVIVORSHIP. The 809 names are the ones alive TODAY; every name that gapped
-    down, printed 30 and never came back is missing. A dip-buying rule is the most exposed of anything to that, and
-    it cannot be measured without delisted history. +49% is a CEILING, not a number. Also: top 5% of trades make
-    73% of the profit and the middle trade loses (-0.83%).
+    WHAT EACH PART IS WORTH (avg R, control in brackets, flat 1x partial): scale in +0.35 (buy the dip ONCE
+    -0.06, which is WORSE than buying a random bar at +0.12); the fear gap +0.65 (+0.12), positive in 10 of 10
+    years. OPEN: the 4h chart's fear gap has a BIGGER edge over its control (+0.60 vs -0.11) than the daily's
+    (+0.65 vs +0.12) with about as many trades, and only the daily has been through the wallet. "The daily is the
+    chart" is not yet proven.
+    THE ACCOUNT (reviewed 2026-09-15, see #37): 5,790 trades in 9.5 years, ~611 a year, NOT independent (worst
+    day: 172 at once). A CASH account, nothing borrowed, each position at most an equal share and at most 1% at
+    the stop, 60 runs: 3 slots +10.6%/yr, 5 +14.0%, 10 +16.9% (worst dip -17%), 20 +17.3%. SPY over the same
+    window +13.1% with a -34% worst dip. Ten slots positive in all ten calendar years but BEAT SPY IN ONLY FOUR:
+    its value is the bear years (2018 +8.4% vs -6.3%, 2022 +12.7% vs -19.5%) and it lags in bull ones. In 2020,
+    the year of the biggest fear gaps, it made +2.4%: the slots were full of early-March stop-outs when the
+    March 17th trades fired -- capacity, not edge.
+    SURVIVORSHIP: the 601 stock/ETF names are the ones alive TODAY with history backfilled (509 have data from
+    before mid-2017); every name that gapped down, printed 30 and never came back is missing. Bounded two ways:
+    ETFs ONLY (sector ETFs do not go to zero) makes +11.2% at 10 slots -- BELOW SPY; names traded before 2018
+    make +18.3%. The ETF row is the one this bias cannot flatter. Per trade: avg +3.4%, MIDDLE +0.67%, won 58%,
+    +0.69R; top 5% of trades make about two thirds of the profit.
     WHAT DID NOT SURVIVE: momentum divergence (best thing on 183 trades, +0.13R and 3 of 8 years on 1,115);
     WAITING FOR THE TURN (on both the 200-day and breadth, "turning up" costs more than half the edge -- you are
     paid for buying while it is still falling); and filtering to weak markets only, which is better per trade
@@ -181,6 +188,28 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     times over and froze his machine. Studies now keep only the charts they use, and run on 8 cores, not 20.
     AND ONE ABOUT ANALYSIS, not the trade: results must never be split by HOW MANY UNITS filled. Whether a second
     unit fills depends on what price did after the buy, so that split reads the future.
+
+37. THE REVIEW (2026-09-15, Fable, his ask: "i want it to review all of this"). Full write-up in
+    `REVIEW_BACKBURNER.md`. What it found, in order of damage:
+      - THE WALLET WAS 2.2x LEVERAGED. A 1% risk on a 3.9% stop is a 26% position; ten of those is 260% of the
+        account, and the cap was 3/slots. Median exposure 218%, peak 288%, never stated. +40% a year was the
+        levered number. Rebuilt as a cash account (`backburner_wallet.wallet`: dollars at entry, capped at an
+        equal share, never more than free cash): +16.9% at 10 slots.
+      - 23 NAMES HAD SPLIT GLITCHES (a one-day close-to-close move over 60%: APLD at exactly 2.0x, QXO 4.9x, KDP
+        0.18x, OVV 0.28x, SOXS 0.054x). QXO's was a +107% "trade". All 23 out (`validation/suspect_names.json`,
+        read by the wallet and the drawings), 4% of the profit.
+      - THE DRAWINGS AND THE STUDY BOOKED DIFFERENT TRADES (#36 addendum): "chand" takes the partial at the idea
+        chart's 12 EMA when further than 1x; the page said 1x. 34 of 59 disagreed. Fixed with "chand1r";
+        walk_selftest now owns its reference walk and checks the chandelier (91 compared, 0 mismatches).
+      - THE DAILY-VS-HOURLY CLAIM was R against R on different charts with different controls; by edge over
+        control the 4h is better. Left open, said so on the page.
+    WHAT PASSED: ATR and RSI are causal, pivots are keyed on the confirm bar, the fear gap and every scale-in fill
+    use only what was known at that bar's open, the weekly aligns by bar close, breadth is cross-sectional on
+    closed bars. The top trades are the March 2020 bottom and they are real (CELH, TSLA, DKNG, BX, SCCO).
+    WHAT IT CANNOT FIX: survivorship (no delisted history on this machine). The ETF-only wallet, +11.2% and
+    under SPY, is the floor; the all-names wallet, +16.9%, is the ceiling. The truth is between them.
+    RULE THAT COMES OUT OF IT: every wallet reports its DEPLOYED share of the account, and no wallet may exceed
+    100% without saying the word leverage on the page.
 
 ## What is settled (do not re-litigate)
 

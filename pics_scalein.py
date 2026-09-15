@@ -179,7 +179,10 @@ def draw(sym, tf, big, df, bdf, tr, path):
     lo = min(float(np.nanmin(d["Low"].values)), tr["stop"], min(fx))
     hi = max(float(np.nanmax(d["High"].values)), tr["cut"], max(fx))
     rng = max(hi - lo, 1e-9)
-    ax.set_ylim(lo - 0.62 * rng, hi + 0.62 * rng)
+    # the lanes stack one per unit, so the room under the candles has to grow with the number of fills:
+    # a fixed pad hung the exit label off the plot on every five-unit trade (2026-09-15)
+    pad = 0.10 + 0.06 * len(fx) + 0.36
+    ax.set_ylim(lo - pad * rng, hi + pad * rng)
     pad_x = max(20, int(0.18 * len(d)))
     ax.set_xlim(-1, len(d) + pad_x)
     # the stop as it was walked
@@ -302,7 +305,7 @@ def main():
             sys.stdout = sys.stderr = open(nxt, "w", buffering=1, encoding="utf-8", errors="replace")
     t0 = time.time()
     os.makedirs(OUT, exist_ok=True)
-    names = [(s_, k_) for s_, k_ in S.universe() if k_ in ("stock", "etf")]
+    names = [(s_, k_) for s_, k_ in S.universe() if k_ in ("stock", "etf") and s_ not in W.SUSPECT]
     rows, errs = [], []
     with cf.ProcessPoolExecutor(max_workers=procs) as ex:
         for got, err in ex.map(_one, names, chunksize=1):
