@@ -426,6 +426,41 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     Lori's market table to pick the SIDE; the super-stack oversold bounce as its own study; per-name RSI levels;
     two-to-three attempts per setup; drawings for both EQ studies.
 
+40. THE PHANTOM-PIVOT BIAS IS NOT A FOOTNOTE: IT WAS MOST OF THE EQ "EDGE", AND IT SITS UNDER EVERY "BUY AFTER THE
+    PIVOT CONFIRMS" NUMBER ON THIS DESK (2026-09-21; he asked "r u sure" FOUR times and said "I'm gonna keep asking until
+    you take this seriously". He was right each time). #28 warned of it in 2026-09-08 and I left it as "open".
+    THE MECHANISM: panel.zigzag REPLACES a confirmed low when a lower low comes before a high has qualified, and the
+    replaced low is gone from the list every study reads. In real time that low DID confirm, the rule DID buy it, and
+    price then went under it: a stopped-out loser the study never sees. A FINAL pivot low is, by construction, one
+    that was followed by a rise of a normal bar or more before it was undercut -- so "buy the confirmed higher low"
+    is handed a head start that a random-bar control is not.
+    THE MEASUREMENT (`studies/eq_livecheck.py`, 809 names, 342,609 trades; its replay reproduces the engine's final
+    pivots exactly, 887 of 887 on NVDA 4h, and finds 20% of confirmations are phantoms -- #28's number). The one-pair EQ
+    entry, sell line 1x+ the risk away, half there, rest to breakeven. Avg per trade / won:
+                               FINAL LIST (the studies)   THE PHANTOMS ALONE   LIVE (both)      random-bar control
+        4h everything          +0.38% / 48%               -0.95% / 23%         -0.08% / 39%     -0.12% / 40%
+        4h stocks+ETFs long    +0.70% / 52%               -0.59% / 28%         +0.17% / 42%     +0.14% / 42%
+        4h crypto long         +0.44% / 46%               -1.85% / 13%         -0.34% / 34%     -0.18% / 37%
+        1h everything          +0.12% / 47%               -0.63% / 22%         -0.11% / 39%     -0.11% / 38%
+        1h stocks+ETFs long    +0.29% / 50%               -0.45% / 26%         +0.04% / 42%     -0.00% / 41%
+        daily stocks+ETFs long +1.69% / 48%               -0.78% / 28%         +1.05% / 43%     +0.40% / 41%
+    Phantoms are 26-41% of the trades a person would really have taken. LIVE, THE EQ HIGHER-LOW ENTRY IS THE RANDOM BAR,
+    on the 1h and 4h, every market, both sides. The one row still ahead of its control is the DAILY, stocks and ETFs,
+    long (+1.05% vs +0.40%) -- and that control is not time-matched, so it is a lead and nothing more.
+    WITHDRAWN: "the EQ entry beats a fair random control everywhere" (#39, an hour earlier), the one-pair "+0.40% on
+    32,271 trades, 11 of 12 years", and eq_anticipate's "confirm" way (+0.60% on the 4h, +0.26% on the 1h).
+    CONTAMINATED UNTIL RE-RUN LIVE-HONEST, because they all buy the open after a pivot confirms: THE TREND RIDE (#17,
+    #21-#27), THE WALLETS BUILT ON ITS SIGNALS (#29's +35% a year, #30 and #32's +83% movers), every EQ study
+    (#26b-#26n, eq_retrace, eq_farline's "first rows positive in all three eras"), tcg_lab's eq_hl rows (#34), and
+    eq_playbook. The size of the hole here (a third of the trades, each about -1R) is bigger than any edge those report.
+    NOT TOUCHED BY IT, because the entry is a price or an RSI level, not a confirmed pivot: the backburner studies
+    (#35 the daily fear gap and its wallet, backburner_dan, backburner_tcg -- pivots there only place stops), the
+    "touch" ways of eq_anticipate (their pivots are behind the entry, and the selection runs against the long), breadth,
+    the sector map, eq_nextlow (it counts against the FINAL low, which is the honest one).
+    THE RULE FROM NOW ON: a study that acts on a pivot acts on the EVENT STREAM (`eq_livecheck.live_events`: every
+    confirmation, replaced or not), never on the finished list. A result from the finished list is printed beside its
+    live version or not at all. And when he asks "are you sure", the answer is a new check, not a restatement.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.
@@ -433,7 +468,8 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     chart's own drift, over three eras (before 2022, first half, second half).
 16. The standard backburner exit after the breakeven partial: hold until a bar closes under the
     last higher low. The 12 EMA close is the alternate.
-17. The trend ride, as he graded it in on 85 charts (2026-09-06, three rounds). Entry: the
+17. [NUMBERS SUSPECT SINCE 2026-09-21: see #40, the phantom-pivot bias. The RULES he graded stand; the results do not
+    until re-run live-honest.] The trend ride, as he graded it in on 85 charts (2026-09-06, three rounds). Entry: the
     uptrend already has a higher low AND a higher high (count the ones before it turned green),
     then buy the SECOND higher low only, at the next open. An equal low counts. No buy if it
     opened under the pivot. Chase limit one normal bar's move on 5m/15m/1h, three on daily and up.
@@ -914,7 +950,8 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     pages recompute from scratch each tick so they self-correct, but a signal fired off a phantom pivot
     stays in the log. Open: a "live-honest" study that acts on phantoms too (rides taken off them).
 
-29. TRADES PER YEAR, not per trade (2026-09-08, his words: "the main difference is being able to make
+29. [NUMBERS SUSPECT SINCE 2026-09-21: see #40. These wallets are built on trend-ride signals.]
+    TRADES PER YEAR, not per trade (2026-09-08, his words: "the main difference is being able to make
     multiple trades vs just holding ... the number of trades is everything"). He was right and my earlier
     framing was wrong. `studies/portfolio.py` -> validation/portfolio.json: every signal in time order into
     a wallet with N slots, position sized off the running account, 60 runs with a random pick when signals
@@ -933,7 +970,7 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
       measure his real all-in cost including the spread and slippage on a market order.
     - Also open: #28 (phantom pivots) applies to these signals too.
 
-30. WHICH NAMES play best this way (2026-09-08). `studies/portfolio_names.py` ->
+30. [NUMBERS SUSPECT SINCE 2026-09-21: see #40.] WHICH NAMES play best this way (2026-09-08). `studies/portfolio_names.py` ->
     validation/portfolio_names.json. Judged per DAY held and against just OWNING the same name;
     "a year" for a name means one unit of money dedicated to it alone, its own trades compounded,
     idle cash earning nothing (an early version stretched a 1.6-day trade over 365 days: nonsense).

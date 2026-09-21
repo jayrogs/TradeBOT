@@ -90,8 +90,28 @@ const eras = e => e.map(x => x == null ? '-' : pc(x)).join(' / ');
 Promise.all([
   fetch('/validation/eq_anticipate/index.json?v=' + Date.now()).then(r => r.json()),
   fetch('/validation/eq_anticipate.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
-]).then(([d, study]) => {
+  fetch('/validation/eq_livecheck.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+]).then(([d, study, live]) => {
   let h = '';
+  if (live && live.table) {
+    h += `<div class="card warn"><b>READ THIS FIRST: the "wait for the higher low to confirm" numbers on this page are flattered</b>
+      <div class="sub" style="margin-top:4px">You asked "r u sure" four times and you were right. My pivot engine quietly
+      REPLACES a confirmed higher low when price goes under it before bouncing, and the first one vanishes from the list
+      the studies read. In real life you had already bought it, and it stopped you out. About a third of the real
+      trades were missing, and they were the losers. Replayed the way it would really have traded:</div>
+      <table><tr><th class="l">chart</th><th class="l">which trades</th><th>trades</th><th>average</th><th>middle trade</th><th>won</th><th>R</th></tr>`;
+    for (const [tf, tl] of [['4h', '4-hour'], ['1h', '1-hour'], ['1d', 'daily']])
+      for (const [k, kl] of [['FINAL list only (what the studies see)', 'what my studies saw'],
+                             ['the phantoms alone', 'the ones that vanished'],
+                             ['LIVE: both, as it would have traded', 'what you would really have traded']]) {
+        const r = live.table[tf + ' | everything | ' + k]; if (!r) continue;
+        h += `<tr><td class="l">${tl}</td><td class="l">${kl}</td><td>${r.n.toLocaleString()}</td>
+          <td class="${cls(r.mean * 100)}">${pc(r.mean * 100)}</td><td class="${cls(r.median * 100)}">${pc(r.median * 100)}</td>
+          <td>${(100 * r.won).toFixed(0)}%</td><td class="${cls(r.avg_R)}">${rr(r.avg_R)}</td></tr>`;
+      }
+    h += `</table><div class="sub" style="margin-top:6px">The "touch of 30" ways in below are NOT hit by this: they buy at a
+      price, not after a pivot confirms. The "confirm" section is. Details: rule 40 on /rules.</div></div>`;
+  }
   if (study && study.tables) {
     h += `<div class="card warn"><b>You caught the entry being late, and fixing it changed the answer</b>
       <div class="sub" style="margin-top:4px">The first version could not buy until C was confirmed, two 4-hour bars later,
