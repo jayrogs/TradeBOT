@@ -157,7 +157,7 @@ def walk2(sgn, c, o, h, l, atr, e, fill, stop, target, n, cap, day, mode, extra=
     return None
 
 
-def trades(kind, tf, df, frames, start, gap, modes=None, filters=False):
+def trades(kind, tf, df, frames, start, gap, modes=None, filters=False, control=False):
     """Every trade on one chart, one dict per trade per exit variant. `frames` supplies the daily/weekly
     chart for the direction read (always the all-hours frames: a daily bar is the whole session)."""
     if df is None or len(df) < 300:
@@ -269,7 +269,24 @@ def trades(kind, tf, df, frames, start, gap, modes=None, filters=False):
                 yield dict(base, mode_i=mode_i, variant=vname, mode=mode, share=share_of(mode, risk, gain),
                            xb=int(xb), took=took, took_bar=took_bar, why=why, held=int(held),
                            ret=float(sgn * (xpx / fill - 1) - cost),
-                           drift=float(sgn * (np.exp(drift * held) - 1) - cost))
+                           drift=float(sgn * (np.exp(drift * held) - 1) - cost), ctrl=0)
+                if control:
+                    # THE CONTROL (rule 15): the SAME side, the SAME stop and target distances as a share of price,
+                    # the SAME management -- from a bar picked at random on this chart. It skips nothing the rule
+                    # skips except the EQ itself.
+                    rg = np.random.default_rng((int(e) * 7919 + mode_i * 31 + side_i) % (2 ** 32))
+                    e2 = int(rg.integers(60, max(61, n - 2)))
+                    f2 = o[e2]
+                    if np.isfinite(f2) and f2 > 0:
+                        sc = f2 / fill
+                        res2 = walk2(sgn, c, o, h, l, atr, e2, f2, stop * sc, target * sc, n, cap, day, mode, extra)
+                        if res2 is not None:
+                            xb2, xpx2, took2, _tb2, _why2 = res2
+                            held2 = xb2 + 1 - e2
+                            yield dict(base, mode_i=mode_i, variant=vname, mode=mode, share=share_of(mode, risk, gain),
+                                       xb=int(xb2), took=took2, took_bar=None, why="control", held=int(held2),
+                                       ret=float(sgn * (xpx2 / f2 - 1) - cost),
+                                       drift=float(sgn * (np.exp(drift * held2) - 1) - cost), ctrl=1)
 
 
 def _work(args):

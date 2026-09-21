@@ -51,7 +51,10 @@ VARIANTS = [FR2.MODES[1][0], FR2.MODES[2][0]]          # half at the far line; a
 ERAS = FR2.ERAS
 KINDS = FR2.KINDS
 COLS = ("var", "tf", "side", "tag", "kind", "era", "rr", "ret", "drift", "took", "held", "risk", "retrace", "leg",
-        "fade", "began", "yr")
+        "fade", "began", "yr", "ctrl")
+CONTROL = os.environ.get("EQ_CONTROL", "0") == "1"          # also walk the same trade from a random bar (rule 15)
+if CONTROL:
+    OUT = OUT.replace(".json", "_control.json")
 
 
 def _work(args):
@@ -64,7 +67,7 @@ def _work(args):
     rows, errs = [], []
     for tf in TFS:
         try:
-            for x in FR2.trades(kind, tf, frames.get(tf), frames, start, 0, modes=VARIANTS):
+            for x in FR2.trades(kind, tf, frames.get(tf), frames, start, 0, modes=VARIANTS, control=CONTROL):
                 if x.get("retrace") is None:
                     continue
                 rows.append([VARIANTS.index(x["variant"]), TFS.index(tf), x["side_i"], x["tag1"], x["kind_i"],
@@ -72,7 +75,8 @@ def _work(args):
                              abs(x["fill"] - x["stop"]) / x["fill"], x["retrace"],
                              x["leg_bars"] if x["leg_bars"] is not None else np.nan,
                              x["vol_fade"] if x["vol_fade"] is not None else np.nan,
-                             0.0 if x["first_kind"] == "low" else 1.0, float(pd.Timestamp(x["t"]).year)])
+                             0.0 if x["first_kind"] == "low" else 1.0, float(pd.Timestamp(x["t"]).year),
+                             float(x.get("ctrl", 0))])
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
     if not rows:
@@ -105,6 +109,12 @@ def main():
         print("  ERR " + e_)
     f = pd.DataFrame(np.concatenate(parts), columns=COLS)
     f["R"] = f.ret / f.risk.where(f.risk > 0)
+    if CONTROL:
+        try:
+            f.to_parquet(os.path.splitext(OUT)[0] + "_rows.parquet")
+        except Exception:
+            pass
+    f_all, f = f, f[f.ctrl == 0]
 
     def st(g):
         if len(g) < 40:
@@ -171,7 +181,7 @@ def main():
                          cuts=[c[0] for c in CUTS]), table=out)
     json.dump(res, open(OUT, "w"))
     try:
-        f.to_parquet(os.path.splitext(OUT)[0] + "_rows.parquet")
+        f_all.to_parquet(os.path.splitext(OUT)[0] + "_rows.parquet")       # controls included when they were run
     except Exception:
         pass
     if log:

@@ -386,7 +386,23 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     (without them it loses), worst losing streak 15. It is the #26c / #34 lottery shape again: the money is the trailed
     runners. What holds: +0.47% over the chart's own drift, positive in stocks (+0.43%), crypto (+0.44%), ETFs (+0.25%),
     futures (+0.07%), long (+0.64%) and short (+0.18%), 11 of 12 years. CLEANEST SLICE: stocks + ETFs, LONG: avg +0.77%,
-    middle +0.14%, won 52%, n 9,500 (still: the top 5% make 107% of the profit). No any-bar control yet, only drift.
+    middle +0.14%, won 52%, n 9,500 (still: the top 5% make 107% of the profit).
+    HE ASKED AGAIN ("r u sure"), SO THE CONTROL WAS RUN (`EQ_PAIRS=1 EQ_CONTROL=1`, -> eq_retrace_pairs1_control_rows
+    .parquet): the SAME side, the SAME stop and target distance as a share of price, the SAME management, from a bar
+    picked at random on the same chart. THE EQ ENTRY BEATS IT EVERYWHERE. Far line 1x+, EQ vs any bar, avg / won:
+        4h everything        +0.40% / 48%  vs  -0.12% / 40%     1h everything        +0.12% / 47%  vs  -0.11% / 38%
+        4h stocks+ETFs long  +0.77% / 52%  vs  +0.14% / 42%     1h stocks+ETFs long  +0.28% / 51%  vs  -0.00% / 41%
+        4h crypto long       +0.46% / 45%  vs  -0.18% / 37%     1h all shorts        +0.02% / 46%  vs  -0.15% / 38%
+        4h all shorts        +0.18% / 47%  vs  -0.24% / 40%     daily stocks+ETFs L  +1.91% / 50%  vs  +0.40% / 41%
+    With NO far-line filter: 4h +0.19% vs -0.11%, 1h +0.00% vs -0.14%, daily +0.57% vs -0.21%. The entry is worth about
+    +0.3 to +0.6% a trade on the 4h and 8-10 points of win rate, on every market and both sides. Daily crypto is the
+    one place it does not separate (+1.09% vs +0.97%). WEAKNESS OF THIS CONTROL: the random bar is not matched in
+    TIME to the trade, so the year-by-year count (10-12 of 12) compares an EQ year with an all-years random sample;
+    the overall numbers are the ones to trust. A BUG OF MINE ON THE WAY: a second save at the end of the script
+    overwrote the rows file without the controls; the tell was the index stepping by 2. And `j.eq` is a DataFrame
+    method, the #36 column-name trap again.
+    SO: the EQ higher-low entry is REAL (it beats drift AND a fair random control). Its SHAPE is still mostly lottery
+    (middle trade under zero except stocks + ETFs long). The management, not the entry, is what needs work.
     HIS SENTENCE, COUNTED (2026-09-21, "after a larger move, if it has 3 of those pivots, high low lower high, you can
     expect a higher low, I think"; `studies/eq_nextlow.py`, no trades, 809 names, 2.8M shapes). HE IS RIGHT, and the
     first high's label does not matter (his correction: "if it makes an eq it's an eq" -- my detector already works
