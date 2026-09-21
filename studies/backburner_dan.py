@@ -202,6 +202,24 @@ def _work(args):
                 if "Volume" in d1:
                     dv = pd.Series(dc * d1["Volume"].values.astype(float)).rolling(50, min_periods=20).median().values
                     dollars = L.align_to(df, tf, frames, "1d", dv)
+            # HIS STACK (TCG_METHOD #13): several charts oversold at once, AT a level. How many of the bigger charts
+            # (4h, daily) read RSI 35 or under when the print comes, and is price sitting on the DAILY 12 EMA.
+            stack = np.zeros(n)
+            for big_tf in ("4h", "1d"):
+                bdf_ = frames.get(big_tf) if big_tf != tf else None
+                if bdf_ is not None and len(bdf_) > 60:
+                    br = IND.rsi(bdf_["Close"].values.astype(float), N_RSI)
+                    al = L.align_to(df, tf, frames, big_tf, br)
+                    stack = stack + np.where(np.isfinite(al) & (al <= 35), 1.0, 0.0)
+            at_d12 = np.full(n, np.nan)
+            if d1 is not None and len(d1) > 60:
+                dcl = d1["Close"].values.astype(float)
+                d12 = L.align_to(df, tf, frames, "1d", XM.ema(dcl, 12))
+                dat_ = L.align_to(df, tf, frames, "1d", P._atr(d1))
+                with np.errstate(invalid="ignore"):
+                    at_d12 = np.where(np.isfinite(d12) & (dat_ > 0), (c - d12) / dat_, np.nan)
+            vol = df["Volume"].values.astype(float) if "Volume" in df else np.zeros(n)
+            vavg = pd.Series(vol).rolling(50, min_periods=20).mean().values
             bells = None
             if kind in ("stock", "etf") and tf == "5m":
                 day = df.index.normalize().values
@@ -287,10 +305,14 @@ def _work(args):
                         rn = s_run[m_]
                         rn = (rn if side > 0 else -rn) if np.isfinite(rn) else np.nan
                         bl = blue[m_] if side > 0 else blue_dn[m_]
+                        vclimax = float(vol[k] / vavg[k - 1]) if (k > 0 and np.isfinite(vavg[k - 1]) and vavg[k - 1] > 0) else np.nan
+                        d12gap = at_d12[m_]
+                        d12gap = (d12gap if side > 0 else -d12gap) if np.isfinite(d12gap) else np.nan
                         rows.append([tf_i, side, float(ordinal.get(k, 0)) if not is_ctrl else -1.0, since, rn,
                                      float(t_up[m_] if side > 0 else t_dn[m_]) if np.isfinite(t_up[m_]) else np.nan,
                                      fall, float(pauses), float(bl) if np.isfinite(bl) else np.nan,
                                      float(dollars[m_]) if np.isfinite(dollars[m_]) else np.nan,
+                                     float(stack[m_]), d12gap, vclimax,
                                      float(len(fills)), rp, float(df.index[k].value), is_ctrl] + res)
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
@@ -320,7 +342,8 @@ def main():
                 parts.append(got[0]); kinds += [got[1]] * len(got[0]); syms += [got[2]] * len(got[0])
             if done % 100 == 0 or done == len(names):
                 print("  %d/%d names  (%.0fs)" % (done, len(names), time.time() - t0), flush=True)
-    cols = ["tf", "side", "ordinal", "since", "run", "intact", "fall", "pauses", "blue", "dollars", "units",
+    cols = ["tf", "side", "ordinal", "since", "run", "intact", "fall", "pauses", "blue", "dollars", "stacked", "d12gap",
+            "vclimax", "units",
             "risk_pct", "t", "ctrl"] + ["r%d" % i for i in range(len(MANAGERS))]
     d = pd.DataFrame(np.concatenate(parts), columns=cols)
     d["kind"] = np.array(kinds); d["sym"] = np.array(syms)
@@ -363,6 +386,16 @@ def main():
         ("first print + blue sky + liquid (no waterfall asked)",
          lambda x, c: (x.ctrl == c) & first(x, c) & (x.blue <= 10) & (x.liquid > 0.5) & (x.intact > 0.5)),
         ("waterfall only, any print", lambda x, c: (x.ctrl == c) & (x.fall >= 4) & (x.pauses <= 3)),
+        ("first print + run, ON THE DAILY 12 EMA (within half a daily bar)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.d12gap.abs() <= 0.5)),
+        ("first print + run, well ABOVE the daily 12 EMA (1+ bars)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.d12gap > 1.0)),
+        ("first print + run, UNDER the daily 12 EMA (1+ bars)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.d12gap < -1.0)),
+        ("first print + run + a VOLUME CLIMAX (2x its average)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.vclimax >= 2.0)),
+        ("any print, bigger charts ALSO oversold (stack 1+)", lambda x, c: (x.ctrl == c) & (x.stacked >= 1)),
+        ("any print, BOTH bigger charts oversold (stack 2)", lambda x, c: (x.ctrl == c) & (x.stacked >= 2)),
         ("NOT a backburner: no run, trend broken", lambda x, c: (x.ctrl == c) & (x.run < 1) & (x.intact < 0.5)),
     ]
     TFN = [p[0] for p in PAIRS]

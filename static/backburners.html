@@ -1,0 +1,166 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>The BackBurner, the Chart Guys' way</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --up:#3ddc97;--dn:#ff5c72;--amber:#ffb84d;--mono:ui-monospace,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:22px 26px 4px;max-width:1500px}
+  h1{font-size:21px;margin:0 0 6px}
+  h2{font-size:16px;margin:26px 0 8px}
+  .sub{color:var(--dim);max-width:980px}
+  .sub b{color:var(--fg)}
+  main{padding:4px 26px 80px;max-width:1500px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;margin:14px 0}
+  .warn{border-color:#5a3a20;background:#1a1410}
+  img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;cursor:zoom-in}
+  .line{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-bottom:7px}
+  .line b{color:var(--fg)}
+  .win b{color:var(--up)} .loss b{color:var(--dn)}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:12.5px;margin:8px 0 2px}
+  th,td{padding:6px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th{color:var(--faint);font-weight:500}
+  td.l,th.l{text-align:left}
+  .good{color:var(--up)} .bad{color:var(--dn)}
+  .rule{font-family:var(--mono);font-size:13px;line-height:1.9;margin:6px 0 0}
+  .rule b{color:var(--amber)}
+  .marks{display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap}
+  input.note{flex:1;min-width:280px;background:#1a1e25;border:1px solid var(--line);color:var(--fg);
+             border-radius:8px;padding:8px 10px;font:13px inherit}
+  .saved{font-size:12px;color:var(--up);min-width:130px}
+  .verdict{background:#1a1e25;border:1px solid var(--line);color:var(--dim);padding:7px 16px;border-radius:9px;
+           cursor:pointer;font-size:13px;font-weight:600;user-select:none}
+  .verdict.on{background:rgba(255,184,77,.16);border-color:var(--amber);color:var(--amber)}
+  #zoom{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:30;cursor:zoom-out;padding:8px}
+  #zoom img{max-width:99vw;max-height:98vh;width:auto}
+</style></head>
+<body>
+<header>
+  <h1>The BackBurner, the Chart Guys' way</h1>
+  <div class="sub">You said I kept jumping to conclusions about this, and you were right: for a week I tested
+    "RSI under 30" on any name at any time. This page is the trade as <b>Dan teaches it himself</b> &mdash; read from
+    his own videos and the TCG e-books &mdash; and what happens to the numbers when each of his rules is switched on.</div>
+  <div class="rule">
+    1. The name just had <b>a big run to a new high</b>. You missed it. You do not chase it &mdash; you put it on the back burner.<br>
+    2. You buy the <b>FIRST</b> time RSI touches <b>30</b> after that high &mdash; <b>inside the candle, at the touch</b>. A second buy waits at <b>20</b>.<br>
+    3. The bigger uptrend is <b>still intact</b>. The drop is not news or earnings. The name trades heavily. Regular hours only.<br>
+    4. When the bounce reaches the <b>12 EMA</b>, sell half. Move the stop <b>under the low of the drop</b>. Now it cannot hurt you.<br>
+    5. The rest is for <b>the old high</b>. The dip on the hourly is there to mark the <b>daily higher low</b>.
+  </div>
+</header>
+<main>
+  <div id="nums"></div>
+  <h2>Winners</h2><div id="wins"></div>
+  <h2>Losers</h2><div id="losses"></div>
+</main>
+<div id="zoom"></div>
+<script>
+const $ = s => document.querySelector(s);
+const pc = v => (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+const rr = v => (v > 0 ? '+' : '') + v.toFixed(2) + 'R';
+const cls = v => v > 0 ? 'good' : v < 0 ? 'bad' : '';
+const KEY = '1h | LONG | SCALP: all out when the bounce reaches the 12 EMA';
+const ROWS = [
+  ['NOT a backburner: no run, trend broken', 'not a backburner: no run, broken trend'],
+  ['every first-touch of 30', 'every touch of 30 (what I used to test)'],
+  ['the THIRD print or later', 'the third dip or later after the same high'],
+  ["the FIRST print since the bigger chart's new high", 'the FIRST dip after a new high'],
+  ['first print + a RUN of 4+ into the high', '... after a BIG RUN into that high'],
+  ['first print + run, well ABOVE the daily 12 EMA (1+ bars)', '... and still well ABOVE the daily 12 EMA'],
+  ['first print + run, UNDER the daily 12 EMA (1+ bars)', '... but already UNDER the daily 12 EMA'],
+];
+Promise.all([
+  fetch('/validation/backburner_tcg/index.json?v=' + Date.now()).then(r => r.json()),
+  fetch('/validation/backburner_dan.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+]).then(([d, study]) => {
+  let h = '';
+  if (study && study.tables && study.tables[KEY]) {
+    const t = study.tables[KEY];
+    h += `<div class="card"><b>Each of his rules adds a step</b>
+      <div class="sub" style="margin:4px 0 6px">The hourly chart, every stock, ETF and coin, sold in full when the bounce
+      reaches the 12 EMA. "R" is how many times the amount risked. The last column is the same trade taken on any
+      stretched dip at all &mdash; if the rule does not beat that, it is worth nothing.</div>
+      <table><tr><th class="l">what was bought</th><th>trades</th><th>average</th><th>middle trade</th><th>won</th>
+      <th>R</th><th>years up</th><th>any dip</th></tr>`;
+    for (const [k, lab] of ROWS) {
+      const r = t[k]; if (!r || !r.setup) continue;
+      const s = r.setup, c = r.control;
+      h += `<tr><td class="l">${lab}</td><td>${s.n.toLocaleString()}</td><td class="${cls(s.avg)}">${pc(s.avg)}</td>
+        <td class="${cls(s.middle)}">${pc(s.middle)}</td><td>${(100 * s.won).toFixed(0)}%</td>
+        <td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td><td>${r.years_up} of ${r.years}</td>
+        <td>${c && c.avg_R != null ? rr(c.avg_R) : '-'}</td></tr>`;
+    }
+    h += `</table></div>`;
+  }
+  const s = d.stats;
+  h += `<div class="card"><b>The ${s.n.toLocaleString()} trades these drawings come from</b>
+    <div class="sub" style="margin:4px 0 6px">First dip after a big run, weekly trend intact. Half sold at the 12 EMA, stop
+    under the low, the rest for the old high.</div><table>
+    <tr><th class="l">measure</th><th>value</th></tr>
+    <tr><td class="l">average trade</td><td class="${cls(s.avg_pct)}">${pc(s.avg_pct)}</td></tr>
+    <tr><td class="l">middle trade</td><td class="${cls(s.middle_pct)}">${pc(s.middle_pct)}</td></tr>
+    <tr><td class="l">trades won</td><td>${(100 * s.won).toFixed(0)}%</td></tr>
+    <tr><td class="l">average, in R</td><td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td></tr>
+    <tr><td class="l">the bounce reached the 12 EMA (half sold)</td><td>${(100 * s.half_taken).toFixed(0)}%</td></tr>
+    <tr><td class="l">the rest made it back to the old high</td><td>${(100 * s.reached_high).toFixed(0)}%</td></tr>
+    <tr><td class="l">got the second buy at RSI 20</td><td>${(100 * s.two_fills).toFixed(0)}%</td></tr>
+    <tr><td class="l">the first stop, as a share of price (middle)</td><td>${s.median_risk.toFixed(2)}%</td></tr></table></div>`;
+  h += `<div class="card warn"><b>What is not in it yet</b><div class="sub" style="margin-top:4px">
+    <b>News and earnings.</b> His first rule is that the drop must be technical. There is no earnings calendar wired in
+    yet, so some of these dips are earnings reactions he would have skipped.<br>
+    <b>His waterfall and all-time-high rules</b> are coded crudely and added nothing as coded. That is my version, not
+    a verdict on his rules.<br>
+    <b>The stock list is today's list</b> &mdash; companies that died are missing, the same warning as on /scalein.<br>
+    <b>The 5-minute version</b> shows the same step-by-step pattern at a tenth the size, and trading costs eat it.</div></div>`;
+  $('#nums').innerHTML = h;
+  const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
+      <div class="line">${c.sym} <span style="color:var(--faint)">hourly</span> &middot; ${c.t}
+        &middot; ${c.fills.length == 1 ? 'one buy at 30' : 'bought at 30 and again at 20'}
+        &middot; first stop <b>${c.risk_pct.toFixed(2)}%</b> away &middot; <b>${pc(c.pct)}</b> (${rr(c.R)}) &middot; ${c.how}</div>
+      <img src="/validation/backburner_tcg/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym}">
+      <div class="marks" data-id="${c.png}">
+        <span class="verdict" data-v="good">that is a backburner</span>
+        <span class="verdict" data-v="bad">would not take it</span>
+        <span class="verdict" data-v="fix">rule is wrong</span>
+        <input class="note" placeholder="what you see (optional)">
+        <span class="saved"></span>
+      </div></div>`;
+  $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
+  $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
+  fetch('/api/tradenote?set=backburners').then(r => r.json()).catch(() => ({})).then(notes => {
+    notes = notes || {};
+    document.querySelectorAll('.marks').forEach(m => {
+      const id = m.dataset.id, prev = String(notes[id] || '');
+      const i = prev.indexOf(' | ');
+      const v = (i < 0 ? prev : prev.slice(0, i)).trim();
+      m.querySelector('.note').value = i < 0 ? '' : prev.slice(i + 3);
+      m.querySelectorAll('.verdict').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+      const save = () => {
+        const on = m.querySelector('.verdict.on');
+        const body = (on ? on.dataset.v : '') + (m.querySelector('.note').value ? ' | ' + m.querySelector('.note').value : '');
+        const sp = m.querySelector('.saved');
+        const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
+        fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({set: 'backburners', n: id, note: body})})
+          .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
+                       setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
+          .catch(fail);
+      };
+      m.querySelectorAll('.verdict').forEach(b => b.onclick = () => {
+        const was = b.classList.contains('on');
+        m.querySelectorAll('.verdict').forEach(x => x.classList.remove('on'));
+        if (!was) b.classList.add('on');
+        save();
+      });
+      let t = null;
+      m.querySelector('.note').oninput = () => { clearTimeout(t); t = setTimeout(save, 600); };
+    });
+  });
+  document.querySelectorAll('img').forEach(im => im.onclick = () => {
+    const z = $('#zoom'); z.innerHTML = `<img src="${im.getAttribute('src')}">`; z.style.display = 'flex';
+  });
+});
+$('#zoom').onclick = () => { $('#zoom').style.display = 'none'; };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#zoom').style.display = 'none'; });
+</script>
+</body></html>

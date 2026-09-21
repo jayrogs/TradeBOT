@@ -883,6 +883,12 @@ def scalein_page():
     return send_from_directory("static", "scalein.html")
 
 
+@app.route("/backburners")
+def backburners_page():
+    """The BackBurner as The Chart Guys define it (first oversold after a run), drawn and graded."""
+    return send_from_directory("static", "backburners.html")
+
+
 @app.route("/bbwalk")
 def bbwalk_old():
     """"bbwalk" was my invented name for it (2026-09-12: "who thought of that name? its nothing ive
