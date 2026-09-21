@@ -253,8 +253,31 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     in their words a rookie mistake -- /eqfree used "rest to breakeven" throughout. Risk:reward ACCEPTS OR REJECTS a
     trade; exits are EMAs, fibs, measured moves and prior zones. A breakout must hold two more closes. 1-2% risk per
     NON-CORRELATED trade, so 172 fear-gap signals on one day are one bet.
-    TRANSCRIPTS: YouTube serves captions only to a signed-in viewer and yt-dlp here is from July 2023; the members
-    videos are on Vimeo. The e-books (PDFs, readable) carry the method. Their text lives in scratch/ and is never pushed.
+    TRANSCRIPTS WORK NOW (2026-09-21): yt-dlp updated to 2026.08.19 with his OK; `yt-dlp --skip-download
+    --write-auto-subs` pulls the spoken words, `scratch/tcg_youtube/vtt2txt.py` cleans them. The channel has 9,647
+    videos (ten years of dailies): the named-setup and teaching videos are read first, then recent dailies. The course
+    he owns (Entries & Exits, 72 lessons) is slides on Vimeo with no captions: readable only by screenshot, paused, with
+    the Chrome window in front. Everything of theirs lives in scratch/ and TCG_METHOD.md, never pushed.
+    DAN'S OWN MECHANICS (`studies/backburner_dan.py`, TCG_METHOD.md #11; "easily my most profitable trading strategy"):
+    he buys INSIDE THE CANDLE the moment RSI breaks 30 (RSI at the candle's low; the price is exact -- Wilder one bar
+    forward, verified to print 30.0000), a second bid rests at RSI 20, no stop with one fill, half off once the bounce
+    gets going with the stop moved UNDER THE LOW OF THE DROP, the rest for the bigger chart's higher low. Best from
+    all-time highs, in a waterfall, in names trading hundreds of millions of dollars, regular hours only, no news.
+    BUYING AT THE TOUCH ROUGHLY DOUBLES IT (1h long, all out at the 12 EMA, per trade; next-open version in brackets):
+        not a backburner                          +0.195%  +0.07R
+        every first touch of 30                   +0.271%  +0.09R
+        the FIRST print since the daily's high    +0.476%  +0.16R   12 of 12 years   (+0.252%)
+        first print after a run of 4+             +0.634%  +0.19R   12 of 12, middle +0.648%, won 71%   (+0.307%)
+        third print or later                      +0.253%
+    CRYPTO 4-HOUR, his own rule (first 4h oversold after a strong run): first print after a run +4.81% a trade, middle
+    +4.06%, won 80%, 10 of 11 years -- on 158 trades; not-a-backburner +0.43%. Shorts mirror it smaller (1h +0.325% vs
+    +0.168%). The 5m keeps the ladder (first print up 6 of 6 years, the rest 0 of 6) but nets about zero after cost.
+    MY waterfall, blue-sky and dollar-liquidity reads ADDED NOTHING on top of first-print-plus-run (+0.596 / +0.585 /
+    +0.493%): crude codings of his boxes 2 and 4, not a verdict on them (13g). News/earnings still unfiltered.
+    EQUILIBRIUMS, from Dan and from him (2026-09-21): an EQ is ANTICIPATED -- after volatility both ways (big drop,
+    50%+ bounce) the next lower high and higher low are the trade, entered off the chart two sizes down -- "but not
+    exclusively of course" (his words): that is one tell, not the definition. My detector needs two CONFIRMED pairs,
+    which is why only ~3 live bars were ever left (#26b). Not rebuilt yet.
 
 ## What is settled (do not re-litigate)
 
