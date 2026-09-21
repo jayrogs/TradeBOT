@@ -255,7 +255,9 @@ def trades(kind, tf, df, frames, start, gap, modes=None, filters=False):
                         e50=str(e50[ci]), e200=str(e200[ci]), inside=inside,
                         own12=("up" if (c[ci] > e12[ci] and e12_slope[ci] > 0) else
                                "down" if (c[ci] < e12[ci] and e12_slope[ci] < 0) else "none"),
-                        eq_lo=float(np.min(l[r["born"]:end + 1])), eq_hi=float(np.max(h[r["born"]:end + 1])))
+                        eq_lo=float(np.min(l[r["born"]:end + 1])), eq_hi=float(np.max(h[r["born"]:end + 1])),
+                        retrace=r.get("retrace"), leg_bars=r.get("leg_bars"), vol_fade=r.get("vol_fade"),
+                        first_kind=r.get("first_kind"))
             for mode_i, (vname, mode) in enumerate(MODES):
                 if modes is not None and vname not in modes:
                     continue

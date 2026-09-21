@@ -52,6 +52,8 @@ def coils(df, min_pairs=MIN_PAIRS, need_tighter=True, min_gap=0, strict_wicks=Tr
     n = len(c)
     atr = P._atr(df)
     piv = ST.pivots(df)                       # (confirm_bar, form_bar, price, kind, label)
+    pidx = {int(p_[1]): t_ for t_, p_ in enumerate(piv)}
+    vol_ = df["Volume"].values.astype(float) if "Volume" in df else None
     floor = np.full(n, np.nan)
     ceil = np.full(n, np.nan)
     cid = np.full(n, -1)
@@ -154,6 +156,22 @@ def coils(df, min_pairs=MIN_PAIRS, need_tighter=True, min_gap=0, strict_wicks=Tr
             k += 1
         end = died[0] if died else n - 1
         a0 = atr[confirm] if np.isfinite(atr[confirm]) and atr[confirm] > 0 else np.nan
+        # THE CHART GUYS' NUMBER (TCG_METHOD 19g): how much of the move INTO the shape did the first swing back take?
+        # 38.2% or less = a flag (continuation); 50% or more = an equilibrium is the likely pattern, and only then
+        # does playing off the floor have the odds. Uses the shape's first two pivots and the pivot before them,
+        # all of which had confirmed by `confirm`.
+        retrace = leg_bars = vol_fade = None
+        t0 = pidx.get(int(run[0][1]))
+        if t0 is not None and t0 >= 1 and len(run) >= 2:
+            leg = abs(float(run[0][2]) - float(piv[t0 - 1][2]))
+            if leg > 0:
+                retrace = float(abs(float(run[1][2]) - float(run[0][2])) / leg)
+                leg_bars = float(leg / a0) if np.isfinite(a0) else None
+        if vol_ is not None and confirm - born >= 6:
+            half = (confirm - born) // 2
+            v1 = np.nanmean(vol_[born:born + half]); v2 = np.nanmean(vol_[born + half:confirm + 1])
+            if np.isfinite(v1) and np.isfinite(v2) and v1 > 0:
+                vol_fade = float(v2 / v1)
         out.append(dict(
             i=len(out), born=born, confirm=confirm, end=end,
             how=died[1] if died else "still open",
@@ -162,6 +180,7 @@ def coils(df, min_pairs=MIN_PAIRS, need_tighter=True, min_gap=0, strict_wicks=Tr
             bars=int(end - born + 1), live_bars=int(painted),
             # a break inside the two bars before the last pivot confirmed is not a trade
             tradeable=bool(painted > 0),
+            retrace=retrace, leg_bars=leg_bars, vol_fade=vol_fade, first_kind=str(run[0][3]),
             shape=shape,
             wide_at_start=float((first_c - first_f) / a0) if np.isfinite(a0) else None,
             wide_at_end=float((ce - f) / a0) if np.isfinite(a0) else None))

@@ -50,6 +50,7 @@ OUT = os.path.join("validation", "backburner_dan.json")
 PAIRS = [("5m", "1h", "1d"), ("1h", "1d", "1w"), ("4h", "1d", "1w")]
 STOP_BARS = 3.0
 SECOND_BID_BARS = 12           # how long the RSI-20 bid rests before he pulls it
+HOLD_LOOK = 35                 # "did the print MARK the higher low": the dip's low must stand this many bars
 FALL_LOOK = 8                  # the waterfall is read over the last 8 bars of the entry chart
 N_RSI = 14
 # (label, kind of exit, parameter, close 5m stock trades at the bell)
@@ -212,12 +213,52 @@ def _work(args):
                     al = L.align_to(df, tf, frames, big_tf, br)
                     stack = stack + np.where(np.isfinite(al) & (al <= 35), 1.0, 0.0)
             at_d12 = np.full(n, np.nan)
+            d12 = np.full(n, np.nan); dat_ = np.full(n, np.nan)
             if d1 is not None and len(d1) > 60:
                 dcl = d1["Close"].values.astype(float)
                 d12 = L.align_to(df, tf, frames, "1d", XM.ema(dcl, 12))
                 dat_ = L.align_to(df, tf, frames, "1d", P._atr(d1))
                 with np.errstate(invalid="ignore"):
                     at_d12 = np.where(np.isfinite(d12) & (dat_ > 0), (c - d12) / dat_, np.nan)
+            # HIS SWITCH (TCG_METHOD 19e): "when we lose the 4-hour 12 EMA ... we watch for back burners, first hourly
+            # oversold". A second honest reading of FIRST: the first print since THIS name's 4h close lost its 12 EMA
+            # (mirror for shorts), and how many 4h bars the EMA had held before that ("the first time in weeks").
+            leg4 = {1: np.full(n, np.nan), -1: np.full(n, np.nan)}
+            held4 = {1: np.full(n, np.nan), -1: np.full(n, np.nan)}
+            off4 = {1: np.full(n, np.nan), -1: np.full(n, np.nan)}
+            f4 = frames.get("4h") if tf in ("5m", "1h") else None
+            if f4 is not None and len(f4) > 60:
+                c4 = f4["Close"].values.astype(float)
+                e4 = XM.ema(c4, 12)
+                for sd in (1, -1):
+                    onside = (c4 > e4) if sd > 0 else (c4 < e4)
+                    lid = np.full(len(c4), np.nan); hl = np.full(len(c4), np.nan)
+                    runlen, cur_id, cur_h = 0, np.nan, np.nan
+                    for i4 in range(len(c4)):
+                        if onside[i4]:
+                            runlen += 1
+                        else:
+                            if i4 > 0 and onside[i4 - 1]:
+                                cur_id, cur_h = float(i4), float(runlen)
+                            runlen = 0
+                        lid[i4] = cur_id; hl[i4] = cur_h
+                    leg4[sd] = L.align_to(df, tf, frames, "4h", lid)
+                    held4[sd] = L.align_to(df, tf, frames, "4h", hl)
+                    off4[sd] = L.align_to(df, tf, frames, "4h", (~onside).astype(float))
+            # HE WANTS THE GAP DOWN (TCG_METHOD #16): "crush it into the close and gap down open to hourly oversold".
+            # Which bar of its session this is, and where the session OPENED against yesterday's low / high / close.
+            # Read off this chart's own bars, so it is exactly what he would have seen at the open. Stocks and ETFs only.
+            bar_of_day = np.full(n, np.nan); gap_lo = np.full(n, np.nan); gap_hi = np.full(n, np.nan)
+            if kind in ("stock", "etf"):
+                dayv = df.index.normalize().values
+                first_i = np.r_[0, np.where(dayv[1:] != dayv[:-1])[0] + 1]
+                last_i = np.r_[first_i[1:] - 1, n - 1]
+                for q in range(1, len(first_i)):
+                    a0, a1 = first_i[q], last_i[q]
+                    b0, b1 = first_i[q - 1], last_i[q - 1]
+                    bar_of_day[a0:a1 + 1] = np.arange(a1 - a0 + 1)
+                    gap_lo[a0:a1 + 1] = float(np.min(l[b0:b1 + 1])) - o[a0]     # + = opened UNDER yesterday's low
+                    gap_hi[a0:a1 + 1] = o[a0] - float(np.max(h[b0:b1 + 1]))     # + = opened OVER yesterday's high
             vol = df["Volume"].values.astype(float) if "Volume" in df else np.zeros(n)
             vavg = pd.Series(vol).rolling(50, min_periods=20).mean().values
             bells = None
@@ -246,6 +287,16 @@ def _work(args):
                         cur, cnt = t_ext, 0
                     cnt += 1
                     ordinal[k] = cnt
+                ord4, cnt4, cur4 = {}, 0, None
+                for k in starts:
+                    lk = leg4[side][k - 1] if k > 0 else np.nan
+                    if not np.isfinite(lk) or not (off4[side][k - 1] > 0.5):
+                        ord4[k] = 0
+                        continue
+                    if cur4 is None or lk != cur4:
+                        cur4, cnt4 = lk, 0
+                    cnt4 += 1
+                    ord4[k] = cnt4
                 ctrl_ks = np.arange(150 if side > 0 else 190, n - 8, stepc)
                 for ks, is_ctrl in ((starts, 0), (ctrl_ks, 1)):
                     for k in ks:
@@ -308,11 +359,27 @@ def _work(args):
                         vclimax = float(vol[k] / vavg[k - 1]) if (k > 0 and np.isfinite(vavg[k - 1]) and vavg[k - 1] > 0) else np.nan
                         d12gap = at_d12[m_]
                         d12gap = (d12gap if side > 0 else -d12gap) if np.isfinite(d12gap) else np.nan
+                        # did the DIP ITSELF reach the daily 12 EMA (his favourite: the first hourly oversold that
+                        # lines up with the daily 12 EMA to set the daily higher low). Measured from the worst fill.
+                        d12fill = ((worst - d12[m_]) / dat_[m_] * side) if (np.isfinite(d12[m_]) and dat_[m_] > 0) else np.nan
+                        gp = gap_lo[k] if side > 0 else gap_hi[k]
+                        gapopen = (gp / dat_[m_]) if (np.isfinite(gp) and dat_[m_] > 0) else np.nan
+                        # THE HEALTH READ, no money in it: did the dip's low STAND (the print marked the higher low)
+                        # or did the bounce go on to a lower low
+                        j9 = e_last + 1 + HOLD_LOOK
+                        if j9 < n:
+                            kept = float(np.min(l[e_last + 1:j9]) >= low0) if side > 0 else float(np.max(h[e_last + 1:j9]) <= low0)
+                        else:
+                            kept = np.nan
+                        o4 = float(ord4.get(k, 0)) if not is_ctrl else -1.0
+                        h4 = held4[side][m_]
                         rows.append([tf_i, side, float(ordinal.get(k, 0)) if not is_ctrl else -1.0, since, rn,
                                      float(t_up[m_] if side > 0 else t_dn[m_]) if np.isfinite(t_up[m_]) else np.nan,
                                      fall, float(pauses), float(bl) if np.isfinite(bl) else np.nan,
                                      float(dollars[m_]) if np.isfinite(dollars[m_]) else np.nan,
-                                     float(stack[m_]), d12gap, vclimax,
+                                     float(stack[m_]), d12gap, vclimax, d12fill, gapopen,
+                                     float(bar_of_day[k]) if np.isfinite(bar_of_day[k]) else np.nan,
+                                     o4, float(h4) if np.isfinite(h4) else np.nan, kept,
                                      float(len(fills)), rp, float(df.index[k].value), is_ctrl] + res)
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
@@ -343,12 +410,21 @@ def main():
             if done % 100 == 0 or done == len(names):
                 print("  %d/%d names  (%.0fs)" % (done, len(names), time.time() - t0), flush=True)
     cols = ["tf", "side", "ordinal", "since", "run", "intact", "fall", "pauses", "blue", "dollars", "stacked", "d12gap",
-            "vclimax", "units",
+            "vclimax", "d12fill", "gapopen", "bar_of_day", "ord4", "held4", "kept", "units",
             "risk_pct", "t", "ctrl"] + ["r%d" % i for i in range(len(MANAGERS))]
     d = pd.DataFrame(np.concatenate(parts), columns=cols)
     d["kind"] = np.array(kinds); d["sym"] = np.array(syms)
     d = d.sort_values("t")
     d["yr"] = pd.to_datetime(d.t).dt.year
+    # HIS CHECKLIST, BOX 5: "prior examples on that same ticker". For every first print, how this NAME's EARLIER first
+    # prints did under the scalp (known before this one: rows are in time order and a scalp lasts a few bars).
+    d["prior_n"] = np.nan; d["prior_win"] = np.nan
+    fp = d[(d.ctrl == 0) & (d.ordinal == 1)]
+    scalp = "r1"
+    for _key, g in fp.groupby(["sym", "tf", "side"]):
+        w = (g[scalp] > 0).astype(float)
+        d.loc[g.index, "prior_n"] = np.arange(len(g), dtype=float)
+        d.loc[g.index, "prior_win"] = w.shift(1).expanding().mean().values
     # "hundreds of millions of dollars traded": $100M+ a day for stocks and ETFs; the top third elsewhere
     thr = d.groupby("kind").dollars.transform(lambda x: x.quantile(2 / 3))
     d["liquid"] = np.where(d.kind.isin(["stock", "etf"]), d.dollars >= 1e8, d.dollars >= thr).astype(float)
@@ -394,6 +470,34 @@ def main():
          lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.d12gap < -1.0)),
         ("first print + run + a VOLUME CLIMAX (2x its average)",
          lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.vclimax >= 2.0)),
+        ("first print + run, the DIP REACHED the daily 12 EMA (fill within half a daily bar)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.d12fill.abs() <= 0.5)),
+        ("first print + run, dip stopped ABOVE the daily 12 EMA (0.5+ bars over)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.d12fill > 0.5)),
+        ("first print + run, dip went THROUGH the daily 12 EMA (0.5+ bars under)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.d12fill < -0.5)),
+        ("first print + run, IN THE FIRST TWO BARS of a day that GAPPED under yesterday's low",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.bar_of_day <= 1) & (x.gapopen > 0)),
+        ("first print + run, first two bars of the day, NO gap under yesterday's low",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.bar_of_day <= 1) & (x.gapopen <= 0)),
+        ("first print + run, LATER in the day (bar 3 on)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.bar_of_day >= 2)),
+        ("any print, first two bars of a GAP-DOWN day",
+         lambda x, c: (x.ctrl == c) & (x.bar_of_day <= 1) & (x.gapopen > 0)),
+        ("the FIRST print since the 4h 12 EMA was LOST (his switch)",
+         lambda x, c: (x.ctrl == c) & ((x.ord4 == 1) | (c == 1))),
+        ("  ... and the 4h 12 EMA had HELD 10+ bars before that",
+         lambda x, c: (x.ctrl == c) & ((x.ord4 == 1) | (c == 1)) & (x.held4 >= 10)),
+        ("  ... held 10+ bars AND a run of 4+ into the high",
+         lambda x, c: (x.ctrl == c) & ((x.ord4 == 1) | (c == 1)) & (x.held4 >= 10) & (x.run >= 4)),
+        ("the THIRD print or later since the 4h 12 EMA was lost",
+         lambda x, c: (x.ctrl == c) & ((x.ord4 >= 3) | (c == 1))),
+        ("first by BOTH counts (since the high AND since the 4h 12 EMA) + run",
+         lambda x, c: (x.ctrl == c) & first(x, c) & ((x.ord4 == 1) | (c == 1)) & (x.run >= 4)),
+        ("first print + run, this NAME's earlier first prints mostly WON (3+ seen, 60%+)",
+         lambda x, c: (x.ctrl == c) & (x.ordinal == 1) & (x.run >= 4) & (x.prior_n >= 3) & (x.prior_win >= 0.6)),
+        ("first print + run, this NAME's earlier first prints mostly LOST (3+ seen, under 50%)",
+         lambda x, c: (x.ctrl == c) & (x.ordinal == 1) & (x.run >= 4) & (x.prior_n >= 3) & (x.prior_win < 0.5)),
         ("any print, bigger charts ALSO oversold (stack 1+)", lambda x, c: (x.ctrl == c) & (x.stacked >= 1)),
         ("any print, BOTH bigger charts oversold (stack 2)", lambda x, c: (x.ctrl == c) & (x.stacked >= 2)),
         ("NOT a backburner: no run, trend broken", lambda x, c: (x.ctrl == c) & (x.run < 1) & (x.intact < 0.5)),
@@ -408,8 +512,8 @@ def main():
                 col = "r%d" % mi
                 key = "%s | %s | %s" % (tf, sname, mlab)
                 print("  %s  %s  --  %s" % (tf, sname, mlab))
-                print("    %-52s %7s %8s %8s %5s %7s %7s %7s" % (
-                    "cut", "n", "avg", "middle", "won", "avg R", "ctrl R", "yrs up"))
+                print("    %-52s %7s %8s %8s %5s %7s %7s %7s %6s" % (
+                    "cut", "n", "avg", "middle", "won", "avg R", "ctrl R", "yrs up", "low held"))
                 out["tables"][key] = {}
                 for lab, fn in CUTS:
                     g = base[fn(base, 0)]; cc = base[fn(base, 1)]
@@ -417,10 +521,12 @@ def main():
                     if not s1:
                         continue
                     yu, yt = yrs(g, col)
-                    print("    %-52s %7d %+7.3f%% %+7.3f%% %4.0f%% %+6.2fR %+6.2fR %4d/%-2d" % (
+                    kp = g.kept[np.isfinite(g.kept)]
+                    kept = float(kp.mean()) if len(kp) >= 60 else None
+                    print("    %-52s %7d %+7.3f%% %+7.3f%% %4.0f%% %+6.2fR %+6.2fR %4d/%-2d %5s" % (
                         lab[:52], s1["n"], s1["avg"], s1["middle"], 100 * s1["won"], s1["avg_R"] or 0,
-                        (s2["avg_R"] or 0) if s2 else 0, yu, yt))
-                    out["tables"][key][lab] = dict(setup=s1, control=s2, years_up=yu, years=yt)
+                        (s2["avg_R"] or 0) if s2 else 0, yu, yt, ("%.0f%%" % (100 * kept)) if kept is not None else "-"))
+                    out["tables"][key][lab] = dict(setup=s1, control=s2, years_up=yu, years=yt, low_held=kept)
                 print()
     json.dump(out, io.open(OUT, "w", encoding="utf-8"))
     try:
