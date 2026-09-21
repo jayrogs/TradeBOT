@@ -279,6 +279,70 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     exclusively of course" (his words): that is one tell, not the definition. My detector needs two CONFIRMED pairs,
     which is why only ~3 live bars were ever left (#26b). Not rebuilt yet.
 
+39. THE FULL READ OF THE CHART GUYS' YOUTUBE CHANNEL (2026-09-21, his words: "go over EVERYTHING"). 324 videos, 1.6
+    million spoken words, every one read to its end by reader agents in 32 batches; per-video notes in
+    scratch/tcg_youtube/notes/batch_NN.md, the distillation in TCG_METHOD.md #17-#19 (private, never pushed). What it
+    changed, in the order it matters:
+      - THERE ARE TWO OVERSOLD TRADES AND I HAD MIXED THEM. The BACKBURNER is WITH the trend: the FIRST oversold after
+        a run / breakout, bigger chart strong, it marks the next chart up's higher low (5m->1h, 15m->4h, 1h->daily,
+        4h->weekly, daily->MONTHLY), each step used up once, and "hourly oversold coming out of a downtrend is NOT a
+        backburner" (Dan). The OVERSOLD BOUNCE is AGAINST the trend: a beaten-up name, SEVERAL chart sizes oversold at
+        once (the super stack), a fast flush with a volume climax, never a slow bleed. Different trades, different rules.
+      - THE LOCATION IS THE NEXT CHART UP'S 12 EMA. Joey's recipe for a failed break: oversold on the small charts + a
+        support break + INTO a bigger chart's EMA. My rows agree: 1h first print after a run, scalp to the 12 EMA --
+        dip stopped ABOVE the daily 12 EMA +1.30% a trade (won 76%, 12 of 12 years), REACHED it +0.71% (74%), went
+        THROUGH it +0.13% (62%).
+      - HE WANTS THE GAP DOWN, AND SAYS HOW MUCH: a flat open is ~50% conviction on a daily bounce, a gap down ~75%;
+        no gap, no trade. (#35's fear gap is his rule.) Stocks, first two hourly bars: gapped under yesterday's low
+        +0.43% vs no gap +0.22%. TIME OF DAY is a precondition too: an hourly backburner in the last hour is skipped
+        (mine: +0.34% in the last bar vs +0.56-0.69% mid-day, n 309).
+      - "RISK FREE" HAS TWO HONEST FORMS and neither is a stop moved to the raw entry: (a) half off at 1x the risk with
+        the ORIGINAL stop left alone (half made 1, half can lose 1); (b) a partial that drags the COST BASIS under the
+        low of the day, then the stop goes under that structure. The partial's job is to get bullets back and put the
+        basis under the low, not to bank money. A full position is FOUR bullets, the first entry fires TWO, never all four.
+        So /eqfree's "half at the far line, rest to breakeven" was their management after all (corrects #38).
+      - THE STOP is the NEAREST level that kills the idea, never the big chart's swing low, with wiggle room to a round
+        number; a stop that is TOO TIGHT is an error Dan names; no level nearby = a dollar stop (his "day loser").
+        A STOP-OUT DOES NOT KILL THE SETUP: Joey's rule is two attempts minimum, three maximum; his year-end review found
+        most "failed" stair steps worked on the second or third try.
+      - SIZE IS BACKED OUT OF THE STOP AND THE NAME'S OWN RANGE (TSLA moves 6%, a name that moves 30% gets a fifth of
+        the dollars); day-trade size is 3-4x swing size and the trim is what turns one into the other.
+      - THE FLAG / EQ NUMBER: a pullback of 38.2% or less = a flag; 50% or more = an EQ is the likely pattern; and
+        "buying the floor only works if an EQ is the likely pattern". VOLUME must drop off while an EQ forms.
+      - PATTERNS MUST NOT BE BACKTESTED AS STANDALONE OBJECTS (Dan, in those words). That is 13d.
+      - JOEY'S OWN NUMBERS: 43% of trades win, 72% of days win. RSI'S LIMITS, Dan's own list: not comparable across
+        names or chart sizes (the level that matters is the NAME'S OWN historic bounce level: NVDA 4h 18-21), useless
+        for 14 bars after a gap, useless at all-time highs.
+    WHAT I BUILT FROM IT THE SAME NIGHT (all MY VERSIONS, none drawn yet, so none is a verdict -- rule 10):
+      `studies/eq_retrace.py` -- their numbers on my detector's EQs. VOLUME FADING vs RISING through the shape
+        separates on every chart and both exits (half at the far line: 1h +0.04% vs -0.01%, 4h +0.24% vs -0.05%, daily
+        +1.77% vs -0.15%; years up 8 of 11-12 vs 3-5). First use of the volume column on this desk. The 38.2/50 number
+        barely moves MY EQs, because my detector only fires after two pairs, so 85% of them are already "their EQ".
+        Best single row: daily, LONG, shape began from a LOW (drop, then the bounce -- their example), all out at the
+        far line: avg +1.18%, middle +1.01%, won 70%, 19 of 23 blocks of twenty up, all three eras up, n 466.
+      `studies/eq_anticipate.py` -- THEIR EQ, acted on after the FIRST swing back (high -> low -> lower high, which is
+        Dan's on-camera definition), 809 names, 705,051 trades, three ways in, timed on the chart two sizes down.
+        (1) BUYING TOWARD THE FLOOR AT THE SMALL CHART'S RSI-30 TOUCH, STOP UNDER THE LOW -- the test of Dan's sentence.
+            4h idea / 15m timing: their EQ avg +0.31%, MIDDLE +1.33%, won 55% | their flag +0.15% / -0.57% / 47% | not
+            one of theirs -0.02% / -0.70% / 42%. 1h idea / 5m timing: +0.05% / +0.45% / 54% | -0.02% / -0.29% / 47% |
+            -0.03% / -0.29% / 42%. The middle trade flips from losing to winning exactly where he says it should. On
+            the DAILY idea chart it does NOT hold (-0.21% / -0.97%), and the 4h row lost before 2022 (-0.46%).
+        (2) WAITING FOR THE HIGHER LOW TO CONFIRM ON THE IDEA CHART, far line 1x+ the risk, LONG: 4h +0.60% a trade,
+            +0.27R, 5 of 6 years, eras +0.66 / +0.38 / +0.75; 1h +0.26%, +0.26R, 6 of 6 years, 319 of 502 blocks up,
+            eras +0.22 / +0.21 / +0.31. Middle trade negative (won 44-48%): a 1x+ target wins under half the time by
+            construction. THE FAR LINE is what matters here; their flag does as well as their EQ on this entry.
+        (3) MY SMALL-CHART TRIGGER (first small higher low after a 38.2% giveback, stop under the pullback low) LOSES
+            on every chart, 0 of 6 years. Its weakness is mine: the stop is 0.5-1% wide, which Dan calls an error, and
+            one small higher low is not their "trend change" (a higher low AND a higher high). Not their entry yet.
+        SHORTS lose or sit flat throughout (the window rose).
+      `studies/backburner_dan.py` gained the daily-12-EMA-at-the-fill, gap-open, time-of-day, first-since-the-4h-12-
+        EMA-was-lost and the name's-own-history reads. "First since the 4h 12 EMA was lost" ALONE added nothing over
+        every touch (+0.24% vs +0.27%); first-since-the-high + a run stays the working count. Names whose EARLIER first
+        prints mostly won: +0.71% vs +0.37% for names whose earlier ones mostly lost (n 416) -- their checklist box 5.
+    STILL NOT BUILT: a news/earnings filter; the failed-backburner regime switch (their main market-health read);
+    Lori's market table to pick the SIDE; the super-stack oversold bounce as its own study; per-name RSI levels;
+    two-to-three attempts per setup; drawings for both EQ studies.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.
