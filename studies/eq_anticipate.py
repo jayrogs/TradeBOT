@@ -62,15 +62,17 @@ WAIT_X = 3.0                  # how long the higher low may take: this many time
 CAP_X = 60                    # a trade is closed after this many idea-chart bars
 NEAR = 0.15                   # exit this share of a normal bar BEFORE the far line
 GIVEBACK = 0.382              # the pullback must have taken back this much of the bounce before "small" may fire
+DETAIL = None                  # pics_eqanticipate sets this to a list to get every trade's bars and prices back
 COLS = ["pair", "side", "way", "leg", "retrace", "fade", "rr", "risk", "tag", "kind", "yr", "era", "t",
         "depth", "r_all", "r_half", "reached", "held"]
 
 
 def _walk(side, o, h, l, e, fill, stop, tgt, far, last, cost):
-    """Bar by bar on the timing chart from the bar AFTER the fill bar's open. Returns (all-out %, half %, reached)."""
-    risk = abs(fill - stop)
+    """Bar by bar on the timing chart from the bar AFTER the fill bar's open.
+    Returns (all-out %, half %, reached, the all-out exit bar, the all-out exit price)."""
     r_all = r_half = None
     took = False
+    xb, xpx = last, o[last]
     for j in range(e, last + 1):
         if side > 0:
             hit_stop = l[j] <= stop
@@ -86,20 +88,22 @@ def _walk(side, o, h, l, e, fill, stop, tgt, far, last, cost):
             g = side * (px_stop - fill) / fill * 100
             if r_all is None:
                 r_all = g - cost
+                xb, xpx = j, px_stop
             r_half = (0.5 * side * (tgt - fill) / fill * 100 + 0.5 * g - cost) if took else (g - cost)
-            return r_all, r_half, took
+            return r_all, r_half, took, xb, xpx
         if hit_t and not took:
             took = True
             if r_all is None:
                 r_all = side * (tgt - fill) / fill * 100 - cost
+                xb, xpx = j, tgt
         if took and hit_f:
             r_half = 0.5 * side * (tgt - fill) / fill * 100 + 0.5 * side * (far - fill) / fill * 100 - cost
-            return r_all, r_half, took
+            return r_all, r_half, took, xb, xpx
     g = side * (o[last] - fill) / fill * 100
     if r_all is None:
         r_all = g - cost
     r_half = (0.5 * side * (tgt - fill) / fill * 100 + 0.5 * g - cost) if took else (g - cost)
-    return r_all, r_half, took
+    return r_all, r_half, took, xb, xpx
 
 
 def _work(args):
@@ -212,7 +216,16 @@ def _work(args):
                     if rp < 3 * cost or risk > 4 * a:
                         return False
                     last = min(nd - 1, e + CAP_X * per_T)
-                    ra, rh, took = _walk(side, do, dh, dl, e, fill, stop, tgt, far, last, cost)
+                    ra, rh, took, xb, xpx = _walk(side, do, dh, dl, e, fill, stop, tgt, far, last, cost)
+                    if DETAIL is not None:
+                        DETAIL.append(dict(sym=sym, kind=kind, pair=p_i, side=side, way=way_i, jA=jA, jB=jB, jC=jC,
+                                           ciC=ciC, pA=pA, pB=pB, pC=pC, e=int(e), fill=float(fill), stop=float(stop),
+                                           tgt=float(tgt), far=float(far), xb=int(xb), xpx=float(xpx), leg=float(leg),
+                                           retrace=float(retr), fade=float(fade) if np.isfinite(fade) else None,
+                                           rr=float(abs(tgt - fill) / risk), risk_pct=float(rp), pct=float(ra),
+                                           R=float(ra / rp), t=str(d.index[min(e, nd - 1)]),
+                                           tA=str(D.index[jA]), tB=str(D.index[jB]), tC=str(D.index[jC]),
+                                           t_e=str(d.index[min(e, nd - 1)]), t_x=str(d.index[min(xb, nd - 1)])))
                     row = list(base)
                     row[2] = way_i; row[6] = abs(tgt - fill) / risk; row[7] = rp
                     rows.append(row + [abs(pC - fill) / span, ra, rh, 1.0 if took else 0.0, 0.0])
@@ -258,6 +271,9 @@ def _work(args):
                         if (side > 0 and dl[k] <= stop3) or (side < 0 and dh[k] >= stop3):
                             g = side * (stop3 - fill) / fill * 100 - cost
                             rows[-1][14] = g; rows[-1][15] = g; rows[-1][16] = 0.0
+                            if DETAIL is not None:
+                                DETAIL[-1].update(xb=int(k), xpx=float(stop3), pct=float(g), R=float(g / rows[-1][7]),
+                                                  t_x=str(d.index[k]))
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, T, ex))
     if not rows:

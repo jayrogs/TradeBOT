@@ -889,6 +889,12 @@ def backburners_page():
     return send_from_directory("static", "backburners.html")
 
 
+@app.route("/eqanticipate")
+def eqanticipate_page():
+    """The EQ acted on after the FIRST swing back (The Chart Guys' 50% rule), drawn and graded."""
+    return send_from_directory("static", "eqanticipate.html")
+
+
 @app.route("/bbwalk")
 def bbwalk_old():
     """"bbwalk" was my invented name for it (2026-09-12: "who thought of that name? its nothing ive

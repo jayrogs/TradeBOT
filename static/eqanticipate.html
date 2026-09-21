@@ -1,0 +1,199 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>The EQ, anticipated</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --up:#3ddc97;--dn:#ff5c72;--amber:#ffb84d;--mono:ui-monospace,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:22px 26px 4px;max-width:1500px}
+  h1{font-size:21px;margin:0 0 6px}
+  h2{font-size:16px;margin:26px 0 8px}
+  .sub{color:var(--dim);max-width:980px}
+  .sub b{color:var(--fg)}
+  main{padding:4px 26px 80px;max-width:1500px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;margin:14px 0}
+  .warn{border-color:#5a3a20;background:#1a1410}
+  img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;cursor:zoom-in}
+  .line{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-bottom:7px}
+  .line b{color:var(--fg)}
+  .win b{color:var(--up)} .loss b{color:var(--dn)}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:12.5px;margin:8px 0 2px}
+  th,td{padding:6px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th{color:var(--faint);font-weight:500}
+  td.l,th.l{text-align:left}
+  .good{color:var(--up)} .bad{color:var(--dn)}
+  .rule{font-family:var(--mono);font-size:13px;line-height:1.9;margin:6px 0 0}
+  .rule b{color:var(--amber)}
+  .marks{display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap}
+  input.note{flex:1;min-width:280px;background:#1a1e25;border:1px solid var(--line);color:var(--fg);
+             border-radius:8px;padding:8px 10px;font:13px inherit}
+  .saved{font-size:12px;color:var(--up);min-width:130px}
+  .verdict{background:#1a1e25;border:1px solid var(--line);color:var(--dim);padding:7px 16px;border-radius:9px;
+           cursor:pointer;font-size:13px;font-weight:600;user-select:none}
+  .verdict.on{background:rgba(255,184,77,.16);border-color:var(--amber);color:var(--amber)}
+  #zoom{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:30;cursor:zoom-out;padding:8px}
+  #zoom img{max-width:99vw;max-height:98vh;width:auto}
+</style></head>
+<body>
+<header>
+  <h1>The EQ, anticipated</h1>
+  <div class="sub">My EQ detector waits for two higher lows and two lower highs, and by then about three bars are left.
+    Dan does not wait. From his videos, in my words: after <b>a big move</b>, if the first swing back takes
+    <b>half of it or more</b>, an EQ is the likely pattern &mdash; so he scouts the <b>higher low</b> right then, on a
+    much smaller chart, and sells near the <b>lower high</b>. If the swing back is small (38% or less) it is a flag, and
+    buying the floor gets stopped out. This page is MY VERSION of that. It is here to be graded, not believed.</div>
+  <div class="rule">
+    1. The 4-hour chart: <b>A</b> where the move began, <b>B</b> its low, <b>C</b> the swing back. C stays under A.<br>
+    2. The move A to B is <b>4 or more normal bars</b>. C takes back <b>50% or more</b> of it.<br>
+    3. Two ways in. <b>Touch</b>: buy inside the 15-minute candle as its RSI touches 30, stop under B.
+       <b>Confirm</b>: wait for the higher low to confirm on the 4-hour, buy the next open, stop a wick under it,
+       only when the sell line is at least 1x the risk away.<br>
+    4. Sell it all <b>just under C</b>. (They sell a little before the level, never at it.)
+  </div>
+</header>
+<main>
+  <div id="nums"></div>
+  <h2>Bought at the touch of 30</h2><div id="touch"></div>
+  <h2>Bought after the 4-hour higher low confirmed</h2><div id="confirm"></div>
+</main>
+<div id="zoom"></div>
+<script>
+const $ = s => document.querySelector(s);
+const pc = v => (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+const rr = v => (v > 0 ? '+' : '') + v.toFixed(2) + 'R';
+const cls = v => v > 0 ? 'good' : v < 0 ? 'bad' : '';
+const OUTK = 'out: all out just before the far line';
+const KEYS = [
+  ['4h idea / 15m timing | LONG the higher low after a drop | in: touch | ' + OUTK, 'bought at the touch of 30, 4-hour idea'],
+  ['1h idea / 5m timing | LONG the higher low after a drop | in: touch | ' + OUTK, 'bought at the touch of 30, 1-hour idea'],
+  ['1d idea / 1h timing | LONG the higher low after a drop | in: touch | ' + OUTK, 'bought at the touch of 30, daily idea'],
+];
+const ROWS = [
+  ['NOT one of theirs: a small move first (under 2 normal bars)', 'not one of theirs: only a small move first'],
+  ['big move (4+), swing back 38.2% or less   = their FLAG', 'big move, swing back 38% or less (their FLAG)'],
+  ['big move, swing back 38.2-50%             = their grey zone', 'big move, swing back 38-50% (their grey zone)'],
+  ['big move, swing back 50% or more          = THEIR EQ', 'big move, swing back 50% or more (THEIR EQ)'],
+];
+const CONF = [
+  ['4h idea / 15m timing | LONG the higher low after a drop | in: confirm | ' + OUTK, '4-hour idea'],
+  ['1h idea / 5m timing | LONG the higher low after a drop | in: confirm | ' + OUTK, '1-hour idea'],
+  ['1d idea / 1h timing | LONG the higher low after a drop | in: confirm | ' + OUTK, 'daily idea'],
+];
+const eras = e => e.map(x => x == null ? '-' : pc(x)).join(' / ');
+Promise.all([
+  fetch('/validation/eq_anticipate/index.json?v=' + Date.now()).then(r => r.json()),
+  fetch('/validation/eq_anticipate.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+]).then(([d, study]) => {
+  let h = '';
+  if (study && study.tables) {
+    h += `<div class="card"><b>Does buying toward the floor only work when an EQ is the likely pattern?</b>
+      <div class="sub" style="margin:4px 0 6px">That is Dan's sentence. Bought at the touch of 30 on the small chart, stop
+      under B, all sold just under C. ${study.meta.names} names, ${study.meta.rows.toLocaleString()} trades in the whole
+      study. Look at the MIDDLE trade: it should lose for a flag and win for an EQ.</div>`;
+    for (const [k, lab] of KEYS) {
+      const t = study.tables[k]; if (!t) continue;
+      h += `<div class="sub" style="margin-top:10px"><b>${lab}</b></div>
+        <table><tr><th class="l">what came first</th><th>trades</th><th>average</th><th>middle trade</th><th>won</th>
+        <th>R</th><th>years up</th><th>before 2022 / first half / second half</th></tr>`;
+      for (const [rk, rl] of ROWS) {
+        const s = t[rk]; if (!s) continue;
+        h += `<tr><td class="l">${rl}</td><td>${s.n.toLocaleString()}</td><td class="${cls(s.mean)}">${pc(s.mean)}</td>
+          <td class="${cls(s.median)}">${pc(s.median)}</td><td>${(100 * s.won).toFixed(0)}%</td>
+          <td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td><td>${s.years_up} of ${s.years}</td><td>${eras(s.eras)}</td></tr>`;
+      }
+      h += `</table>`;
+    }
+    h += `</div><div class="card"><b>Waiting for the higher low to confirm, sell line 1x the risk away or more</b>
+      <div class="sub" style="margin:4px 0 6px">A target that far away wins under half the time by construction, so the
+      middle trade is a loss and the AVERAGE is the number to read. Here their flag does as well as their EQ: on this
+      way in, it is the distance to the sell line that matters.</div>
+      <table><tr><th class="l">idea chart</th><th class="l">what came first</th><th>trades</th><th>average</th>
+      <th>middle trade</th><th>won</th><th>R</th><th>years up</th><th>blocks of 20 up</th>
+      <th>before 2022 / first half / second half</th></tr>`;
+    for (const [k, lab] of CONF) {
+      const t = study.tables[k]; if (!t) continue;
+      for (const [rk, rl] of [['their EQ + far line 1x+ the risk', 'their EQ'], ['their FLAG + far line 1x+', 'their flag']]) {
+        const s = t[rk]; if (!s) continue;
+        h += `<tr><td class="l">${lab}</td><td class="l">${rl}</td><td>${s.n.toLocaleString()}</td>
+          <td class="${cls(s.mean)}">${pc(s.mean)}</td><td class="${cls(s.median)}">${pc(s.median)}</td>
+          <td>${(100 * s.won).toFixed(0)}%</td><td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td>
+          <td>${s.years_up} of ${s.years}</td><td>${s.blocks_up} of ${s.blocks}</td><td>${eras(s.eras)}</td></tr>`;
+      }
+    }
+    h += `</table></div>`;
+  }
+  const names = {touch: 'bought at the touch of 30', confirm: 'bought after the higher low confirmed'};
+  h += `<div class="card"><b>The trades these 16 drawings were picked from</b>
+    <div class="sub" style="margin:4px 0 6px">4-hour idea, 15-minute timing, stocks, ETFs and coins, their EQ only.
+    Four winners and four losers of each kind, picked at random.</div>
+    <table><tr><th class="l">way in</th><th>trades</th><th>average</th><th>middle trade</th><th>won</th><th>R</th>
+    <th>stop distance (middle)</th></tr>`;
+  for (const w of ['touch', 'confirm']) {
+    const s = d.stats[w]; if (!s) continue;
+    h += `<tr><td class="l">${names[w]}</td><td>${s.n.toLocaleString()}</td><td class="${cls(s.avg_pct)}">${pc(s.avg_pct)}</td>
+      <td class="${cls(s.middle_pct)}">${pc(s.middle_pct)}</td><td>${(100 * s.won).toFixed(0)}%</td>
+      <td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td><td>${s.median_risk.toFixed(2)}%</td></tr>`;
+  }
+  h += `</table></div>
+    <div class="card warn"><b>What is weak about it, and what is not in it</b><div class="sub" style="margin-top:4px">
+    <b>It does not hold on the daily chart</b>, and the 4-hour row lost before 2022. Two charts of three is a lead, not a rule.<br>
+    <b>Shorts lose or sit flat</b> on every chart. The years tested mostly rose.<br>
+    <b>All-out at the sell line is fragile.</b> GIS below came within 20 cents of it and then stopped out. They sell a
+    piece into the first bounce so the rest cannot hurt; that management is not drawn here yet.<br>
+    <b>My third way in lost everywhere</b> (the first small higher low on the 15-minute, stop right under it). The stop was
+    half a percent wide, which Dan calls an error, so that is my entry failing, not theirs.<br>
+    <b>News and earnings are not filtered.</b> GIS's "big move" is one earnings gap. They would have skipped it.<br>
+    <b>The stock list is today's list</b> &mdash; companies that died are missing.</div></div>`;
+  $('#nums').innerHTML = h;
+  const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
+      <div class="line">${c.sym} <span style="color:var(--faint)">4h idea, 15m timing</span> &middot; ${c.t}
+        &middot; fell ${c.leg.toFixed(1)} normal bars, swing back ${(100 * c.retrace).toFixed(0)}%
+        &middot; stop <b>${c.risk_pct.toFixed(2)}%</b> away &middot; sell line ${c.rr.toFixed(1)}x the risk
+        &middot; <b>${pc(c.pct)}</b> (${rr(c.R)})</div>
+      <img src="/validation/eq_anticipate/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym}">
+      <div class="marks" data-id="${c.png}">
+        <span class="verdict" data-v="good">I would take that</span>
+        <span class="verdict" data-v="bad">would not take it</span>
+        <span class="verdict" data-v="fix">that is not an EQ</span>
+        <input class="note" placeholder="what you see (optional)">
+        <span class="saved"></span>
+      </div></div>`;
+  $('#touch').innerHTML = d.charts.filter(c => c.way_name === 'touch').map(card).join('');
+  $('#confirm').innerHTML = d.charts.filter(c => c.way_name === 'confirm').map(card).join('');
+  fetch('/api/tradenote?set=eqanticipate').then(r => r.json()).catch(() => ({})).then(notes => {
+    notes = notes || {};
+    document.querySelectorAll('.marks').forEach(m => {
+      const id = m.dataset.id, prev = String(notes[id] || '');
+      const i = prev.indexOf(' | ');
+      const v = (i < 0 ? prev : prev.slice(0, i)).trim();
+      m.querySelector('.note').value = i < 0 ? '' : prev.slice(i + 3);
+      m.querySelectorAll('.verdict').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+      const save = () => {
+        const on = m.querySelector('.verdict.on');
+        const body = (on ? on.dataset.v : '') + (m.querySelector('.note').value ? ' | ' + m.querySelector('.note').value : '');
+        const sp = m.querySelector('.saved');
+        const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
+        fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({set: 'eqanticipate', n: id, note: body})})
+          .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
+                       setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
+          .catch(fail);
+      };
+      m.querySelectorAll('.verdict').forEach(b => b.onclick = () => {
+        const was = b.classList.contains('on');
+        m.querySelectorAll('.verdict').forEach(x => x.classList.remove('on'));
+        if (!was) b.classList.add('on');
+        save();
+      });
+      let t = null;
+      m.querySelector('.note').oninput = () => { clearTimeout(t); t = setTimeout(save, 600); };
+    });
+  });
+  document.querySelectorAll('img').forEach(im => im.onclick = () => {
+    const z = $('#zoom'); z.innerHTML = `<img src="${im.getAttribute('src')}">`; z.style.display = 'flex';
+  });
+});
+$('#zoom').onclick = () => { $('#zoom').style.display = 'none'; };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#zoom').style.display = 'none'; });
+</script>
+</body></html>
