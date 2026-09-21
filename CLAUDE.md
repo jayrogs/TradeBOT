@@ -381,6 +381,12 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     +0.30 / +0.43 / +0.41). 1h far line 1x+: +0.15% (n 4,655) | +0.12% (n 119,406), both 11 of 12 years. Daily: two
     pairs is better per trade (+1.39% vs +0.57%) but one pair has 27x the trades and steadier eras. By #29 ("the number
     of trades is everything") one pair is the wallet candidate. NOT YET through the wallet, not yet drawn on /eqfree.
+    HE ASKED "R U SURE IT'S GOOD" AND I HAD SKIPPED THE MIDDLE TRADE (#26c's rule: no average without its median). The
+    4h one-pair row, far line 1x+: avg +0.40% but MIDDLE -0.11%, won 48%, THE TOP 5% OF TRADES MAKE 191% OF THE PROFIT
+    (without them it loses), worst losing streak 15. It is the #26c / #34 lottery shape again: the money is the trailed
+    runners. What holds: +0.47% over the chart's own drift, positive in stocks (+0.43%), crypto (+0.44%), ETFs (+0.25%),
+    futures (+0.07%), long (+0.64%) and short (+0.18%), 11 of 12 years. CLEANEST SLICE: stocks + ETFs, LONG: avg +0.77%,
+    middle +0.14%, won 52%, n 9,500 (still: the top 5% make 107% of the profit). No any-bar control yet, only drift.
     HIS SENTENCE, COUNTED (2026-09-21, "after a larger move, if it has 3 of those pivots, high low lower high, you can
     expect a higher low, I think"; `studies/eq_nextlow.py`, no trades, 809 names, 2.8M shapes). HE IS RIGHT, and the
     first high's label does not matter (his correction: "if it makes an eq it's an eq" -- my detector already works
