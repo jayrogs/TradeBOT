@@ -66,8 +66,13 @@ const ROWS = [
   ['the THIRD print or later', 'the third dip or later after the same high'],
   ["the FIRST print since the bigger chart's new high", 'the FIRST dip after a new high'],
   ['first print + a RUN of 4+ into the high', '... after a BIG RUN into that high'],
-  ['first print + run, well ABOVE the daily 12 EMA (1+ bars)', '... and still well ABOVE the daily 12 EMA'],
-  ['first print + run, UNDER the daily 12 EMA (1+ bars)', '... but already UNDER the daily 12 EMA'],
+  ['first print + run, dip stopped ABOVE the daily 12 EMA (0.5+ bars over)', '... and the dip stopped ABOVE the daily 12 EMA'],
+  ['first print + run, the DIP REACHED the daily 12 EMA (fill within half a daily bar)', '... and the dip stopped AT the daily 12 EMA (his favourite)'],
+  ['first print + run, dip went THROUGH the daily 12 EMA (0.5+ bars under)', '... but the dip went THROUGH the daily 12 EMA'],
+  ['first print + run, the sector LEADER is oversold too (its RSI 35 or under)', '... and its sector leader is oversold too'],
+  ['first print + run, the leader is weak but NOT oversold (35-45)', '... but its leader is weak and has NOT flushed yet'],
+  ["first print + run, IN THE FIRST TWO BARS of a day that GAPPED under yesterday's low", '... at the open of a GAP-DOWN day (stocks)'],
+  ["first print + run, first two bars of the day, NO gap under yesterday's low", '... at the open, NO gap down (stocks)'],
 ];
 Promise.all([
   fetch('/validation/backburner_tcg/index.json?v=' + Date.now()).then(r => r.json()),
