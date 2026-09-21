@@ -43,20 +43,23 @@
     much smaller chart, and sells near the <b>lower high</b>. If the swing back is small (38% or less) it is a flag, and
     buying the floor gets stopped out. This page is MY VERSION of that. It is here to be graded, not believed.</div>
   <div class="rule">
-    1. The 4-hour chart: <b>A</b> where the move began, <b>B</b> its low, <b>C</b> the swing back. C stays under A.<br>
+    1. The BIG chart (weekly, daily, 4-hour or 1-hour): <b>A</b> where the move began, <b>B</b> its low, <b>C</b> the swing back. C stays under A.<br>
     2. The move A to B is <b>4 or more normal bars</b>. C takes back <b>50% or more</b> of it.<br>
-    3. Three ways in. <b>One buy</b>: inside the 15-minute candle at the FIRST touch of RSI 30 after C, stop under B.
+    3. The buy is timed on a chart two sizes down (weekly&larr;4h, daily&larr;1h, 4h&larr;15m, 1h&larr;5m). Three ways in.
+       <b>One buy</b>: inside the small candle at the FIRST touch of RSI 30 after C, stop under B.
        <b>Two buys</b>: the same, plus a second buy waiting at RSI 20, only at a better price.
-       <b>Confirm</b>: wait for the higher low to confirm on the 4-hour, buy the next open, stop a wick under it,
+       <b>Confirm</b>: wait for the higher low to confirm on the BIG chart, buy the next open, stop a wick under it,
        only when the sell line is at least 1x the risk away.<br>
     4. Sell it all <b>just under C</b>. (They sell a little before the level, never at it.)
   </div>
 </header>
 <main>
   <div id="nums"></div>
+  <h2>The drawings &mdash; pick the chart the EQ is on</h2>
+  <div class="marks" id="pairs" style="margin:0 0 6px"></div>
   <h2>One buy, at the first touch of 30</h2><div id="touch"></div>
   <h2>Two buys: at 30, and again at 20</h2><div id="scalein"></div>
-  <h2>Bought after the 4-hour higher low confirmed</h2><div id="confirm"></div>
+  <h2>Bought after the higher low confirmed on the big chart</h2><div id="confirm"></div>
 </main>
 <div id="zoom"></div>
 <script>
@@ -69,6 +72,7 @@ const KEYS = [
   ['4h idea / 15m timing | LONG the higher low after a drop | in: touch | ' + OUTK, 'bought at the touch of 30, 4-hour idea'],
   ['1h idea / 5m timing | LONG the higher low after a drop | in: touch | ' + OUTK, 'bought at the touch of 30, 1-hour idea'],
   ['1d idea / 1h timing | LONG the higher low after a drop | in: touch | ' + OUTK, 'bought at the touch of 30, daily idea'],
+  ['1w idea / 4h timing | LONG the higher low after a drop | in: touch | ' + OUTK, 'bought at the touch of 30, weekly idea'],
 ];
 const ROWS = [
   ['NOT one of theirs: a small move first (under 2 normal bars)', 'not one of theirs: only a small move first'],
@@ -80,6 +84,7 @@ const CONF = [
   ['4h idea / 15m timing | LONG the higher low after a drop | in: confirm | ' + OUTK, '4-hour idea'],
   ['1h idea / 5m timing | LONG the higher low after a drop | in: confirm | ' + OUTK, '1-hour idea'],
   ['1d idea / 1h timing | LONG the higher low after a drop | in: confirm | ' + OUTK, 'daily idea'],
+  ['1w idea / 4h timing | LONG the higher low after a drop | in: confirm | ' + OUTK, 'weekly idea'],
 ];
 const eras = e => e.map(x => x == null ? '-' : pc(x)).join(' / ');
 Promise.all([
@@ -99,7 +104,7 @@ Promise.all([
       better price than the first.</div>
       <table><tr><th class="l">idea chart</th><th class="l">how it was bought</th><th>trades</th><th>average</th>
       <th>middle trade</th><th>won</th><th>R</th><th>years up</th></tr>`;
-    for (const [T, lab] of [['4h idea / 15m timing', '4-hour'], ['1h idea / 5m timing', '1-hour'], ['1d idea / 1h timing', 'daily']]) {
+    for (const [T, lab] of [['4h idea / 15m timing', '4-hour'], ['1h idea / 5m timing', '1-hour'], ['1d idea / 1h timing', 'daily'], ['1w idea / 4h timing', 'weekly']]) {
       for (const [w, wl] of [['touch', 'one buy at 30'], ['touch, and again at 20', 'at 30, and again at 20']]) {
         const t = study.tables[T + ' | LONG the higher low after a drop | in: ' + w + ' | ' + OUTK];
         const r = t && t['big move, swing back 50% or more          = THEIR EQ']; if (!r) continue;
@@ -149,13 +154,14 @@ Promise.all([
   const names = {touch: 'one buy, at the first touch of 30', scalein: 'at 30, and again at 20',
                  confirm: 'bought after the higher low confirmed'};
   h += `<div class="card"><b>The trades these 16 drawings were picked from</b>
-    <div class="sub" style="margin:4px 0 6px">4-hour idea, 15-minute timing, stocks, ETFs and coins, their EQ only.
-    Winners and losers of each kind, picked at random. The two-buy drawings are ones where the second buy filled.</div>
-    <table><tr><th class="l">way in</th><th>trades</th><th>average</th><th>middle trade</th><th>won</th><th>R</th>
+    <div class="sub" style="margin:4px 0 6px">Stocks, ETFs and coins, their EQ only, long. Two winners and two losers of
+    each kind on each chart, picked at random. The two-buy drawings are ones where the second buy filled.</div>
+    <table><tr><th class="l">EQ on the</th><th class="l">way in</th><th>trades</th><th>average</th><th>middle trade</th><th>won</th><th>R</th>
     <th>stop distance (middle)</th><th>second buy filled</th></tr>`;
-  for (const w of ['touch', 'scalein', 'confirm']) {
-    const s = d.stats[w]; if (!s) continue;
-    h += `<tr><td class="l">${names[w]}</td><td>${s.n.toLocaleString()}</td><td class="${cls(s.avg_pct)}">${pc(s.avg_pct)}</td>
+  for (const pr of (d.pairs || [])) for (const w of ['touch', 'scalein', 'confirm']) {
+    const s = d.stats[pr.idea + '|' + w]; if (!s) continue;
+    h += `<tr><td class="l">${pr.idea_name}</td><td class="l">${names[w]}</td><td>${s.n.toLocaleString()}</td>
+      <td class="${cls(s.avg_pct)}">${pc(s.avg_pct)}</td>
       <td class="${cls(s.middle_pct)}">${pc(s.middle_pct)}</td><td>${(100 * s.won).toFixed(0)}%</td>
       <td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td><td>${s.median_risk.toFixed(2)}%</td>
       <td>${w === 'scalein' ? (100 * s.two_fills).toFixed(0) + '%' : '-'}</td></tr>`;
@@ -163,6 +169,10 @@ Promise.all([
   h += `</table></div>
     <div class="card warn"><b>What is weak about it, and what is not in it</b><div class="sub" style="margin-top:4px">
     <b>It does not hold on the daily chart</b>, and the 4-hour row lost before 2022. Two charts of three is a lead, not a rule.<br>
+    <b>On the weekly and daily the stop is too far to hold.</b> "Touch" puts the stop under B, the big chart's low,
+    which on a weekly coin can be 50% away (see the stop-distance column). Dan says the stop for a big-chart higher low is
+    NEVER the big chart's swing low: he finds a level close by and accepts being stopped more often. That nearer stop is
+    not built yet, so read the weekly numbers as "the idea has something", not as a trade.<br>
     <b>Shorts lose or sit flat</b> on every chart. The years tested mostly rose.<br>
     <b>All-out at the sell line is fragile.</b> One drawn trade (GIS) came within 20 cents of it and then stopped out. They sell a
     piece into the first bounce so the rest cannot hurt; that management is not drawn here yet.<br>
@@ -172,7 +182,7 @@ Promise.all([
     <b>The stock list is today's list</b> &mdash; companies that died are missing.</div></div>`;
   $('#nums').innerHTML = h;
   const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
-      <div class="line">${c.sym} <span style="color:var(--faint)">4h idea, 15m timing</span> &middot; ${c.t}
+      <div class="line">${c.sym} <span style="color:var(--faint)">${c.idea_name} EQ, bought on the ${c.timing_name}</span> &middot; ${c.t}
         &middot; fell ${c.leg.toFixed(1)} normal bars, swing back ${(100 * c.retrace).toFixed(0)}%
         &middot; stop <b>${c.risk_pct.toFixed(2)}%</b> away &middot; sell line ${c.rr.toFixed(1)}x the risk
         &middot; <b>${pc(c.pct)}</b> (${rr(c.R)})</div>
@@ -184,12 +194,21 @@ Promise.all([
         <input class="note" placeholder="what you see (optional)">
         <span class="saved"></span>
       </div></div>`;
-  $('#touch').innerHTML = d.charts.filter(c => c.way_name === 'touch').map(card).join('');
-  $('#scalein').innerHTML = d.charts.filter(c => c.way_name === 'scalein').map(card).join('');
-  $('#confirm').innerHTML = d.charts.filter(c => c.way_name === 'confirm').map(card).join('');
+  let pick = '4h';
+  try { pick = localStorage.getItem('eqanticipate_pair') || '4h'; } catch (e) {}
+  if (!(d.pairs || []).some(p => p.idea === pick)) pick = (d.pairs && d.pairs[0] ? d.pairs[0].idea : '4h');
+  $('#pairs').innerHTML = (d.pairs || []).map(p =>
+    `<span class="verdict${p.idea === pick ? ' on' : ''}" data-p="${p.idea}">${p.idea_name} EQ (${d.charts.filter(c => c.idea === p.idea).length})</span>`).join('');
+  $('#pairs').querySelectorAll('.verdict').forEach(bn => bn.onclick = () => {
+    try { localStorage.setItem('eqanticipate_pair', bn.dataset.p); } catch (e) {}
+    location.reload();
+  });
+  for (const w of ['touch', 'scalein', 'confirm'])
+    $('#' + w).innerHTML = d.charts.filter(c => c.way_name === w && c.idea === pick).map(card).join('')
+      || '<div class="sub">none drawn for this chart size (too few trades)</div>';
   fetch('/api/tradenote?set=eqanticipate').then(r => r.json()).catch(() => ({})).then(notes => {
     notes = notes || {};
-    document.querySelectorAll('.marks').forEach(m => {
+    document.querySelectorAll('.marks[data-id]').forEach(m => {
       const id = m.dataset.id, prev = String(notes[id] || '');
       const i = prev.indexOf(' | ');
       const v = (i < 0 ? prev : prev.slice(0, i)).trim();

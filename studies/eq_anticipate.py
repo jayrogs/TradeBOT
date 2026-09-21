@@ -63,7 +63,7 @@ import eq_freeride2 as FR2        # noqa: E402
 import backburner_dan as DAN      # noqa: E402
 
 OUT = os.path.join("validation", "eq_anticipate.json")
-PAIRS = [("1d", "1h"), ("4h", "15m"), ("1h", "5m")]          # idea chart, timing chart
+PAIRS = [("1d", "1h"), ("4h", "15m"), ("1h", "5m"), ("1w", "4h")]          # idea chart, timing chart
 WAYS = ["confirm", "small", "touch", "touch, and again at 20"]
 SECOND_BID_BARS = 12          # how long the second buy (RSI 20) rests before it is pulled
 WAIT_X = 3.0                  # how long the higher low may take: this many times the bounce's own length
@@ -133,7 +133,7 @@ def _work(args):
     rows, errs = [], []
     for p_i, (T, t) in enumerate(PAIRS):
         D, d = reg.get(T), reg.get(t)
-        if D is None or d is None or len(D) < 200 or len(d) < 500:
+        if D is None or d is None or len(D) < (120 if T == "1w" else 200) or len(d) < 500:
             continue
         try:
             Dh = D["High"].values.astype(float); Dl = D["Low"].values.astype(float)

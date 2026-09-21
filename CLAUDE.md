@@ -367,6 +367,20 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         (4h +0.60%, 1h +0.26%).
     LESSON: a confirmed-pivot rule silently delays every entry built on it by two bars of THAT chart. Any "buy the first
     X after pivot Y" must say whether Y is printed or confirmed, and the drawing must show the buy on the way DOWN.
+    EVERY CHART SIZE, AND THE DETECTOR AFTER ONE PAIR (same day, his ask: "how are you implementing that on other time
+    frames too"). eq_anticipate runs FOUR pairs, the buy timed two sizes down: weekly<-4h, daily<-1h, 4h<-15m, 1h<-5m,
+    everything measured in the idea chart's own normal bars; /eqanticipate has a chart-size picker and 48 drawings (12 a
+    size, all measured clean). WEEKLY, their EQ, two buys: avg +3.47%, middle +5.91%, won 57%, 8 of 8 years, n 508 (their
+    flag: middle -1.48%) -- BUT the stop under the weekly low is often 30-50% away (AAVE drawn at 53%), which nobody
+    holds, and Dan says the stop for a big-chart higher low is NEVER that chart's swing low. Not a trade until a
+    nearer stop is built.
+    HIS OWN EQ TRADE WITH THE DETECTOR FIRING AFTER ONE PAIR INSTEAD OF TWO (`EQ_PAIRS=1 pythonw studies/eq_retrace.py`,
+    -> validation/eq_retrace_pairs1.json; buy the higher low, half at the lower high, rest to breakeven): 20-27x MORE
+    TRADES AT ABOUT THE SAME PER TRADE. 4h, every EQ trade: two pairs +0.19% (n 3,151) | one pair +0.19% (n 69,417).
+    4h, far line 1x+: two pairs +0.28% (n 1,226, 8 of 11 years) | ONE PAIR +0.40% (n 32,271, 11 of 12 years, eras
+    +0.30 / +0.43 / +0.41). 1h far line 1x+: +0.15% (n 4,655) | +0.12% (n 119,406), both 11 of 12 years. Daily: two
+    pairs is better per trade (+1.39% vs +0.57%) but one pair has 27x the trades and steadier eras. By #29 ("the number
+    of trades is everything") one pair is the wallet candidate. NOT YET through the wallet, not yet drawn on /eqfree.
     HIS SENTENCE, COUNTED (2026-09-21, "after a larger move, if it has 3 of those pivots, high low lower high, you can
     expect a higher low, I think"; `studies/eq_nextlow.py`, no trades, 809 names, 2.8M shapes). HE IS RIGHT, and the
     first high's label does not matter (his correction: "if it makes an eq it's an eq" -- my detector already works

@@ -35,7 +35,16 @@ import backburner_study as B      # noqa: E402
 import trend_ride as R            # noqa: E402
 import eq_freeride2 as FR2        # noqa: E402
 
-OUT = os.path.join("validation", "eq_retrace.json")
+import functools                  # noqa: E402
+import eq_coil as EC              # noqa: E402
+
+# HIS POINT, 2026-09-21: Dan acts after ONE pair (high, low, lower high, higher low); my detector waits for two.
+# EQ_PAIRS=1 in the environment runs the SAME trade with the detector firing after one pair. Workers re-import this
+# module, so the switch is read here, at import.
+PAIRS_NEEDED = int(os.environ.get("EQ_PAIRS", "2"))
+if PAIRS_NEEDED != 2:
+    EC.coils = functools.partial(EC.coils, min_pairs=PAIRS_NEEDED)
+OUT = os.path.join("validation", "eq_retrace.json" if PAIRS_NEEDED == 2 else "eq_retrace_pairs%d.json" % PAIRS_NEEDED)
 TFS = ["1h", "4h", "1d"]
 KEEP = {"1h", "4h", "1d", "1w"}
 VARIANTS = [FR2.MODES[1][0], FR2.MODES[2][0]]          # half at the far line; all out at the far line

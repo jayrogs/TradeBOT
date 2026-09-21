@@ -38,8 +38,8 @@ import eq_anticipate as EA        # noqa: E402
 DARK, DIM = "#0d0f12", "#8b93a1"
 PURPLE, GREEN, RED, AMBER, BLUE = "#b48cff", "#3ddc97", "#ff5c72", "#ffb84d", "#5aa9ff"
 OUT = os.path.join("validation", "eq_anticipate")
-PAIR = 1                       # 4h idea, 15m timing
-T_TF, t_TF = EA.PAIRS[PAIR]
+TFN = {"1w": "weekly", "1d": "daily", "4h": "4-hour", "1h": "1-hour", "15m": "15-minute", "5m": "5-minute"}
+DATEFMT = {"1h": "%m-%d %H:%M", "15m": "%m-%d %H:%M", "5m": "%m-%d %H:%M", "4h": "%Y-%m-%d"}
 WAY_NAME = {0: "confirm", 2: "touch", 3: "scalein"}
 try:
     SUSPECT = set(json.load(open(os.path.join("validation", "suspect_names.json"))).get("names", []))
@@ -62,7 +62,7 @@ def _one(args):
         EA.DETAIL = []
         EA._work((sym, kind, start))
         out = [d for d in EA.DETAIL
-               if d["pair"] == PAIR and d["side"] == 1 and d["leg"] >= 4 and d["retrace"] >= 0.5
+               if d["side"] == 1 and d["leg"] >= 4 and d["retrace"] >= 0.5
                and ((d["way"] in (2, 3)) or (d["way"] == 0 and d["rr"] >= 1.0))]
         EA.DETAIL = None
         return out, []
@@ -72,6 +72,7 @@ def _one(args):
 
 def draw(tr, D, d, path):
     import pics_ride as PR
+    T, t = EA.PAIRS[tr["pair"]]
     # every bar is looked up by its TIME, never by a stored bar number (GIS, 2026-09-21: the 4h marks landed seven
     # months from the trade because the drawing's frames were not the study's)
     e = int(d.index.get_loc(pd.Timestamp(tr["t_e"]))); xb = int(d.index.get_loc(pd.Timestamp(tr["t_x"])))
@@ -89,7 +90,7 @@ def draw(tr, D, d, path):
                           top=0.92, bottom=0.12)
     ax = fig.add_subplot(gs[0, 0])
     bnd = CK.bundle(d, x0, len(dd)); bnd["spans"] = []; bnd["pivots"] = []; bnd["eq"] = [False] * len(dd)
-    CK.render(ax, bnd, "", "%m-%d %H:%M")
+    CK.render(ax, bnd, "", DATEFMT[t])
     lo = min(float(np.nanmin(dd["Low"].values)), tr["stop"])
     hi = max(float(np.nanmax(dd["High"].values)), tr["tgt"])
     rng = max(hi - lo, 1e-9)
@@ -114,16 +115,16 @@ def draw(tr, D, d, path):
                              color=colr, fontsize=8.5, weight="bold", zorder=20)
             PR.keep_inside(ax, an)
     if tr["way"] == 0:
-        peg(k - x0, tr["fill"], 0.10, GREEN, "^", "bought: the 4h higher low confirmed")
+        peg(k - x0, tr["fill"], 0.10, GREEN, "^", "bought: the %s higher low confirmed" % TFN[T])
     else:
         for i_, (b_, px_) in enumerate(zip(fb, tr["fills"])):
             last_ = i_ == len(fb) - 1
             peg(b_ - x0, px_, 0.10 + 0.07 * i_, GREEN, "^",
                 ("bought at the first touch of 30" if len(fb) == 1 else "bought at 30, again at 20") if last_ else "")
     peg(xb - x0, tr["xpx"], 0.32, "#e6e9ee", "X", "out %+.2fR" % tr["R"])
-    ax.set_title("%s 15m   %s   risk %.2f%%  ->  %+.2f%%  (%+.2fR)" % (
-        tr["sym"], {2: "one buy at the first touch of 30", 3: "bought at 30 and again at 20",
-                    0: "bought after the 4h higher low confirmed"}[tr["way"]],
+    ax.set_title("%s %s   %s   risk %.2f%%  ->  %+.2f%%  (%+.2fR)" % (
+        tr["sym"], TFN[t], {2: "one buy at the first touch of 30", 3: "bought at 30 and again at 20",
+                            0: "bought after the higher low confirmed"}[tr["way"]],
         tr["risk_pct"], tr["pct"], tr["R"]), color="#e6e9ee", fontsize=10.5, loc="left", pad=8)
     axr = fig.add_subplot(gs[1, 0], sharex=ax)
     axr.set_facecolor(DARK)
@@ -136,7 +137,7 @@ def draw(tr, D, d, path):
         sp.set_color("#252a33")
     axr.grid(color="#1a1e25", lw=0.5)
     step_ = max(len(dd) // 7, 1)
-    axr.set_xticks(xs[::step_]); axr.set_xticklabels([q.strftime("%m-%d %H:%M") for q in dd.index[::step_]], fontsize=6.5)
+    axr.set_xticks(xs[::step_]); axr.set_xticklabels([q.strftime(DATEFMT[t]) for q in dd.index[::step_]], fontsize=6.5)
     axr.set_ylabel("RSI 14", color=DIM, fontsize=8)
     panels = [(ax, dd)]
     # the 4h beside it: A, B, C and the two lines
@@ -165,13 +166,13 @@ def draw(tr, D, d, path):
     axd.hlines(tr["stop"], jB - pos, stop_T - pos - 1, colors=RED, lw=1.2, linestyles="--", zorder=6)
     t_in = d.index[min(k, len(d) - 1)]
     axd.axvline(int(D.index.searchsorted(t_in, side="right")) - 1 - pos, color=GREEN, lw=1.0, ls=":", zorder=4)
-    axd.set_title("4h: A to B fell %.1f normal bars, C took back %.0f%%" % (tr["leg"], 100 * tr["retrace"]),
+    axd.set_title("%s: A to B fell %.1f normal bars, C took back %.0f%%" % (TFN[T], tr["leg"], 100 * tr["retrace"]),
                   loc="left", color=DIM, fontsize=9.5, pad=3)
     plt.setp(axd.get_xticklabels(), fontsize=6)
     panels.append((axd, hb["d"]))
     fig.text(0.045, 0.045, "green arrows = the buys    white dotted = the price paid    red dashed = the stop    "
              "blue = where it is all sold, just under the lower high (C)", color=DIM, fontsize=8.5, ha="left")
-    fig.text(0.045, 0.015, "right = the 4-hour chart; the green dotted line is the bar it was bought on    the tan line on both charts is the 12 EMA",
+    fig.text(0.045, 0.015, "right = the bigger chart the EQ is on; the green dotted line is the bar it was bought on    the tan line on both charts is the 12 EMA",
              color=DIM, fontsize=8.5, ha="left")
     probs = PR.overlaps(fig, panels)
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
@@ -185,9 +186,11 @@ def _draw(args):
         fr = _frames(sym, kind)
         out = []
         for tr in picks:
-            png = "%s_%s_%s_%d.png" % (kind, sym, WAY_NAME[tr["way"]], tr["e"])
-            probs = draw(tr, fr[T_TF], fr[t_TF], os.path.join(OUT, png))
-            out.append(dict(tr, png=png, problems=probs, way_name=WAY_NAME[tr["way"]]))
+            T, t = EA.PAIRS[tr["pair"]]
+            png = "%s_%s_%s_%s_%d.png" % (kind, sym, T, WAY_NAME[tr["way"]], tr["e"])
+            probs = draw(tr, fr[T], fr[t], os.path.join(OUT, png))
+            out.append(dict(tr, png=png, problems=probs, way_name=WAY_NAME[tr["way"]], idea=T, timing=t,
+                            idea_name=TFN[T], timing_name=TFN[t]))
         return out, []
     except Exception as ex:
         return [], ["%s %s draw: %s" % (kind, sym, ex)]
@@ -209,18 +212,22 @@ def main():
     print("  %d trades (%.0fs)" % (len(rows), time.time() - t0), flush=True)
     rng = np.random.default_rng(20260921)
     picks, stats = [], {}
-    for way, n_each in ((2, 3), (3, 3), (0, 2)):
-        sub = [r for r in rows if r["way"] == way]
-        pct = np.array([r["pct"] for r in sub]); R_ = np.array([r["R"] for r in sub])
-        stats[WAY_NAME[way]] = dict(n=len(sub), avg_pct=float(pct.mean()), middle_pct=float(np.median(pct)),
-                                    won=float((pct > 0).mean()), avg_R=float(R_.mean()),
-                                    median_risk=float(np.median([r["risk_pct"] for r in sub])))
-        stats[WAY_NAME[way]]["two_fills"] = float(np.mean([len(r.get("fills", [0])) > 1 for r in sub]))
-        if way == 3:
-            sub = [r for r in sub if len(r["fills"]) > 1]        # draw the ones where the second buy actually filled
-        wins = [r for r in sub if r["R"] > 0.15]; losses = [r for r in sub if r["R"] <= -0.15]
-        picks += [wins[i] for i in rng.choice(len(wins), n_each, replace=False)]
-        picks += [losses[i] for i in rng.choice(len(losses), n_each, replace=False)]
+    for p_i, (T, t) in enumerate(EA.PAIRS):
+        for way, n_each in ((2, 2), (3, 2), (0, 2)):
+            sub = [r for r in rows if r["way"] == way and r["pair"] == p_i]
+            if len(sub) < 40:
+                continue
+            pct = np.array([r["pct"] for r in sub]); R_ = np.array([r["R"] for r in sub])
+            stats["%s|%s" % (T, WAY_NAME[way])] = dict(
+                n=len(sub), avg_pct=float(pct.mean()), middle_pct=float(np.median(pct)), won=float((pct > 0).mean()),
+                avg_R=float(R_.mean()), median_risk=float(np.median([r["risk_pct"] for r in sub])),
+                two_fills=float(np.mean([len(r.get("fills", [0])) > 1 for r in sub])))
+            if way == 3:
+                sub = [r for r in sub if len(r["fills"]) > 1]        # draw the ones where the second buy actually filled
+            wins = [r for r in sub if r["R"] > 0.15]; losses = [r for r in sub if r["R"] <= -0.15]
+            for grp in (wins, losses):
+                if len(grp) >= n_each:
+                    picks += [grp[i] for i in rng.choice(len(grp), n_each, replace=False)]
     by = {}
     for tr in picks:
         by.setdefault((tr["sym"], tr["kind"]), []).append(tr)
@@ -228,21 +235,22 @@ def main():
     with cf.ProcessPoolExecutor(max_workers=min(procs, len(by))) as ex:
         for got, err in ex.map(_draw, [(s_, k_, v) for (s_, k_), v in by.items()], chunksize=1):
             drawn += got; derr += err
-    drawn.sort(key=lambda x: ({2: 0, 3: 1, 0: 2}[x["way"]], -x["R"]))
+    drawn.sort(key=lambda x: (x["pair"], {2: 0, 3: 1, 0: 2}[x["way"]], -x["R"]))
     for i, tr in enumerate(drawn, 1):
         tr["n"] = i
     keep = {d_["png"] for d_ in drawn} | {"index.json"}
     for f in os.listdir(OUT):
         if f not in keep:
             os.remove(os.path.join(OUT, f))
-    json.dump(dict(generated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), stats=stats, charts=drawn),
+    json.dump(dict(generated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), stats=stats, charts=drawn,
+                   pairs=[dict(idea=T, timing=t, idea_name=TFN[T], timing_name=TFN[t]) for T, t in EA.PAIRS]),
               open(os.path.join(OUT, "index.json"), "w"), indent=1)
     print("  drawn %d, problems %d  (%.0fs)" % (len(drawn), sum(1 for d_ in drawn if d_["problems"]), time.time() - t0))
     for k_, v in stats.items():
         print("  %-8s" % k_, {a: round(b, 3) for a, b in v.items()})
     for d_ in drawn:
-        print("    #%-2d %-7s %-8s %+6.2fR %+7.2f%%  risk %.2f%%  %s" % (
-            d_["n"], d_["sym"], d_["way_name"], d_["R"], d_["pct"], d_["risk_pct"], d_["problems"] or "clean"))
+        print("    #%-2d %-7s %-3s %-8s %+6.2fR %+7.2f%%  risk %.2f%%  %s" % (
+            d_["n"], d_["sym"], d_["idea"], d_["way_name"], d_["R"], d_["pct"], d_["risk_pct"], d_["problems"] or "clean"))
     for e_ in (errs + derr)[:8]:
         print("  " + e_)
 
