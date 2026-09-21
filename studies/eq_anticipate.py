@@ -24,6 +24,13 @@ THREE WAYS IN, all after C has CONFIRMED on the idea chart, all dead once price 
               bounce (1d<-1h, 4h<-15m, 1h<-5m).  Stop under the pullback's low.
     touch     the first touch of RSI 30 on the TIMING chart during the pullback -- the backburner, which is
               what they say it is for ("5 minute oversold marks the hourly higher low").  Stop under B.
+              HIS CATCH, 2026-09-21 ("wtf is this, you waited for the rsi to come up?"): this way in used to wait
+              for C to CONFIRM, two idea bars later -- a whole trading day on a stock's 4h -- so the first touch,
+              the flush itself, was gone and it bought the NEXT brush of 30 on the way back up. It now acts from
+              the bar after C PRINTED. C is still taken from the finished pivot list, so would-be buys off an
+              earlier high that price later exceeded are skipped; those went on to a higher high, so leaving
+              them out counts against the rule, not for it.
+    touch, and again at 20    the same, plus a second buy resting at RSI 20 (Dan's two bids), same stop under B.
 ONE trade per structure per way in.
 
 OUT: all out just before C (they exit a little BEFORE the level, never at it), or half there and the rest for A
@@ -57,7 +64,8 @@ import backburner_dan as DAN      # noqa: E402
 
 OUT = os.path.join("validation", "eq_anticipate.json")
 PAIRS = [("1d", "1h"), ("4h", "15m"), ("1h", "5m")]          # idea chart, timing chart
-WAYS = ["confirm", "small", "touch"]
+WAYS = ["confirm", "small", "touch", "touch, and again at 20"]
+SECOND_BID_BARS = 12          # how long the second buy (RSI 20) rests before it is pulled
 WAIT_X = 3.0                  # how long the higher low may take: this many times the bounce's own length
 CAP_X = 60                    # a trade is closed after this many idea-chart bars
 NEAR = 0.15                   # exit this share of a normal bar BEFORE the far line
@@ -141,6 +149,7 @@ def _work(args):
             datr = P._atr(d)
             rsi, au, ad = IND.rsi_parts(dc, 14)
             p30 = DAN.rsi_price(dc, au, ad, 30); p70 = DAN.rsi_price(dc, au, ad, 70)
+            p20 = DAN.rsi_price(dc, au, ad, 20); p80 = DAN.rsi_price(dc, au, ad, 80)
             prev = np.r_[np.nan, rsi[:-1]]
             with np.errstate(invalid="ignore"):
                 touch = {1: np.isfinite(p30) & (dl <= p30) & (prev > 30),
@@ -206,7 +215,7 @@ def _work(args):
                         FR2.KINDS.index(kind) if kind in FR2.KINDS else 0, float(t_entry.year),
                         0 if t_entry < start else 1 if t_entry < mid else 2, float(t_entry.value)]
 
-                def book(way_i, e, fill, stop):
+                def book(way_i, e, fill, stop, fills=None, fbars=None):
                     if e >= nd - 2:
                         return False
                     if (side > 0 and not (stop < fill < tgt)) or (side < 0 and not (tgt < fill < stop)):
@@ -225,7 +234,9 @@ def _work(args):
                                            rr=float(abs(tgt - fill) / risk), risk_pct=float(rp), pct=float(ra),
                                            R=float(ra / rp), t=str(d.index[min(e, nd - 1)]),
                                            tA=str(D.index[jA]), tB=str(D.index[jB]), tC=str(D.index[jC]),
-                                           t_e=str(d.index[min(e, nd - 1)]), t_x=str(d.index[min(xb, nd - 1)])))
+                                           t_e=str(d.index[min(e, nd - 1)]), t_x=str(d.index[min(xb, nd - 1)]),
+                                           fills=[float(q) for q in (fills or [fill])],
+                                           t_fills=[str(d.index[min(q, nd - 1)]) for q in (fbars or [e])]))
                     row = list(base)
                     row[2] = way_i; row[6] = abs(tgt - fill) / risk; row[7] = rp
                     rows.append(row + [abs(pC - fill) / span, ra, rh, 1.0 if took else 0.0, 0.0])
@@ -261,19 +272,45 @@ def _work(args):
                     ta = datr[ci_s] if np.isfinite(datr[ci_s]) else 0.0
                     book(1, ci_s + 1, do[ci_s + 1], ext - side * P.SAME_LEVEL_ATR * ta)
                     break
-                # WAY 3: the first touch of RSI 30 (70) on the timing chart = the backburner marking the higher low
-                pa = p30 if side > 0 else p70
-                k = int(nxt[side][max(s0, 1)])
-                if k < s1:
-                    fill = min(do[k], pa[k]) if side > 0 else max(do[k], pa[k])
-                    stop3 = pB - side * tolT
-                    if book(2, k + 1, fill, stop3):              # walked from the next bar; the fill bar is checked here
-                        if (side > 0 and dl[k] <= stop3) or (side < 0 and dh[k] >= stop3):
-                            g = side * (stop3 - fill) / fill * 100 - cost
-                            rows[-1][14] = g; rows[-1][15] = g; rows[-1][16] = 0.0
-                            if DETAIL is not None:
-                                DETAIL[-1].update(xb=int(k), xpx=float(stop3), pct=float(g), R=float(g / rows[-1][7]),
-                                                  t_x=str(d.index[k]))
+                # WAYS 3 and 4: the first touch of RSI 30 (70) on the timing chart = the backburner marking the higher
+                # low. From the bar after C PRINTED (not confirmed), and dead once B or C is taken out after that.
+                if jC + 1 < nD:
+                    endT2 = min(nD - 1, jC + 1 + wait)
+                    if side > 0:
+                        bad2 = (Dl[jC + 1:endT2 + 1] < pB) | (Dh[jC + 1:endT2 + 1] > pC)
+                    else:
+                        bad2 = (Dh[jC + 1:endT2 + 1] > pB) | (Dl[jC + 1:endT2 + 1] < pC)
+                    dead2 = jC + 1 + int(np.argmax(bad2)) if bool(bad2.any()) else endT2
+                    t0_ = int(np.searchsorted(dt, Dt[jC + 1], side="left"))
+                    t1_ = int(np.searchsorted(dt, Dt[dead2], side="left"))
+                    pa = p30 if side > 0 else p70
+                    pb_ = p20 if side > 0 else p80
+                    k = int(nxt[side][max(t0_, 1)]) if t0_ < nd else nd
+                    if k < t1_ and k < nd - 3:
+                        f1 = min(do[k], pa[k]) if side > 0 else max(do[k], pa[k])
+                        stop3 = pB - side * tolT
+                        for way_i in (2, 3):
+                            fills, fbars = [f1], [k]
+                            if way_i == 3:
+                                for j in range(k, min(nd - 2, k + SECOND_BID_BARS)):
+                                    if j > k and ((side > 0 and rsi[j - 1] > 40) or (side < 0 and rsi[j - 1] < 60)):
+                                        break                   # the bounce is on: the second buy is pulled
+                                    if np.isfinite(pb_[j]) and ((side > 0 and dl[j] <= pb_[j]) or (side < 0 and dh[j] >= pb_[j])):
+                                        f2 = min(do[j], pb_[j]) if side > 0 else max(do[j], pb_[j])
+                                        if (side > 0 and f2 >= f1) or (side < 0 and f2 <= f1):
+                                            continue            # a second buy is only ever at a BETTER price than the first
+                                        fills.append(float(f2)); fbars.append(j)
+                                        break
+                            e_last = fbars[-1]
+                            fill = float(np.mean(fills))
+                            if book(way_i, e_last + 1, fill, stop3, fills=fills, fbars=fbars):
+                                # the bars it was bought on are not walked: check them for the stop here
+                                if (side > 0 and np.min(dl[k:e_last + 1]) <= stop3) or (side < 0 and np.max(dh[k:e_last + 1]) >= stop3):
+                                    g = side * (stop3 - fill) / fill * 100 - cost
+                                    rows[-1][14] = g; rows[-1][15] = g; rows[-1][16] = 0.0
+                                    if DETAIL is not None:
+                                        DETAIL[-1].update(xb=int(e_last), xpx=float(stop3), pct=float(g),
+                                                          R=float(g / rows[-1][7]), t_x=str(d.index[e_last]))
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, T, ex))
     if not rows:

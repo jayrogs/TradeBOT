@@ -40,7 +40,7 @@ PURPLE, GREEN, RED, AMBER, BLUE = "#b48cff", "#3ddc97", "#ff5c72", "#ffb84d", "#
 OUT = os.path.join("validation", "eq_anticipate")
 PAIR = 1                       # 4h idea, 15m timing
 T_TF, t_TF = EA.PAIRS[PAIR]
-WAY_NAME = {0: "confirm", 2: "touch"}
+WAY_NAME = {0: "confirm", 2: "touch", 3: "scalein"}
 try:
     SUSPECT = set(json.load(open(os.path.join("validation", "suspect_names.json"))).get("names", []))
 except Exception:
@@ -63,7 +63,7 @@ def _one(args):
         EA._work((sym, kind, start))
         out = [d for d in EA.DETAIL
                if d["pair"] == PAIR and d["side"] == 1 and d["leg"] >= 4 and d["retrace"] >= 0.5
-               and ((d["way"] == 2) or (d["way"] == 0 and d["rr"] >= 1.0))]
+               and ((d["way"] in (2, 3)) or (d["way"] == 0 and d["rr"] >= 1.0))]
         EA.DETAIL = None
         return out, []
     except Exception as ex:
@@ -75,7 +75,8 @@ def draw(tr, D, d, path):
     # every bar is looked up by its TIME, never by a stored bar number (GIS, 2026-09-21: the 4h marks landed seven
     # months from the trade because the drawing's frames were not the study's)
     e = int(d.index.get_loc(pd.Timestamp(tr["t_e"]))); xb = int(d.index.get_loc(pd.Timestamp(tr["t_x"])))
-    k = e - 1 if tr["way"] == 2 else e            # the bar it was bought on
+    fb = [int(d.index.get_loc(pd.Timestamp(q))) for q in tr["t_fills"]] if tr["way"] in (2, 3) else [e]
+    k = fb[0]                                     # the bar it was first bought on
     x1 = min(len(d) - 1, xb + 16)
     x0 = max(0, k - 120)
     if x1 - x0 > 300:
@@ -108,14 +109,21 @@ def draw(tr, D, d, path):
         y_lane = lo - frac * rng
         ax.plot([x, x], [y_bar, y_lane], color=colr, lw=0.7, ls=":", alpha=0.6, zorder=6)
         ax.scatter([x], [y_lane], marker=marker, s=130, color=colr, edgecolor="#ffffff", lw=0.8, zorder=13)
-        an = ax.annotate(label, (x, y_lane), xytext=(0, -10), textcoords="offset points", ha="center", va="top",
-                         color=colr, fontsize=8.5, weight="bold", zorder=20)
-        PR.keep_inside(ax, an)
-    peg(k - x0, tr["fill"], 0.10, GREEN, "^",
-        "bought as 15m RSI touched 30" if tr["way"] == 2 else "bought: the 4h higher low confirmed")
-    peg(xb - x0, tr["xpx"], 0.28, "#e6e9ee", "X", "out %+.2fR" % tr["R"])
+        if label:
+            an = ax.annotate(label, (x, y_lane), xytext=(0, -10), textcoords="offset points", ha="center", va="top",
+                             color=colr, fontsize=8.5, weight="bold", zorder=20)
+            PR.keep_inside(ax, an)
+    if tr["way"] == 0:
+        peg(k - x0, tr["fill"], 0.10, GREEN, "^", "bought: the 4h higher low confirmed")
+    else:
+        for i_, (b_, px_) in enumerate(zip(fb, tr["fills"])):
+            last_ = i_ == len(fb) - 1
+            peg(b_ - x0, px_, 0.10 + 0.07 * i_, GREEN, "^",
+                ("bought at the first touch of 30" if len(fb) == 1 else "bought at 30, again at 20") if last_ else "")
+    peg(xb - x0, tr["xpx"], 0.32, "#e6e9ee", "X", "out %+.2fR" % tr["R"])
     ax.set_title("%s 15m   %s   risk %.2f%%  ->  %+.2f%%  (%+.2fR)" % (
-        tr["sym"], "bought at the touch of 30" if tr["way"] == 2 else "bought after the 4h higher low confirmed",
+        tr["sym"], {2: "one buy at the first touch of 30", 3: "bought at 30 and again at 20",
+                    0: "bought after the 4h higher low confirmed"}[tr["way"]],
         tr["risk_pct"], tr["pct"], tr["R"]), color="#e6e9ee", fontsize=10.5, loc="left", pad=8)
     axr = fig.add_subplot(gs[1, 0], sharex=ax)
     axr.set_facecolor(DARK)
@@ -161,7 +169,7 @@ def draw(tr, D, d, path):
                   loc="left", color=DIM, fontsize=9.5, pad=3)
     plt.setp(axd.get_xticklabels(), fontsize=6)
     panels.append((axd, hb["d"]))
-    fig.text(0.045, 0.045, "green arrow = the buy    white dotted = the price paid    red dashed = the stop    "
+    fig.text(0.045, 0.045, "green arrows = the buys    white dotted = the price paid    red dashed = the stop    "
              "blue = where it is all sold, just under the lower high (C)", color=DIM, fontsize=8.5, ha="left")
     fig.text(0.045, 0.015, "right = the 4-hour chart; the green dotted line is the bar it was bought on    the tan line on both charts is the 12 EMA",
              color=DIM, fontsize=8.5, ha="left")
@@ -201,15 +209,18 @@ def main():
     print("  %d trades (%.0fs)" % (len(rows), time.time() - t0), flush=True)
     rng = np.random.default_rng(20260921)
     picks, stats = [], {}
-    for way in (2, 0):
+    for way, n_each in ((2, 3), (3, 3), (0, 2)):
         sub = [r for r in rows if r["way"] == way]
         pct = np.array([r["pct"] for r in sub]); R_ = np.array([r["R"] for r in sub])
         stats[WAY_NAME[way]] = dict(n=len(sub), avg_pct=float(pct.mean()), middle_pct=float(np.median(pct)),
                                     won=float((pct > 0).mean()), avg_R=float(R_.mean()),
                                     median_risk=float(np.median([r["risk_pct"] for r in sub])))
+        stats[WAY_NAME[way]]["two_fills"] = float(np.mean([len(r.get("fills", [0])) > 1 for r in sub]))
+        if way == 3:
+            sub = [r for r in sub if len(r["fills"]) > 1]        # draw the ones where the second buy actually filled
         wins = [r for r in sub if r["R"] > 0.15]; losses = [r for r in sub if r["R"] <= -0.15]
-        picks += [wins[i] for i in rng.choice(len(wins), 4, replace=False)]
-        picks += [losses[i] for i in rng.choice(len(losses), 4, replace=False)]
+        picks += [wins[i] for i in rng.choice(len(wins), n_each, replace=False)]
+        picks += [losses[i] for i in rng.choice(len(losses), n_each, replace=False)]
     by = {}
     for tr in picks:
         by.setdefault((tr["sym"], tr["kind"]), []).append(tr)
@@ -217,7 +228,7 @@ def main():
     with cf.ProcessPoolExecutor(max_workers=min(procs, len(by))) as ex:
         for got, err in ex.map(_draw, [(s_, k_, v) for (s_, k_), v in by.items()], chunksize=1):
             drawn += got; derr += err
-    drawn.sort(key=lambda x: (x["way"] != 2, -x["R"]))
+    drawn.sort(key=lambda x: ({2: 0, 3: 1, 0: 2}[x["way"]], -x["R"]))
     for i, tr in enumerate(drawn, 1):
         tr["n"] = i
     keep = {d_["png"] for d_ in drawn} | {"index.json"}

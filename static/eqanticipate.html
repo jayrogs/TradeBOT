@@ -45,7 +45,8 @@
   <div class="rule">
     1. The 4-hour chart: <b>A</b> where the move began, <b>B</b> its low, <b>C</b> the swing back. C stays under A.<br>
     2. The move A to B is <b>4 or more normal bars</b>. C takes back <b>50% or more</b> of it.<br>
-    3. Two ways in. <b>Touch</b>: buy inside the 15-minute candle as its RSI touches 30, stop under B.
+    3. Three ways in. <b>One buy</b>: inside the 15-minute candle at the FIRST touch of RSI 30 after C, stop under B.
+       <b>Two buys</b>: the same, plus a second buy waiting at RSI 20, only at a better price.
        <b>Confirm</b>: wait for the higher low to confirm on the 4-hour, buy the next open, stop a wick under it,
        only when the sell line is at least 1x the risk away.<br>
     4. Sell it all <b>just under C</b>. (They sell a little before the level, never at it.)
@@ -53,7 +54,8 @@
 </header>
 <main>
   <div id="nums"></div>
-  <h2>Bought at the touch of 30</h2><div id="touch"></div>
+  <h2>One buy, at the first touch of 30</h2><div id="touch"></div>
+  <h2>Two buys: at 30, and again at 20</h2><div id="scalein"></div>
   <h2>Bought after the 4-hour higher low confirmed</h2><div id="confirm"></div>
 </main>
 <div id="zoom"></div>
@@ -86,10 +88,32 @@ Promise.all([
 ]).then(([d, study]) => {
   let h = '';
   if (study && study.tables) {
-    h += `<div class="card"><b>Does buying toward the floor only work when an EQ is the likely pattern?</b>
-      <div class="sub" style="margin:4px 0 6px">That is Dan's sentence. Bought at the touch of 30 on the small chart, stop
-      under B, all sold just under C. ${study.meta.names} names, ${study.meta.rows.toLocaleString()} trades in the whole
-      study. Look at the MIDDLE trade: it should lose for a flag and win for an EQ.</div>`;
+    h += `<div class="card warn"><b>You caught the entry being late, and fixing it changed the answer</b>
+      <div class="sub" style="margin-top:4px">The first version could not buy until C was confirmed, two 4-hour bars later,
+      so it missed the flush and bought the next brush of 30 on the way back UP. It now buys the FIRST touch after C
+      prints. With the honest entry the flag trades have a winning middle trade too, so the "50% or more" number
+      separates much less than the first table said. That fits the count in rule 39: what matters is how much ROOM
+      sits between the low and the lower high, not the number 50.</div></div>
+      <div class="card"><b>One buy at 30, or a second buy at 20 as well?</b>
+      <div class="sub" style="margin:4px 0 6px">Their EQ, long, all sold just under C. The second buy only fills at a
+      better price than the first.</div>
+      <table><tr><th class="l">idea chart</th><th class="l">how it was bought</th><th>trades</th><th>average</th>
+      <th>middle trade</th><th>won</th><th>R</th><th>years up</th></tr>`;
+    for (const [T, lab] of [['4h idea / 15m timing', '4-hour'], ['1h idea / 5m timing', '1-hour'], ['1d idea / 1h timing', 'daily']]) {
+      for (const [w, wl] of [['touch', 'one buy at 30'], ['touch, and again at 20', 'at 30, and again at 20']]) {
+        const t = study.tables[T + ' | LONG the higher low after a drop | in: ' + w + ' | ' + OUTK];
+        const r = t && t['big move, swing back 50% or more          = THEIR EQ']; if (!r) continue;
+        h += `<tr><td class="l">${lab}</td><td class="l">${wl}</td><td>${r.n.toLocaleString()}</td>
+          <td class="${cls(r.mean)}">${pc(r.mean)}</td><td class="${cls(r.median)}">${pc(r.median)}</td>
+          <td>${(100 * r.won).toFixed(0)}%</td><td class="${cls(r.avg_R)}">${rr(r.avg_R)}</td>
+          <td>${r.years_up} of ${r.years}</td></tr>`;
+      }
+    }
+    h += `</table></div>
+      <div class="card"><b>Does buying toward the floor only work when an EQ is the likely pattern?</b>
+      <div class="sub" style="margin:4px 0 6px">That is Dan's sentence. One buy at the first touch of 30 on the small
+      chart, stop under B, all sold just under C. ${study.meta.names} names, ${study.meta.rows.toLocaleString()} trades in
+      the whole study.</div>`;
     for (const [k, lab] of KEYS) {
       const t = study.tables[k]; if (!t) continue;
       h += `<div class="sub" style="margin-top:10px"><b>${lab}</b></div>
@@ -122,23 +146,25 @@ Promise.all([
     }
     h += `</table></div>`;
   }
-  const names = {touch: 'bought at the touch of 30', confirm: 'bought after the higher low confirmed'};
+  const names = {touch: 'one buy, at the first touch of 30', scalein: 'at 30, and again at 20',
+                 confirm: 'bought after the higher low confirmed'};
   h += `<div class="card"><b>The trades these 16 drawings were picked from</b>
     <div class="sub" style="margin:4px 0 6px">4-hour idea, 15-minute timing, stocks, ETFs and coins, their EQ only.
-    Four winners and four losers of each kind, picked at random.</div>
+    Winners and losers of each kind, picked at random. The two-buy drawings are ones where the second buy filled.</div>
     <table><tr><th class="l">way in</th><th>trades</th><th>average</th><th>middle trade</th><th>won</th><th>R</th>
-    <th>stop distance (middle)</th></tr>`;
-  for (const w of ['touch', 'confirm']) {
+    <th>stop distance (middle)</th><th>second buy filled</th></tr>`;
+  for (const w of ['touch', 'scalein', 'confirm']) {
     const s = d.stats[w]; if (!s) continue;
     h += `<tr><td class="l">${names[w]}</td><td>${s.n.toLocaleString()}</td><td class="${cls(s.avg_pct)}">${pc(s.avg_pct)}</td>
       <td class="${cls(s.middle_pct)}">${pc(s.middle_pct)}</td><td>${(100 * s.won).toFixed(0)}%</td>
-      <td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td><td>${s.median_risk.toFixed(2)}%</td></tr>`;
+      <td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td><td>${s.median_risk.toFixed(2)}%</td>
+      <td>${w === 'scalein' ? (100 * s.two_fills).toFixed(0) + '%' : '-'}</td></tr>`;
   }
   h += `</table></div>
     <div class="card warn"><b>What is weak about it, and what is not in it</b><div class="sub" style="margin-top:4px">
     <b>It does not hold on the daily chart</b>, and the 4-hour row lost before 2022. Two charts of three is a lead, not a rule.<br>
     <b>Shorts lose or sit flat</b> on every chart. The years tested mostly rose.<br>
-    <b>All-out at the sell line is fragile.</b> GIS below came within 20 cents of it and then stopped out. They sell a
+    <b>All-out at the sell line is fragile.</b> One drawn trade (GIS) came within 20 cents of it and then stopped out. They sell a
     piece into the first bounce so the rest cannot hurt; that management is not drawn here yet.<br>
     <b>My third way in lost everywhere</b> (the first small higher low on the 15-minute, stop right under it). The stop was
     half a percent wide, which Dan calls an error, so that is my entry failing, not theirs.<br>
@@ -159,6 +185,7 @@ Promise.all([
         <span class="saved"></span>
       </div></div>`;
   $('#touch').innerHTML = d.charts.filter(c => c.way_name === 'touch').map(card).join('');
+  $('#scalein').innerHTML = d.charts.filter(c => c.way_name === 'scalein').map(card).join('');
   $('#confirm').innerHTML = d.charts.filter(c => c.way_name === 'confirm').map(card).join('');
   fetch('/api/tradenote?set=eqanticipate').then(r => r.json()).catch(() => ({})).then(notes => {
     notes = notes || {};

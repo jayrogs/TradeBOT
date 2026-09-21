@@ -351,6 +351,22 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         not line up. RULE: a drawing looks bars up by TIME, loads exactly the study's frames, and asserts one price.
         GIS also showed what averages hide: it came within 20 cents of the sell line, then stopped out. All-out at the
         far line is fragile; their "sell a piece into the first bounce" is what protects against that.
+    HE CAUGHT THE TOUCH ENTRY BUYING LATE (2026-09-21, on the first drawing: "wtf is this you waited for the rsi to come
+    up? is this better than scaling in on the way down?"). It was a flaw of mine, not a choice: that way in could not act
+    until C CONFIRMED, two idea bars later (a whole trading day on a stock's 4h), so the flush itself was gone and it
+    bought the NEXT brush of 30 on the way back up. It now buys the FIRST touch after C prints, and a fourth way in
+    adds Dan's second buy at RSI 20 (only at a better price; it fills 13% of the time). 1,019,499 trades. WHAT CHANGED:
+      - THE "(1)" RESULT ABOVE IS WITHDRAWN. With the honest entry their FLAG has a winning middle trade too (4h: EQ
+        +0.17% avg / +1.47% middle / won 60% | flag +0.28% / +0.90% / 53%; 1h: +0.02 / +0.56 / 57% | +0.03 / +0.14 /
+        51%; daily: EQ -0.33 / +1.05 | flag +0.46 / +1.92). The flip I reported came mostly from the late entry. It
+        agrees with eq_nextlow below: what matters is ROOM, not the number 50.
+      - SCALING IN IS A LITTLE BETTER, EVERYWHERE, as he thought: their EQ, one buy vs two -- 4h +0.17% -> +0.28%
+        (middle +1.47 -> +1.51), 1h +0.02% -> +0.09% (years up 4 -> 5 of 6), daily -0.33% -> -0.14% (5 -> 8 of 11).
+        Small, same sign on every chart and in every bucket.
+      - Waiting for the 4h higher low to confirm with the sell line 1x+ away is unchanged and is still the best average
+        (4h +0.60%, 1h +0.26%).
+    LESSON: a confirmed-pivot rule silently delays every entry built on it by two bars of THAT chart. Any "buy the first
+    X after pivot Y" must say whether Y is printed or confirmed, and the drawing must show the buy on the way DOWN.
     HIS SENTENCE, COUNTED (2026-09-21, "after a larger move, if it has 3 of those pivots, high low lower high, you can
     expect a higher low, I think"; `studies/eq_nextlow.py`, no trades, 809 names, 2.8M shapes). HE IS RIGHT, and the
     first high's label does not matter (his correction: "if it makes an eq it's an eq" -- my detector already works
