@@ -221,6 +221,41 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     the same day as SPY's -34%. "Half of SPY's drawdown" was wrong; it is about four fifths of it.
     RULE: a drawdown is marked every day or it is not called a drawdown. `studies/backburner_marks.py` does it.
 
+38. GO TO THE SOURCE FIRST, AND THE BACKBURNER THE CHART GUYS' WAY (2026-09-20, his words: "this technique is so good
+    but you keep jumping to conclusions"). He was right and it cost a week. BackBurner, EMA Rider, Stair Step and
+    Equilibrium are TCG'S OWN NAMED STRATEGIES with written rules (chartguys.com/educational-videos, /ebooks; he has a
+    member login; the distillation is TCG_METHOD.md #5b and #10, private). BEFORE TESTING ANY SETUP HE NAMES: find
+    their definition, make its preconditions REQUIREMENTS not optional cuts, and print a "not one of these" row
+    beside it so the definition's worth is visible.
+    WHAT I HAD WRONG ABOUT THE BACKBURNER: I tested every RSI-under-30 print on any name at any time. Theirs is the
+    FIRST 5m (or 1h) oversold AFTER A SUBSTANTIAL RUN to a new high on the chart above, long-term trend intact,
+    technical pullback only, liquid names, in at 30 and again only at 20, and its PURPOSE is to mark the HIGHER LOW of
+    the next chart up. It EXPIRES after the first bounce on that leg. On NVDA's 5m, 174 of 1,398 prints are first
+    prints and 1,080 are third-or-later: ~78% of my samples were the prints they say not to take. THEIR EXITS are not
+    R-multiples: all out when the bounce reaches the EMAs (the scalp), or half there with the stop moved under the dip's
+    low and the rest for the old high. My first rebuild aimed at 2x a stop under the HOURLY structure -- a target 4.2%
+    away on a trade that moves 0.6% -- and every row read zero against its control. A ruler problem, not a result.
+    WITH THEIR EXITS (`studies/backburner_tcg.py`, 786 names, control = any bar stretched a normal bar under its 12
+    EMA), the 1h print marking the DAILY higher low, scalp to the 12 EMA, average per trade:
+        not a backburner (no run, trend not intact)   +0.079%   +0.05R
+        every oversold print                          +0.143%   +0.07R
+        the FIRST print since the daily's new high    +0.252%   +0.10R   10 of 12 years
+        first print after a run of 4+ daily bars      +0.307%
+        the full setup (run, trend, liquid, recent)   +0.364%   +0.12R   middle +0.447%, won 66%, 9 of 11 years
+        first print after a run of 8+                 +0.570%   +0.22R   (n 131)
+    EACH OF THEIR RULES ADDS A STEP, IN ORDER. Half at the EMA and the rest for the old high: full setup +0.447% /
+    +0.15R, run 8+ +0.603% / +0.32R with a winning middle trade. The 5m shows the same ladder at a tenth the size
+    (-0.027% -> +0.035%); at 0.05% cost a 5m stock scalp is marginal, the 1h is where it pays. NOT FILTERED YET: news and
+    earnings (their rule), and liquidity is a crude top-third-by-dollars. Not drawn yet (rule 10), not claimed.
+    THE FRAME I WAS MISSING (TCG_METHOD.md #10): TASK FIRST, THEN TOOL -- a small-chart pattern is a way INTO a
+    bigger-chart scenario, never a trade on its own, which is how every EQ and higher-low study here was built. The
+    risk-free trade is THIRDS at technical levels (Guardian / Harvest / Mr Clear), and moving the stop to the entry is
+    in their words a rookie mistake -- /eqfree used "rest to breakeven" throughout. Risk:reward ACCEPTS OR REJECTS a
+    trade; exits are EMAs, fibs, measured moves and prior zones. A breakout must hold two more closes. 1-2% risk per
+    NON-CORRELATED trade, so 172 fear-gap signals on one day are one bet.
+    TRANSCRIPTS: YouTube serves captions only to a signed-in viewer and yt-dlp here is from July 2023; the members
+    videos are on Vimeo. The e-books (PDFs, readable) carry the method. Their text lives in scratch/ and is never pushed.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.

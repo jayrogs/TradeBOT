@@ -55,11 +55,73 @@ RUN_LOOK = 20           # the run into it: travel over the structure chart's las
 _SUS = os.path.join("validation", "suspect_names.json")
 SUSPECT = {r["sym"] for r in json.load(io.open(_SUS, encoding="utf-8"))} if os.path.exists(_SUS) else set()
 
-# (label, mode, chandelier, close 5m stock trades at the bell)
-MANAGERS = [("all out at 2x the risk", "out2r", 3.0, True),
-            ("sell everything when it prints overbought", "obout", 3.0, True),
-            ("half off at 1x, rest on a chandelier 3", "chand1r", 3.0, True),
-            ("HOLD for the bigger chart: half at 1x, stop walked under ITS higher lows", "walk", 3.0, False)]
+# THE EXITS ARE THEIRS NOW (the TCG BackBurner e-book, read 2026-09-20). My first version aimed at 2x a stop that
+# sat under the HOURLY's last higher low -- a target 4.2% away on a 5m trade that typically moves 0.6% -- so every
+# row read zero. Their text: "Exit all when bounce gets going into exponential moving averages for the scalp trade";
+# or "exit half after bounce gets going to reduce risk to zero moving your stop under the low and let the other
+# half run"; with "a top level that's nearby" as the magnet. The stop is "based on the dollar amount you are
+# willing to lose", sized to how much the ticker moves -- coded as STOP_BARS of the entry chart's normal bars under
+# the lowest fill.
+STOP_BARS = 2.0
+# (label, which EMA the scalp sells into, keep half for the old high, close 5m stock trades at the bell)
+MANAGERS = [("SCALP: all out when the bounce reaches the 12 EMA", 12, False, True),
+            ("SCALP: all out when the bounce reaches the 26 EMA", 26, False, True),
+            ("HALF at the 12 EMA, stop under the dip's low, rest out at the OLD HIGH", 12, True, False),
+            ("HALF at the 26 EMA, stop under the dip's low, rest out at the OLD HIGH", 26, True, False)]
+
+
+def tcg_exit(kind, o, h, l, c, e, side, stop, entry, ema, last, a, target, keep_half):
+    """The e-book's exits, array math. Long shown; the short is the mirror.
+    The bounce "gets going into" the EMA on the first bar whose high reaches it. Same bar as the stop: the stop wins
+    (intrabar order is unknowable). A stop sells the NEXT open, as everywhere on this desk."""
+    cost = L.COST.get(kind, 0.05)
+    lw, hw = l[e:last + 1], h[e:last + 1]
+    em = ema[e:last + 1]
+    if side > 0:
+        s_hit = lw <= stop
+        e_hit = np.isfinite(em) & (hw >= em)
+    else:
+        s_hit = hw >= stop
+        e_hit = np.isfinite(em) & (lw <= em)
+    i_s = int(np.argmax(s_hit)) if s_hit.any() else None
+    i_e = int(np.argmax(e_hit)) if e_hit.any() else None
+    if i_s is not None and (i_e is None or i_s <= i_e):
+        j = e + i_s + 1
+        px = o[j] if j <= last else c[last]
+        return side * (px - entry) / entry * 100 - cost
+    if i_e is None:
+        return side * (c[last] - entry) / entry * 100 - cost
+    j = e + i_e
+    lvl = em[i_e]
+    px_e = (max(o[j], lvl) if side > 0 else min(o[j], lvl))       # gapped through it: the open is the fill
+    if not keep_half:
+        return side * (px_e - entry) / entry * 100 - cost
+    got = 0.5 * side * (px_e - entry) / entry
+    # the rest: stop under the LOW OF THE DIP ("moving your stop under the low"), out at the old high
+    if side > 0:
+        stop2 = float(np.min(lw[:i_e + 1])) - 0.1 * a
+    else:
+        stop2 = float(np.max(hw[:i_e + 1])) + 0.1 * a
+    if j + 1 > last:
+        return (got + 0.5 * side * (c[last] - entry) / entry) * 100 - cost * 1.5
+    l2, h2 = l[j + 1:last + 1], h[j + 1:last + 1]
+    if side > 0:
+        s2 = l2 <= stop2
+        t2 = (h2 >= target) if np.isfinite(target) else np.zeros(len(h2), dtype=bool)
+    else:
+        s2 = h2 >= stop2
+        t2 = (l2 <= target) if np.isfinite(target) else np.zeros(len(l2), dtype=bool)
+    k_s = int(np.argmax(s2)) if s2.any() else None
+    k_t = int(np.argmax(t2)) if t2.any() else None
+    if k_s is not None and (k_t is None or k_s <= k_t):
+        jj = j + 1 + k_s + 1
+        px2 = o[jj] if jj <= last else c[last]
+    elif k_t is not None:
+        jj = j + 1 + k_t
+        px2 = (max(o[jj], target) if side > 0 else min(o[jj], target))
+    else:
+        px2 = c[last]
+    return (got + 0.5 * side * (px2 - entry) / entry) * 100 - cost * 1.5
 
 
 def _last_extreme_time(sdf, side):
@@ -126,6 +188,13 @@ def _work(args):
             s_run = L.align_to(df, tf, frames, sf, run)
             s_atr = L.align_to(df, tf, frames, sf, satr)
             s12 = L.align_to(df, tf, frames, sf, XM.ema(sc, 12))
+            sh = sdf["High"].values.astype(float)
+            sl = sdf["Low"].values.astype(float)
+            top = pd.Series(sh).rolling(HIGH_LOOK, min_periods=HIGH_LOOK).max().values
+            bot = pd.Series(sl).rolling(HIGH_LOOK, min_periods=HIGH_LOOK).min().values
+            s_top = L.align_to(df, tf, frames, sf, top)
+            s_bot = L.align_to(df, tf, frames, sf, bot)
+            ema26 = XM.ema(c, 26)
             ext = {}
             for side in (1, -1):
                 tarr, step = _last_extreme_time(sdf, side)
@@ -148,7 +217,7 @@ def _work(args):
             os_ = rsi <= 30
             ob = rsi >= 70
             starts = {1: np.where(os_[1:] & ~os_[:-1])[0] + 1, -1: np.where(ob[1:] & ~ob[:-1])[0] + 1}
-            stepc = max(80, n // 1500)
+            stepc = max(12, n // 9000)
             for side in (1, -1):
                 ext_t, sstep = ext[side]
                 # WHICH PRINT IS THIS since the bigger chart's last new high: count oversold runs after it
@@ -173,6 +242,13 @@ def _work(args):
                         if e < 150 or e + 6 >= n or not np.isfinite(atr[m_]) or atr[m_] <= 0:
                             continue
                         a = atr[m_]
+                        # THE CONTROL HAS TO BE A DIP TOO. With an exit at the EMA, a random bar is usually already
+                        # at or over it and "exits" on the spot, which compares nothing. So the control is any bar
+                        # stretched at least one normal bar under its 12 EMA -- a dip with no print, no run asked.
+                        if is_ctrl:
+                            gap = (small12[m_] - c[m_]) if side > 0 else (c[m_] - small12[m_])
+                            if not (np.isfinite(gap) and gap >= a):
+                                continue
                         # 30 THEN 20: a second unit if the print reaches 20 while it is still oversold
                         fills = [o[e]]; fill_bars = [e]; j = e
                         if not is_ctrl:
@@ -187,14 +263,8 @@ def _work(args):
                         entry = float(np.mean(fills))
                         e_last = fill_bars[-1]
                         worst = min(fills) if side > 0 else max(fills)
-                        # THE STOP IS THE BIGGER CHART'S STRUCTURE: if this marks its higher low, the last one
-                        # must hold. No level under the position -> one of ITS normal bars under the fill.
-                        lvl = s_lo[e_last] if side > 0 else s_hi[e_last]
-                        sa = s_atr[e_last] if np.isfinite(s_atr[e_last]) else a
-                        if np.isfinite(lvl) and ((side > 0 and lvl < worst) or (side < 0 and lvl > worst)):
-                            stop = lvl - 0.15 * a if side > 0 else lvl + 0.15 * a
-                        else:
-                            stop = worst - sa if side > 0 else worst + sa
+                        # THEIR STOP: a fixed amount you are willing to lose, sized to how much the ticker moves
+                        stop = worst - STOP_BARS * a if side > 0 else worst + STOP_BARS * a
                         risk = abs(entry - stop)
                         if risk < 0.25 * a:
                             risk = 0.25 * a
@@ -211,11 +281,13 @@ def _work(args):
                         if np.isfinite(s12[m_]):
                             over12 = 1.0 if ((side > 0 and c[m_] > s12[m_]) or (side < 0 and c[m_] < s12[m_])) else 0.0
                         res = []
-                        for _lab, mode, chd, use_bell in MANAGERS:
-                            bell = None if (bells is None or not use_bell) else bells[e_last]
-                            trail = s_lo if side > 0 else s_hi
-                            res.append(L.run_trade(kind, o, h, l, c, e_last, side, stop, risk, s12, trail, small12,
-                                                   rsi, mode, bell, atr, chand=chd, entry_px=entry))
+                        tgt = s_top[m_] if side > 0 else s_bot[m_]
+                        for _lab, which, keep_half, use_bell in MANAGERS:
+                            last = min(n - 1, e_last + L.MAX_BARS)
+                            if bells is not None and use_bell:
+                                last = min(last, int(bells[e_last]))
+                            res.append(tcg_exit(kind, o, h, l, c, e_last, side, stop, entry,
+                                                small12 if which == 12 else ema26, last, a, tgt, keep_half))
                         t_ = df.index[e]
                         rows.append([tf_i, side, float(ordinal.get(k, 0)) if not is_ctrl else -1.0,
                                      since if np.isfinite(since) else -1.0,
@@ -301,7 +373,7 @@ def main():
     for tf_i, (tf, sf, tt) in enumerate(PAIRS):
         for side, sname in ((1, "LONG: first oversold after a run up"), (-1, "SHORT: first overbought after a run down")):
             base = d[(d.tf == tf_i) & (d.side == side)]
-            for mi, (mlab, _m, _c, _b) in enumerate(MANAGERS):
+            for mi, (mlab, _m, _c, _b) in enumerate(MANAGERS):   # label, EMA, keep half, bell
                 col = "r%d" % mi
                 key = "%s -> %s | %s | %s" % (tf, sf, "long" if side > 0 else "short", mlab)
                 print("  %s chart marking the %s's %s -- %s\n    %s" % (
