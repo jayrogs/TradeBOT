@@ -46,6 +46,9 @@ import tcg_lab as L               # noqa: E402
 import backburner_tcg as T        # noqa: E402
 from scalein_study import describe        # noqa: E402
 
+_SM = os.path.join("validation", "sector_map.json")
+SECTOR = json.load(io.open(_SM, encoding="utf-8")) if os.path.exists(_SM) else {}     # "kind|sym" -> ["kind|leader", r]
+
 OUT = os.path.join("validation", "backburner_dan.json")
 PAIRS = [("5m", "1h", "1d"), ("1h", "1d", "1w"), ("4h", "1d", "1w")]
 STOP_BARS = 3.0
@@ -128,6 +131,30 @@ def dan_exit(kind, o, h, l, c, e, side, stop, entry, last, a, low0, how, ema=Non
     else:
         px2 = c[last]
     return (got + 0.5 * side * (px2 - entry) / entry) * 100 - cost * 1.5
+
+
+_LEAD = {}                     # per worker: a leader's RSI on one chart, loaded once
+
+
+def _lead_rsi(lead_key, tf):
+    """THE LEADER RULE (TCG_METHOD 19l, 2Q__6_9f6JY): do not buy a laggard's oversold while its sector leader is
+    still only near 34 -- the leader's own oversold print is the trigger. Returns the leader's RSI 14 on `tf` as a
+    time series (regular hours for stocks and ETFs), or None."""
+    key = (lead_key, tf)
+    if key not in _LEAD:
+        out = None
+        try:
+            lk, ls = lead_key.split("|")
+            fr = {tf: B.frames_for(ls, lk).get(tf)}
+            if fr[tf] is not None and lk in ("stock", "etf"):
+                fr = FR2.regular_hours(fr)
+            ldf = fr.get(tf)
+            if ldf is not None and len(ldf) > 100:
+                out = pd.Series(IND.rsi(ldf["Close"].values.astype(float), N_RSI), index=ldf.index)
+        except Exception:
+            out = None
+        _LEAD[key] = out
+    return _LEAD[key]
 
 
 def _work(args):
@@ -259,6 +286,12 @@ def _work(args):
                     bar_of_day[a0:a1 + 1] = np.arange(a1 - a0 + 1)
                     gap_lo[a0:a1 + 1] = float(np.min(l[b0:b1 + 1])) - o[a0]     # + = opened UNDER yesterday's low
                     gap_hi[a0:a1 + 1] = o[a0] - float(np.max(h[b0:b1 + 1]))     # + = opened OVER yesterday's high
+            lead_rsi = np.full(n, np.nan)
+            lead = SECTOR.get("%s|%s" % (kind, sym))
+            if lead and lead[1] >= 0.30 and tf in ("1h", "4h") and lead[0] != "%s|%s" % (kind, sym):
+                lr = _lead_rsi(lead[0], tf)
+                if lr is not None:
+                    lead_rsi = lr.reindex(df.index, method="ffill").values.astype(float)
             vol = df["Volume"].values.astype(float) if "Volume" in df else np.zeros(n)
             vavg = pd.Series(vol).rolling(50, min_periods=20).mean().values
             bells = None
@@ -380,6 +413,7 @@ def _work(args):
                                      float(stack[m_]), d12gap, vclimax, d12fill, gapopen,
                                      float(bar_of_day[k]) if np.isfinite(bar_of_day[k]) else np.nan,
                                      o4, float(h4) if np.isfinite(h4) else np.nan, kept,
+                                     float(lead_rsi[m_]) if np.isfinite(lead_rsi[m_]) else np.nan,
                                      float(len(fills)), rp, float(df.index[k].value), is_ctrl] + res)
         except Exception as ex:
             errs.append("%s %s %s: %s" % (kind, sym, tf, ex))
@@ -410,7 +444,7 @@ def main():
             if done % 100 == 0 or done == len(names):
                 print("  %d/%d names  (%.0fs)" % (done, len(names), time.time() - t0), flush=True)
     cols = ["tf", "side", "ordinal", "since", "run", "intact", "fall", "pauses", "blue", "dollars", "stacked", "d12gap",
-            "vclimax", "d12fill", "gapopen", "bar_of_day", "ord4", "held4", "kept", "units",
+            "vclimax", "d12fill", "gapopen", "bar_of_day", "ord4", "held4", "kept", "lead_rsi", "units",
             "risk_pct", "t", "ctrl"] + ["r%d" % i for i in range(len(MANAGERS))]
     d = pd.DataFrame(np.concatenate(parts), columns=cols)
     d["kind"] = np.array(kinds); d["sym"] = np.array(syms)
@@ -498,6 +532,16 @@ def main():
          lambda x, c: (x.ctrl == c) & (x.ordinal == 1) & (x.run >= 4) & (x.prior_n >= 3) & (x.prior_win >= 0.6)),
         ("first print + run, this NAME's earlier first prints mostly LOST (3+ seen, under 50%)",
          lambda x, c: (x.ctrl == c) & (x.ordinal == 1) & (x.run >= 4) & (x.prior_n >= 3) & (x.prior_win < 0.5)),
+        ("first print + run, the sector LEADER is oversold too (its RSI 35 or under)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.lead_rsi <= 35)),
+        ("first print + run, the leader is weak but NOT oversold (35-45)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.lead_rsi > 35) & (x.lead_rsi <= 45)),
+        ("first print + run, the leader is FINE (over 45)",
+         lambda x, c: (x.ctrl == c) & first(x, c) & (x.run >= 4) & (x.lead_rsi > 45)),
+        ("ANY print, the leader oversold too (35 or under)", lambda x, c: (x.ctrl == c) & (x.lead_rsi <= 35)),
+        ("ANY print, the leader weak but not oversold (35-45)",
+         lambda x, c: (x.ctrl == c) & (x.lead_rsi > 35) & (x.lead_rsi <= 45)),
+        ("ANY print, the leader fine (over 45)", lambda x, c: (x.ctrl == c) & (x.lead_rsi > 45)),
         ("any print, bigger charts ALSO oversold (stack 1+)", lambda x, c: (x.ctrl == c) & (x.stacked >= 1)),
         ("any print, BOTH bigger charts oversold (stack 2)", lambda x, c: (x.ctrl == c) & (x.stacked >= 2)),
         ("NOT a backburner: no run, trend broken", lambda x, c: (x.ctrl == c) & (x.run < 1) & (x.intact < 0.5)),

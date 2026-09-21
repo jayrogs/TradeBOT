@@ -339,6 +339,26 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         EMA-was-lost and the name's-own-history reads. "First since the 4h 12 EMA was lost" ALONE added nothing over
         every touch (+0.24% vs +0.27%); first-since-the-high + a run stays the working count. Names whose EARLIER first
         prints mostly won: +0.71% vs +0.37% for names whose earlier ones mostly lost (n 416) -- their checklist box 5.
+      THE LEADER RULE (Dan: do not buy a laggard's hourly oversold while its sector leader is only near RSI 34; the
+        leader's own oversold print is the trigger). `lead_rsi` in backburner_dan, leaders from validation/sector_map.json.
+        1h longs, all out at the 12 EMA, by the leader's hourly RSI at the buy -- ANY print: leader oversold too (35 or
+        under) +0.41% a trade, weak but not oversold (35-45) +0.25%, fine (over 45) +0.15%, 75-92 thousand trades each.
+        FIRST print after a run: +0.79% (won 74%, 10 of 10 years) / +0.53% / +0.66%. The worst place to buy is exactly
+        where he says -- the leader weak but not yet flushed. Crypto 4h, any print: +0.83% / +0.45% / +0.53%.
+      `pics_eqanticipate.py` -> /eqanticipate: 16 anticipated-EQ trades drawn, measured clean, ready to grade (set
+        "eqanticipate"). THE DRAWINGS CAUGHT A BUG OF MINE ON THE FIRST LOOK: GIS's A, B and C sat seven months from
+        its trade, because the drawing loaded a different set of charts from the study and the 4-hour bar NUMBERS did
+        not line up. RULE: a drawing looks bars up by TIME, loads exactly the study's frames, and asserts one price.
+        GIS also showed what averages hide: it came within 20 cents of the sell line, then stopped out. All-out at the
+        far line is fragile; their "sell a piece into the first bounce" is what protects against that.
+    TWO PLACES THE ROOM DISAGREES WITH ITSELF, so neither is "the rule": (1) 2017-21 Dan scales into a drop in four
+    lots; 2025-26 Dan has "moved away from scaling in" and wants ONE entry with an "or I'm wrong" level close by; Joey
+    never scales into freefall. #35's five-unit scale-in is the older Dan. (2) Dan walks a stop under each higher low;
+    Lamont (and later Dan) move it only after a NEW sideways structure forms and breaks -- "don't choke the trade".
+    My trend ride (#17) walks it under every higher low. Both need a side-by-side row, not a choice made by me.
+    DAN'S EQ IS LOOSER THAN OURS: on camera it is high -> low -> lower high, or on the 12-hour "a base, a high, a
+    higher low, a double top, a double bottom" -- paired tests, not strictly tightening. Jay's tightening series is
+    the rule here (#26b); the strict detector throws away shapes Dan would call an EQ. Worth asking him.
     STILL NOT BUILT: a news/earnings filter; the failed-backburner regime switch (their main market-health read);
     Lori's market table to pick the SIDE; the super-stack oversold bounce as its own study; per-name RSI levels;
     two-to-three attempts per setup; drawings for both EQ studies.
