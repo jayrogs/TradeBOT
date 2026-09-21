@@ -351,6 +351,17 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         not line up. RULE: a drawing looks bars up by TIME, loads exactly the study's frames, and asserts one price.
         GIS also showed what averages hide: it came within 20 cents of the sell line, then stopped out. All-out at the
         far line is fragile; their "sell a piece into the first bounce" is what protects against that.
+    HIS SENTENCE, COUNTED (2026-09-21, "after a larger move, if it has 3 of those pivots, high low lower high, you can
+    expect a higher low, I think"; `studies/eq_nextlow.py`, no trades, 809 names, 2.8M shapes). HE IS RIGHT, and the
+    first high's label does not matter (his correction: "if it makes an eq it's an eq" -- my detector already works
+    that way; the only difference from Dan is that mine waits for two pairs and Dan acts after the first lower high).
+    4h, the next low is a HIGHER low: small move first (under 2 normal bars) 20% | 2-4 bars 39% | LARGER (4-8) 57% |
+    VERY large (8+) 69% | every pivot low 56%. 1h and daily the same. BUT MOST OF IT IS ROOM: what decides it is how
+    far B sits under C in normal bars (1-2 bars 24-36%, 2-3 bars 53-64%, 3-4 bars 76-87%, 4-6 bars 90-93%). At the
+    SAME room the size of the move first still adds 7-11 points; the swing-back PERCENT adds nothing (59% -> 54%).
+    So The Chart Guys' 50% number works because big move x big swing back = a lot of room, not because 50 is special.
+    When the higher low holds, the next high is another lower high (the EQ keeps forming) ~40-47% of the time and a
+    higher high ~55-60%. A likely higher low is not yet money: /eqanticipate is the trade built on it.
     TWO PLACES THE ROOM DISAGREES WITH ITSELF, so neither is "the rule": (1) 2017-21 Dan scales into a drop in four
     lots; 2025-26 Dan has "moved away from scaling in" and wants ONE entry with an "or I'm wrong" level close by; Joey
     never scales into freefall. #35's five-unit scale-in is the older Dan. (2) Dan walks a stop under each higher low;
