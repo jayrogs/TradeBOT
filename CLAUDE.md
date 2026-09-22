@@ -517,6 +517,13 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     rule, no target. On the 16: HLT -1.10% -> +1.27% (his note), JBHT -3.08% -> +0.85%, BIDU +9.03% -> +4.59% (the
     old high was a lucky target there). All 3,554: +0.80% avg, +0.44% middle, won 61%, 64% of trades end on the
     walked line.
+    "WHAT'S 'MOST OF IT' MEAN?!" (same day) -> `studies/backburner_legs.py`, every trade split into its two legs, both
+    measured on the whole position so they add up. All 3,554 (+0.80% a trade): THE HALF AT THE 12 EMA +0.56% = 70% of
+    the money, won 79% of the time, middle +0.45%; THE REST, WALKED +0.24% = 30%, won 45%, middle -0.13%. The 5% of
+    trades that never bounce to the EMA lose -5.3% each and cost -0.27% per trade overall -- the whole price of "no stop
+    until the half". Crypto: the half is 74% (won 89%). RULE FOR ME: no more "most of it"; a share is a number.
+    HIS RULE, IN HIS WORDS (2026-09-22): "we can only be changing one thing at a time, to isolate the variable. Can't
+    solve for x if y is unsolved too." One change per round, graded, before the next.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
