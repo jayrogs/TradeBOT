@@ -639,8 +639,15 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         cleared it by 4+                                      1,816  +0.90% / +0.49% / 63% / 10 of 11 /  69 of 90
         everything (the page today)                           3,554  +0.80% / +0.45% / 62%
     HIS RULE IS WORTH ABOUT +0.19% A TRADE AND 7 POINTS OF WIN RATE over the trades it throws out, and it throws out
-    only 20%. Crypto: +2.10% vs +1.28%. IT IS FITTED ON 18 OF HIS MARKS AND NOT YET SHIPPED AS A FILTER -- the next
-    round of drawings uses it and he grades whether the pool is now his.
+    only 20%. Crypto: +2.10% vs +1.28%. SHIPPED AS THE FILTER (FRESH_MIN = 2.0) AND ROUND 5 IS DRAWN FROM IT: 2,815 trades, 16 he has
+    never seen, set "backburners5". Pool: +0.842% a trade, middle +0.491%, won 63%.
+    HIS STANDING LIST, SO NOTHING GETS DROPPED (he asked 2026-09-22: "I hope you're tracking my other issues too"):
+        DONE  the stop sold on the drop candle (JBHT) | "still sold while oversold" (MNST) | the old high was an odd
+              target (CDNS) -> the stop walks under higher lows, no target | the run must reach fresh levels (this one)
+        OPEN  a bounce that COOLS THE RSI should end the setup and the wide stop with it (BURL, and the e-book's own
+              expiry) | NEWS AND EARNINGS out (FIX was 2025-01-27, the DeepSeek crash; UNP was 2024-08-05) | the stop
+              under the DAILY higher low, not the hourly one (ETH) | take more off after a big bounce, thirds (HLT) |
+              the 12 EMA ride is a different trade, entered a timeframe down (he calls this one obvious, low priority)
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
