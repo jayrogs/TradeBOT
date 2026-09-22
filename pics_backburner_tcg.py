@@ -43,6 +43,7 @@ OUT = os.path.join("validation", "backburner_tcg")
 COST = L.COST
 
 
+FRESH_MIN = 2.0                # HIS RULE: the run must clear its own 60-day high by this many daily normal bars
 CLEAN_MIN = 0.60               # a clean run: this share of the last 20 daily bars made a higher low than the day before
 DISASTER_BARS = 6.0            # the only line while the hourly is still oversold: a "day loser", not a chart stop
 
@@ -395,7 +396,10 @@ def trades_for(sym, kind, v=None):
             continue
         if not (np.isfinite(s_run[m_]) and s_run[m_] >= 4 and t_up[m_] > 0.5):
             continue                                    # the run into the high, and the weekly trend intact
-        # NO CLEAN-RUN FILTER YET. I fitted "the share of the last 20 daily bars making a higher low" to his 14 grades
+        if not (np.isfinite(s_fresh[m_]) and s_fresh[m_] >= FRESH_MIN):
+            continue      # HIS RULE (2026-09-22): "previous price history was already at the levels we were looking
+                          # at now .. that's not a significant run up, it's just oscillations."
+        # NO SEPARATE CLEAN-RUN FILTER. I fitted "the share of the last 20 daily bars making a higher low" to his 14 grades
         # and it looked like it split them; coded with the study's own window it keeps BHP (0.70, which he rejected
         # twice) and drops UNP and HLT (both of which he liked). That is an overfit on 14 points, not his eye. The
         # number is still recorded on every trade so the page can show it -- and he is marking daily runs on /cleanruns
