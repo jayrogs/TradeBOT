@@ -42,7 +42,28 @@ DARK, DIM = "#0d0f12", "#8b93a1"
 PURPLE, GREEN, AMBER = "#b48cff", "#3ddc97", "#ffb84d"
 OUT = os.path.join("validation", "clean_run")
 LOOK = 55                          # daily bars of run to show before the dip
-N = 24
+N = 12
+
+
+def suspicion(d, i):
+    """MY TWO READS OF WHAT HE DISLIKED, used to PICK the charts he is shown -- not to filter anything yet.
+    From his notes on BHP ("does not look like a clean run up, very messy chart") and UNP ("really wild daily
+    candles ... too hectic"), and from looking at all three charts beside BIDU and EAT, which he liked:
+      bounce  UNP fell 247 -> 220 over two months and then bounced back to 250. My 20-day run measure saw the
+              BOUNCE and called it a run. Score: how much of the 40 days before the dip was a fall that the run
+              then merely won back.
+      twoway  BHP made big candles in BOTH directions the whole way -- up to 55, back to 54, down to 50, sideways
+              a week, grind up. A fight, not a run. Score: how much of the total candle length was spent going
+              DOWN, against a clean run where the down days are small.
+    Higher means more like the two he rejected. Neither is validated -- that is what he is being asked."""
+    h = d["High"].values.astype(float); l = d["Low"].values.astype(float); c = d["Close"].values.astype(float)
+    hi40 = float(np.max(h[i - 41:i - 15])); lo40 = float(np.min(l[i - 41:i - 15]))
+    fall = (hi40 - lo40) / hi40 if hi40 else 0.0
+    won_back = (c[i - 1] - lo40) / (hi40 - lo40) if hi40 > lo40 else 0.0
+    w = slice(i - 20, i)
+    rngs = h[w] - l[w]; steps = np.diff(c[i - 21:i])
+    dn = float(np.sum(rngs[steps < 0])); up = float(np.sum(rngs[steps > 0]))
+    return dict(bounce=float(fall * max(0.0, min(1.0, won_back))), twoway=float(dn / (up + dn) if up + dn else 0.5))
 
 
 def measures(d, i):
@@ -75,6 +96,14 @@ def _one(args):
         out = []
         for r in PB.trades_for(sym, kind):
             out.append(dict(sym=sym, kind=kind, k=r["k"], t=r["t"], run=r["run"], clean=r.get("clean")))
+        if out:
+            fr = S.frames_for(sym, kind)
+            fr = {x: v for x, v in fr.items() if x in ("1h", "1d")}
+            if kind in ("stock", "etf"):
+                fr = FR2.regular_hours(fr)
+            for o in out:
+                i = int(fr["1d"].index.searchsorted(fr["1h"].index[o["k"]]))
+                o.update(suspicion(fr["1d"], i) if i > 45 else dict(bounce=np.nan, twoway=np.nan))
         return out
     except Exception:
         return []
@@ -161,8 +190,18 @@ def main():
         for ln in io.open(g_, encoding="utf-8").read().splitlines()[1:]:
             seen.add(ln.split(",")[0])
     rows = [r for r in rows if "%s_%s_%d.png" % (r["kind"], r["sym"], r["k"]) not in seen]
+    # PICKED, NOT RANDOM (his ask): half the set scores most like the two he rejected on my two reads, half least.
+    # He is not told which is which, and the page explains both reads in words first.
+    rows = [r for r in rows if np.isfinite(r.get("bounce", np.nan)) and np.isfinite(r.get("twoway", np.nan))]
+    b = np.array([r["bounce"] for r in rows]); t_ = np.array([r["twoway"] for r in rows])
+    z = (b - b.mean()) / (b.std() or 1) + (t_ - t_.mean()) / (t_.std() or 1)
+    for r, zz in zip(rows, z):
+        r["suspect"] = float(zz)
+    order = np.argsort(-z)
     rng = np.random.default_rng(20260922)
-    picks = [rows[i] for i in rng.choice(len(rows), N, replace=False)]
+    top = [rows[i] for i in order[:60]]; bot = [rows[i] for i in order[-60:]]
+    picks = ([top[i] for i in rng.choice(len(top), N // 2, replace=False)]
+             + [bot[i] for i in rng.choice(len(bot), N // 2, replace=False)])
     by = {}
     for p in picks:
         by.setdefault((p["sym"], p["kind"]), []).append(p)
@@ -170,12 +209,12 @@ def main():
     with cf.ProcessPoolExecutor(max_workers=min(procs, len(by))) as ex:
         for got in ex.map(_draw, [(s_, k_, v) for (s_, k_), v in by.items()], chunksize=1):
             drawn += got
-    drawn.sort(key=lambda x: x["t"])
+    rng.shuffle(drawn)
     for i, p in enumerate(drawn, 1):
         p["n"] = i
     keep = {d_["png"] for d_ in drawn} | {"index.json"}
     for f in os.listdir(OUT):
-        if f not in keep:
+        if f not in keep and os.path.isfile(os.path.join(OUT, f)):
             os.remove(os.path.join(OUT, f))
 
     def _plain(v):

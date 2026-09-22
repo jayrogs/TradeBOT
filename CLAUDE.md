@@ -597,10 +597,25 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         window it scores BHP 0.70 -- the one he rejected twice -- and drops UNP and HLT, both of which he liked. An
         overfit on 14 points, caught only because the two windows disagreed. LESSON: fit and code the SAME window, and
         a filter is not shipped until it reproduces his grades on the version that will actually run.
-      - INSTEAD HE MARKS: `pics_cleanrun.py` -> /cleanruns, 24 DAILY charts of the run into a real backburner dip, each
+      - AND THEN HE SAID THE OBVIOUS THING I HAD MISSED: "why don't we observe the ones I don't like to make the rule
+        versus wearing me out seeing 20 random charts". So I drew HIS two rejects beside two he kept and LOOKED:
+          UNP IS NOT A RUN AT ALL. It fell 247 -> 220 over two months and bounced back to 250; my 20-day run measure
+            saw the BOUNCE. A backburner is a name that has been going, not one climbing out of its own hole.
+          BHP IS A FIGHT, NOT A RUN: big candles in BOTH directions the whole way (up to 55, back to 54, down to 50,
+            a week sideways, grind up). A clean run has big candles up and small ones back.
+          BIDU, which he kept: two months of quiet little candles at 88, then one clean leg to 140.
+        I still could not measure it -- twelve measures and BHP/UNP sit inside the good group on every one. TWO
+        REJECTS IS NOT ENOUGH TO FIT ANYTHING, which is exactly how the hl_share fit fooled me.
+      - INSTEAD HE MARKS: `pics_cleanrun.py` -> /cleanruns, 12 DAILY charts of the run into a real backburner dip, each
         one STOPPED AT THE DIP so the outcome cannot colour the mark, no trade drawn, no numbers shown. He marks clean
         / passable / too messy with a note. Eleven measures per chart sit in the index under "hidden" and are never
         shown. Then the filter is built from what his clean runs share -- the method that worked for the EQ (#26m).
+        HIS TWO CONDITIONS ON IT (2026-09-22): the charts must be PICKED from what he disliked, not random, and the
+        page must SAY what I am looking for so he is not going in blind. Both done: six of the twelve score most like
+        his two rejects on `bounce` (how much of the 40 days before was a fall the run merely won back) and `twoway`
+        (the share of total candle length spent going DOWN), six score least, shuffled. The page opens with his two
+        rejects and two keeps drawn side by side and my read of each in plain words. He only taps the BAD ones, then
+        one "the rest are fine" button -- three or four taps instead of twelve decisions.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
