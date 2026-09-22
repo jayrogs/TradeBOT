@@ -47,7 +47,9 @@
     4. <b>No stop until the half is sold</b> (Dan as written, and your round-1 note: "it feels really bad to sell while it's
        oversold"). Only a wide disaster line until then. When the bounce reaches the <b>12 EMA</b>, sell half and put the stop
        <b>under the low of the drop</b>.<br>
-    5. The rest is for <b>the old high</b>. The dip on the hourly is there to mark the <b>daily higher low</b>.
+    5. The rest has <b>no target</b>: the stop is walked up under each <b>higher low</b> and it sells on a close under the last one
+       (the e-book's plan 3, and your own standard exit). "The old high" was my invention; nine ways to sell the rest are in the
+       table below, and no target beats this one. The dip on the hourly is there to mark the <b>daily higher low</b>.
   </div>
 </header>
 <main>
@@ -108,15 +110,15 @@ Promise.all([
   }
   const s = d.stats;
   h += `<div class="card"><b>The ${s.n.toLocaleString()} trades these drawings come from</b>
-    <div class="sub" style="margin:4px 0 6px">First dip after a big run, weekly trend intact. Half sold at the 12 EMA, stop
-    under the low, the rest for the old high.</div><table>
+    <div class="sub" style="margin:4px 0 6px">First dip after a big run, weekly trend intact. Half sold at the 12 EMA, then the
+    stop under the low of the drop, then walked under each higher low.</div><table>
     <tr><th class="l">measure</th><th>value</th></tr>
     <tr><td class="l">average trade</td><td class="${cls(s.avg_pct)}">${pc(s.avg_pct)}</td></tr>
     <tr><td class="l">middle trade</td><td class="${cls(s.middle_pct)}">${pc(s.middle_pct)}</td></tr>
     <tr><td class="l">trades won</td><td>${(100 * s.won).toFixed(0)}%</td></tr>
     <tr><td class="l">average, in R</td><td class="${cls(s.avg_R)}">${rr(s.avg_R)}</td></tr>
     <tr><td class="l">the bounce reached the 12 EMA (half sold)</td><td>${(100 * s.half_taken).toFixed(0)}%</td></tr>
-    <tr><td class="l">the rest made it back to the old high</td><td>${(100 * s.reached_high).toFixed(0)}%</td></tr>
+    <tr><td class="l">the rest sold on a close under a higher low</td><td>${(100 * (s.rest_on_rule || 0)).toFixed(0)}%</td></tr>
     <tr><td class="l">got the second buy at RSI 20</td><td>${(100 * s.two_fills).toFixed(0)}%</td></tr>
     <tr><td class="l">the first stop, as a share of price (middle)</td><td>${s.median_risk.toFixed(2)}%</td></tr></table></div>`;
   h += `<div class="card warn"><b>What is not in it yet</b><div class="sub" style="margin-top:4px">
@@ -141,6 +143,21 @@ Promise.all([
         <td>${(100 * s.half).toFixed(0)}%</td><td>${s.years_up} of ${s.years}</td><td>${s.blocks_up} of ${s.blocks}</td></tr>`;
     }
     $('#stops').innerHTML = t + `</table></div>`;
+  });
+  fetch('/validation/backburner_rests.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).then(st => {
+    if (!st || !st.table) return;
+    let t = `<div class="card"><b>Nine ways to sell the rest, same trades, Dan's stop</b>
+      <div class="sub" style="margin:4px 0 6px">Same buys, same half at the 12 EMA. Only what the rest does changes. On the
+      average per trade the first four cannot be told apart; the walked higher low has the better middle trade and worst case
+      and needs no target.</div>
+      <table><tr><th class="l">the rest</th><th>average</th><th>middle</th><th>won</th><th>worst 1 in 20</th>
+      <th>years up</th><th>blocks up</th></tr>`;
+    for (const w of st.meta.ways) {
+      const s = st.table['everything | ' + w]; if (!s) continue;
+      t += `<tr><td class="l">${w}</td><td class="${cls(s.avg)}">${pc(s.avg)}</td><td class="${cls(s.middle)}">${pc(s.middle)}</td>
+        <td>${(100 * s.won).toFixed(0)}%</td><td class="bad">${pc(s.p5)}</td><td>${s.years_up} of ${s.years}</td><td>${s.blocks_up} of ${s.blocks}</td></tr>`;
+    }
+    $('#stops').insertAdjacentHTML('beforeend', t + `</table></div>`);
   });
   const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
       <div class="line">${c.sym} <span style="color:var(--faint)">hourly</span> &middot; ${c.t}

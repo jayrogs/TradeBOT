@@ -62,7 +62,8 @@ STOPS = {
     "never: disaster line only, half at the EMA, rest for the high":
                                                                dict(first=None, arm="never", wiggle=0.0, off=False),
 }
-STOP = STOPS["Dan as written: no stop until the half is sold, then under the low"]     # round 3, after backburner_stops
+STOP = dict(STOPS["Dan as written: no stop until the half is sold, then under the low"],     # round 3, after backburner_stops
+            rest="hl_close", thirds=False)      # and the rest walked under the higher lows (e-book plan 3, his #16), after backburner_rests
 
 
 def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, v=None):
@@ -133,7 +134,103 @@ def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, v=None
                 how="time ran out")
 
 
+# THE REST (his ask 2026-09-22: "is the old high the best sale target you could find? that's kind of an odd target").
+# Same buys, same first piece at the hourly 12 EMA, Dan's stop (nothing until the first piece is sold, then under the
+# low of the drop). Only what the REST does changes. "thirds" = a third at the 12 EMA, a third at hourly RSI 70, the
+# last third by the rule; otherwise half at the EMA and half by the rule.
+RESTS = {
+    "the old high (what the page does now)":                    dict(rest="high", thirds=False),
+    "hourly RSI 70 (sell into overbought)":                     dict(rest="rsi70", thirds=False),
+    "a close under the hourly 12 EMA, once it has closed above": dict(rest="ema_close", thirds=False),
+    "a close under the last higher low (your standard exit)":   dict(rest="hl_close", thirds=False),
+    "chandelier: 3 normal bars under the highest high":         dict(rest="chand3", thirds=False),
+    "hold: only the stop under the low, time out at 480 bars":  dict(rest="hold", thirds=False),
+    "THIRDS: 12 EMA, RSI 70, last third under the higher lows":  dict(rest="hl_close", thirds=True),
+    "THIRDS: 12 EMA, RSI 70, last third for the old high":       dict(rest="high", thirds=True),
+    "THIRDS: 12 EMA, RSI 70, last third on the 12 EMA close":    dict(rest="ema_close", thirds=True),
+}
+
+
+def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p70, lows, v):
+    """Pieces come off one at a time; the stop under the low of the drop goes live when the first piece sells and
+    applies to whatever is left. `lows` = every LIVE low confirmation (confirm bar, form bar, price), phantoms
+    included (rule 40), for the walked stop."""
+    n = len(c)
+    last = min(n - 1, e_last + L.MAX_BARS)
+    cost = COST.get(kind, 0.05)
+    low0 = float(np.min(l[k:e_last + 1]))
+    steps = [(int(e_last), float(stop))]
+    if l[e_last] <= stop:
+        j2 = min(e_last + 1, n - 1)
+        return dict(end=j2, exit_px=float(o[j2]), pct=float((o[j2] - entry) / entry * 100 - cost), half_at=None,
+                    half_px=None, steps=steps, how="through the disaster line on the buy bar")
+    pieces = [(1 / 3, "ema"), (1 / 3, "rsi70"), (1 / 3, v["rest"])] if v["thirds"] else [(0.5, "ema"), (0.5, v["rest"])]
+    got, sold = 0.0, 0.0                      # profit share booked, share sold
+    half_at = half_px = None
+    line = stop
+    hi = float(np.max(h[k:e_last + 1]))
+    seen_above = False
+    hl_line = None
+    li = 0
+    for j in range(e_last + 1, last + 1):
+        hi = max(hi, float(h[j]))
+        if half_at is None:
+            low0 = min(low0, float(l[j]))
+        rest_rule = pieces[0][1] if pieces else None
+        # the walked stop: every low that has CONFIRMED by now, formed after the buy, above the current line
+        if half_at is not None and rest_rule == "hl_close":
+            while li < len(lows) and lows[li][0] <= j:
+                ci_, fj_, px_ = lows[li]; li += 1
+                if fj_ > e_last and (hl_line is None or px_ > hl_line):
+                    hl_line = float(px_)
+                    steps.append((int(j), float(hl_line)))
+        if half_at is not None and rest_rule == "chand3":
+            new = hi - 3 * a
+            if new > line:
+                line = new; steps.append((int(j), float(line)))
+        # 1. the stop, on a wick (the line under the low / chandelier) or on a close (the walked higher low)
+        hit = l[j] <= line or (hl_line is not None and c[j] < hl_line)
+        if hit and pieces:
+            px = o[j + 1] if j + 1 <= last else c[last]
+            share = sum(p_ for p_, _ in pieces)
+            pct = (got + share * (px - entry) / entry) * 100 - cost * (1 + (0.5 if sold else 0))
+            how = ("the rest stopped" if half_at is not None else "stopped out") + (" under the higher low" if hl_line is not None and c[j] < hl_line and l[j] > line else "")
+            return dict(end=int(j), exit_px=float(px), pct=float(pct), half_at=half_at, half_px=half_px, steps=steps, how=how)
+        # 2. the pieces, in order
+        while pieces:
+            share, rule = pieces[0]
+            px = None
+            if rule == "ema" and np.isfinite(ema12[j]) and h[j] >= ema12[j]:
+                px = float(max(o[j], ema12[j]))
+            elif rule == "rsi70" and np.isfinite(p70[j]) and h[j] >= p70[j]:
+                px = float(max(o[j], p70[j]))
+            elif rule == "high" and np.isfinite(target) and h[j] >= target:
+                px = float(max(o[j], target))
+            elif rule == "ema_close":
+                if c[j] > ema12[j]:
+                    seen_above = True
+                elif seen_above and c[j] < ema12[j]:
+                    px = float(o[j + 1]) if j + 1 <= last else float(c[last])
+            if px is None:
+                break
+            got += share * (px - entry) / entry; sold += share
+            pieces.pop(0)
+            if half_at is None:
+                half_at, half_px = int(j), px
+                low0 = min(low0, float(np.min(l[e_last + 1:j + 1])))
+                line = low0 - 0.1 * a
+                steps.append((int(j), float(line)))
+            if not pieces:
+                return dict(end=int(j), exit_px=px, pct=float(got * 100 - cost * 1.5), half_at=half_at, half_px=half_px,
+                            steps=steps, how="the rest sold on its rule (%s)" % rule)
+    px = float(c[last])
+    share = sum(p_ for p_, _ in pieces)
+    pct = (got + share * (px - entry) / entry) * 100 - cost * (1 + (0.5 if sold else 0))
+    return dict(end=int(last), exit_px=px, pct=float(pct), half_at=half_at, half_px=half_px, steps=steps, how="time ran out")
+
+
 def trades_for(sym, kind, v=None):
+    v = v or STOP                                   # the page's own rules unless a study passes a variant
     frames = S.frames_for(sym, kind)
     frames = {k_: v for k_, v in frames.items() if k_ in ("1h", "1d", "1w")}
     if kind in ("stock", "etf"):
@@ -147,7 +244,11 @@ def trades_for(sym, kind, v=None):
     atr = P._atr(df)
     rsi, au, ad = IND.rsi_parts(c, D.N_RSI)
     ema12 = XM.ema(c, 12)
-    p30 = D.rsi_price(c, au, ad, 30); p20 = D.rsi_price(c, au, ad, 20)
+    p30 = D.rsi_price(c, au, ad, 30); p20 = D.rsi_price(c, au, ad, 20); p70 = D.rsi_price(c, au, ad, 70)
+    lows = None
+    if v and "rest" in v:
+        import eq_livecheck as LC
+        lows = [(int(e_[0]), int(e_[1]), float(e_[2])) for e_ in LC.live_events(df)[0] if e_[3] == "low"]
     sc = sdf["Close"].values.astype(float)
     satr = P._atr(sdf)
     run = np.full(len(sc), np.nan)
@@ -191,7 +292,10 @@ def trades_for(sym, kind, v=None):
         rp = (entry - stop) / entry * 100
         if rp < 3 * cost or rp > 40.0:
             continue
-        r = walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi, v)
+        if v and "rest" in v:
+            r = walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi, p70, lows, v)
+        else:
+            r = walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi, v)
         got.append(dict(sym=sym, kind=kind, k=int(k), e=int(e_last), entry=entry, fills=fills, fill_bars=fill_bars,
                         stop=float(stop), risk_pct=float(rp), t=str(df.index[k]), run=float(s_run[m_]),
                         target=float(s_top[m_]) if np.isfinite(s_top[m_]) else None,
@@ -252,9 +356,9 @@ def draw(sym, df, sdf, tr, path):
             ("buy at the touch of 30" if len(fx) == 1 else "bought at 30, again at 20") if i_ == len(fx) - 1 else None)
     if tr["half_at"] is not None:
         peg(tr["half_at"] - x0, tr["half_px"], lane(0.08 + 0.07 * len(fx) + 0.10), AMBER, "o", "half off at the 12 EMA")
-    peg(end - x0, tr["exit_px"], lane(0.08 + 0.07 * len(fx) + 0.24), "#e6e9ee", "X", "out %+.2fR" % tr["R"])
-    ax.set_title("%s hourly   first oversold after a run of %.0f daily bars   risk %.2f%%  ->  %+.2f%%  (%+.2fR)" % (
-        sym, tr["run"], tr["risk_pct"], tr["pct"], tr["R"]), color="#e6e9ee", fontsize=11, loc="left", pad=8)
+    peg(end - x0, tr["exit_px"], lane(0.08 + 0.07 * len(fx) + 0.24), "#e6e9ee", "X", "out %+.2f%%" % tr["pct"])
+    ax.set_title("%s hourly   first oversold after a run of %.0f daily bars   %+.2f%%  (%+.2fR against the disaster line)" % (
+        sym, tr["run"], tr["pct"], tr["R"]), color="#e6e9ee", fontsize=11, loc="left", pad=8)
     # the RSI under it: the 30 line is the trigger
     axr = fig.add_subplot(gs[1, 0], sharex=ax)
     axr.set_facecolor(DARK)
@@ -294,7 +398,7 @@ def draw(sym, df, sdf, tr, path):
     fig.text(0.045, 0.048, "red dotted = NO STOP yet (a wide disaster line only)    "
              "red dashed = the stop under the low of the drop, set the moment the half is sold",
              color=DIM, fontsize=8.5, ha="left")
-    fig.text(0.045, 0.016, "blue = the old high, where the rest is sold    right = the daily, dotted line is the day of the dip",
+    fig.text(0.045, 0.016, "blue = the old high, for reference only    red dashed steps up = the stop walked under each higher low; out on a close under it",
              color=DIM, fontsize=8.5, ha="left")
     probs = PR.overlaps(fig, panels)
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
@@ -367,6 +471,7 @@ def main():
     stats = dict(n=len(rows), avg_pct=float(pct.mean()), middle_pct=float(np.median(pct)), won=float((pct > 0).mean()),
                  avg_R=float(R_.mean()), half_taken=float(np.mean([r["half_at"] is not None for r in rows])),
                  reached_high=float(np.mean([r["how"] == "the rest reached the old high" for r in rows])),
+                 rest_on_rule=float(np.mean([r["how"].startswith("the rest sold on its rule") or "higher low" in r["how"] for r in rows])),
                  two_fills=float(np.mean([len(r["fills"]) > 1 for r in rows])),
                  median_risk=float(np.median([r["risk_pct"] for r in rows])))
     slim = [{k_: v for k_, v in d_.items() if k_ != "steps"} for d_ in drawn]

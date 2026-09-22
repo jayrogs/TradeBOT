@@ -495,6 +495,28 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     through drawdowns until the old high; not a stop, a hold. ROUND 3 = Dan as written, same 16, set "backburners3".
     On the 16: UNP flipped to +0.49R (its rest reached the old high), BURL is now -0.96R (no half, disaster line),
     the rest as round 2. LESSON: a stop that goes live before the trade has proven anything is the worst of both worlds.
+    THE REST'S TARGET (2026-09-22, his ask: "is the old high the best sale target you could find? that's kind of an odd
+    target ... run everything, and be very sure of it"). THE OLD HIGH WAS MY INVENTION: the e-book's three exit plans are
+    all at the EMAs (scalp), half at the EMAs then "let the other half run for continuation", or "walk up the stop
+    according to your time frame". No target. `studies/backburner_rests.py` -> validation/backburner_rests.json, table
+    on /backburners: NINE rests on the same 3,554 trades, Dan's stop, PAIRED against the old high so the differences
+    are exact (avg / middle / won / worst 1-in-20 / paired diff / t):
+        the old high                                  +0.86 / +0.28 / 57% / -4.5%      --
+        hourly RSI 70                                 +0.83 / +0.34 / 59% / -4.5%   -0.03%  t -0.9
+        A CLOSE UNDER THE LAST HIGHER LOW (his #16)   +0.80 / +0.44 / 61% / -4.0%   -0.06%  t -1.4   <- THE PAGE NOW
+        chandelier 3                                  +0.72 / +0.43 / 62% / -3.8%   -0.13%  t -3.4
+        close under the hourly 12 EMA                 +0.70 / +0.55 / 67% / -3.8%   -0.15%  t -3.5
+        hold (stop under the low only)                +1.27 / -0.08 / 47% / -4.7%   +0.41%  t +3.4  (lottery)
+        thirds (EMA, RSI 70, then walked / high / EMA close)  +0.87-0.90 / +0.04-0.07 / 51%   ~0, t < 1.2
+    WHAT IS SURE: the final target barely moves the money -- the old high, RSI 70, the walked higher low and thirds are
+    within a few hundredths of a percent, each better in about half the years. The money is the half at the 12 EMA
+    (95% of trades) and Dan's stop. The two exits that cut at the 12 EMA or a chandelier give up ~0.15% a trade for a
+    much better middle trade, win rate and tail (a comfort trade). Thirds do not help because hourly RSI 70 is rarely
+    reached and two thirds sit. THE PAGE NOW USES HIS EXIT: the stop walked under each LIVE-confirmed higher low
+    (rule 40: eq_livecheck.live_events, phantoms included), out on a close under it -- the e-book's plan 3 and his own
+    rule, no target. On the 16: HLT -1.10% -> +1.27% (his note), JBHT -3.08% -> +0.85%, BIDU +9.03% -> +4.59% (the
+    old high was a lucky target there). All 3,554: +0.80% avg, +0.44% middle, won 61%, 64% of trades end on the
+    walked line.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
