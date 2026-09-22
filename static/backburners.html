@@ -44,17 +44,20 @@
     1. The name just had <b>a big run to a new high</b>. You missed it. You do not chase it &mdash; you put it on the back burner.<br>
     2. You buy the <b>FIRST</b> time RSI touches <b>30</b> after that high &mdash; <b>inside the candle, at the touch</b>. A second buy waits at <b>20</b>.<br>
     3. The bigger uptrend is <b>still intact</b>. The drop is not news or earnings. The name trades heavily. Regular hours only.<br>
-    4. <b>No stop while the hourly RSI is still under 30</b> (round 2, your grading of round 1: "it feels really bad to sell while
-       it's oversold"). Once RSI is back over 30 the stop goes <b>under the low of the drop</b>; if RSI dips back under 30 the stop
-       is off again until it comes back. When the bounce reaches the <b>12 EMA</b>, sell half.<br>
+    4. <b>No stop until the half is sold</b> (Dan as written, and your round-1 note: "it feels really bad to sell while it's
+       oversold"). Only a wide disaster line until then. When the bounce reaches the <b>12 EMA</b>, sell half and put the stop
+       <b>under the low of the drop</b>.<br>
     5. The rest is for <b>the old high</b>. The dip on the hourly is there to mark the <b>daily higher low</b>.
   </div>
 </header>
 <main>
   <div id="nums"></div>
-  <div class="card warn"><b>Round 2: same 16 charts, new stop.</b> <span class="sub">Round 1 put a stop 3 normal bars under the
-    fill on the buy bar, and a waterfall candle went straight through it (JBHT, MNST). Your round-1 note sits under each chart.
-    Grade again: is the stop right now?</span></div>
+  <div class="card warn"><b>Round 3: same 16 charts, the stop Dan describes.</b> <span class="sub">Round 1 put a stop 3 normal
+    bars under the fill on the buy bar, and a waterfall candle went straight through it (JBHT, MNST). Round 2 armed a stop as soon
+    as RSI crossed back over 30, which was too early. Eight stops were run on all 3,554 trades (table below); the one that
+    reads best is Dan's: nothing until the half is sold, then under the low of the drop. Your round-1 note sits under each
+    chart. Grade again: is the stop right now?</span></div>
+  <div id="stops"></div>
   <h2>Winners</h2><div id="wins"></div>
   <h2>Losers</h2><div id="losses"></div>
 </main>
@@ -124,6 +127,21 @@ Promise.all([
     <b>The stock list is today's list</b> &mdash; companies that died are missing, the same warning as on /scalein.<br>
     <b>The 5-minute version</b> shows the same step-by-step pattern at a tenth the size, and trading costs eat it.</div></div>`;
   $('#nums').innerHTML = h;
+  fetch('/validation/backburner_stops.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).then(st => {
+    if (!st || !st.table) return;
+    let t = `<div class="card"><b>Eight stops on the same ${(st.table['everything | ' + st.meta.ways[0]] || {}).n.toLocaleString()} trades</b>
+      <div class="sub" style="margin:4px 0 6px">Same buys, same half at the 12 EMA, same old-high target. Only the stop changes.
+      "early" = stopped before any bounce. "blocks" = blocks of 20 trades in a row that made money.</div>
+      <table><tr><th class="l">the stop</th><th>average</th><th>middle</th><th>won</th><th>worst 1 in 20</th><th>early</th>
+      <th>half sold</th><th>years up</th><th>blocks up</th></tr>`;
+    for (const w of st.meta.ways) {
+      const s = st.table['everything | ' + w]; if (!s) continue;
+      t += `<tr><td class="l">${w}</td><td class="${cls(s.avg)}">${pc(s.avg)}</td><td class="${cls(s.middle)}">${pc(s.middle)}</td>
+        <td>${(100 * s.won).toFixed(0)}%</td><td class="bad">${pc(s.p5)}</td><td>${(100 * s.early).toFixed(0)}%</td>
+        <td>${(100 * s.half).toFixed(0)}%</td><td>${s.years_up} of ${s.years}</td><td>${s.blocks_up} of ${s.blocks}</td></tr>`;
+    }
+    $('#stops').innerHTML = t + `</table></div>`;
+  });
   const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
       <div class="line">${c.sym} <span style="color:var(--faint)">hourly</span> &middot; ${c.t}
         &middot; ${c.fills.length == 1 ? 'one buy at 30' : 'bought at 30 and again at 20'}
@@ -140,7 +158,7 @@ Promise.all([
   const R1 = window.__r1 || {};
   $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
   $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
-  fetch('/api/tradenote?set=backburners2').then(r => r.json()).catch(() => ({})).then(notes => {
+  fetch('/api/tradenote?set=backburners3').then(r => r.json()).catch(() => ({})).then(notes => {
     notes = notes || {};
     document.querySelectorAll('.marks').forEach(m => {
       const id = m.dataset.id, prev = String(notes[id] || '');
@@ -154,7 +172,7 @@ Promise.all([
         const sp = m.querySelector('.saved');
         const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
         fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({set: 'backburners2', n: id, note: body})})
+          body: JSON.stringify({set: 'backburners3', n: id, note: body})})
           .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
                        setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
           .catch(fail);

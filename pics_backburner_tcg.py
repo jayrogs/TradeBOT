@@ -44,7 +44,28 @@ COST = L.COST
 DISASTER_BARS = 6.0            # the only line while the hourly is still oversold: a "day loser", not a chart stop
 
 
-def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi):
+# THE STOP VARIANTS (his ask 2026-09-22: "spend some time analyzing different methods"). One dict per way:
+#   first    a chart stop from the buy bar, this many normal bars under the lowest fill (None = disaster line only)
+#   arm      when the stop under the low of the drop goes live: "rsi" (RSI closes back over 30), "half" (when the
+#            half is sold at the 12 EMA), "never"
+#   wiggle   how far under the low of the drop, in normal bars
+#   off      the stop switches off again while RSI is back under 30 (his "never sell while it's oversold")
+STOPS = {
+    "round 1: 3 bars under the fill from the start":           dict(first=3.0, arm="half", wiggle=0.1, off=False),
+    "round 2: none while oversold, RSI cross, 0.1 bar":        dict(first=None, arm="rsi", wiggle=0.1, off=True),
+    "RSI cross, 0.25 bar of room":                             dict(first=None, arm="rsi", wiggle=0.25, off=True),
+    "RSI cross, 0.5 bar of room":                              dict(first=None, arm="rsi", wiggle=0.5, off=True),
+    "RSI cross, 1 bar of room":                                dict(first=None, arm="rsi", wiggle=1.0, off=True),
+    "Dan as written: no stop until the half is sold, then under the low":
+                                                               dict(first=None, arm="half", wiggle=0.1, off=False),
+    "half sold, then under the low with 0.5 bar of room":      dict(first=None, arm="half", wiggle=0.5, off=False),
+    "never: disaster line only, half at the EMA, rest for the high":
+                                                               dict(first=None, arm="never", wiggle=0.0, off=False),
+}
+STOP = STOPS["Dan as written: no stop until the half is sold, then under the low"]     # round 3, after backburner_stops
+
+
+def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, v=None):
     """ROUND 2 (his grading of round 1, 2026-09-21: JBHT "why did this even sell??? we need sharp dips", MNST "it
     feels really bad to sell while it's oversold"). Round 1 put a stop 3 normal bars under the fill on the buy bar
     itself, and on a waterfall candle that same candle went through it. Dan: with one fill there is NO stop, the
@@ -59,24 +80,31 @@ def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi):
         j2 = min(e_last + 1, n - 1)
         return dict(end=j2, exit_px=float(o[j2]), pct=float((o[j2] - entry) / entry * 100 - cost), half_at=None,
                     half_px=None, steps=[(int(e_last), float(stop))], how="through the disaster line on the buy bar")
-    line = stop
-    steps = [(int(e_last), float(stop))]
+    v = v or STOP
+    line = stop if v["first"] is None else (stop + DISASTER_BARS * a - v["first"] * a)
+    steps = [(int(e_last), float(line))]
+    if l[e_last] <= line:
+        j2 = min(e_last + 1, n - 1)
+        return dict(end=j2, exit_px=float(o[j2]), pct=float((o[j2] - entry) / entry * 100 - cost), half_at=None,
+                    half_px=None, steps=steps, how="through the stop on the bar it was bought")
     half_at = half_px = None
-    armed = False                                   # the real stop is only live while RSI is back over 30
+    armed = False
     for j in range(e_last + 1, last + 1):
-        if half_at is None:
+        if half_at is None and v["arm"] == "rsi":
             # his rule: never sell while it is still oversold. The stop is live only while the last close had RSI
             # over 30; when RSI goes back under, the stop is off again and re-arms under the new low of the drop.
             if rsi[j - 1] <= 30:
                 low0 = min(low0, float(l[j]))
-                if armed:
+                if armed and v["off"]:
                     armed = False
                     line = stop
                     steps.append((int(j), float(line)))
             elif not armed:
                 armed = True
-                line = low0 - 0.1 * a
+                line = low0 - v["wiggle"] * a
                 steps.append((int(j), float(line)))
+        elif half_at is None:
+            low0 = min(low0, float(l[j]))
         if l[j] <= line:
             px = o[j + 1] if j + 1 <= last else c[last]
             got = 0.5 * (half_px - entry) / entry if half_at is not None else 0.0
@@ -89,8 +117,8 @@ def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi):
                 half_at = int(j)
                 half_px = float(max(o[j], ema12[j]))
                 low0 = min(low0, float(np.min(l[e_last + 1:j + 1])))
-                if low0 - 0.1 * a != line:
-                    line = low0 - 0.1 * a
+                if v["arm"] != "never" and low0 - v["wiggle"] * a != line:
+                    line = low0 - v["wiggle"] * a
                     steps.append((int(j), float(line)))
         elif np.isfinite(target) and h[j] >= target:
             px = float(max(o[j], target))
@@ -105,7 +133,7 @@ def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi):
                 how="time ran out")
 
 
-def trades_for(sym, kind):
+def trades_for(sym, kind, v=None):
     frames = S.frames_for(sym, kind)
     frames = {k_: v for k_, v in frames.items() if k_ in ("1h", "1d", "1w")}
     if kind in ("stock", "etf"):
@@ -163,7 +191,7 @@ def trades_for(sym, kind):
         rp = (entry - stop) / entry * 100
         if rp < 3 * cost or rp > 40.0:
             continue
-        r = walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi)
+        r = walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi, v)
         got.append(dict(sym=sym, kind=kind, k=int(k), e=int(e_last), entry=entry, fills=fills, fill_bars=fill_bars,
                         stop=float(stop), risk_pct=float(rp), t=str(df.index[k]), run=float(s_run[m_]),
                         target=float(s_top[m_]) if np.isfinite(s_top[m_]) else None,
@@ -263,8 +291,8 @@ def draw(sym, df, sdf, tr, path):
     fig.text(0.045, 0.080, "green arrows = bought inside the candle as hourly RSI touched 30 (and 20)    "
              "white dotted = the average paid    orange = half sold when the bounce reached the hourly 12 EMA (purple)",
              color=DIM, fontsize=8.5, ha="left")
-    fig.text(0.045, 0.048, "red dotted = NO STOP yet, RSI still under 30 (a wide disaster line only)    "
-             "red dashed = the stop under the low of the drop, live once RSI is back over 30",
+    fig.text(0.045, 0.048, "red dotted = NO STOP yet (a wide disaster line only)    "
+             "red dashed = the stop under the low of the drop, set the moment the half is sold",
              color=DIM, fontsize=8.5, ha="left")
     fig.text(0.045, 0.016, "blue = the old high, where the rest is sold    right = the daily, dotted line is the day of the dip",
              color=DIM, fontsize=8.5, ha="left")

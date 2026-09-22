@@ -478,6 +478,23 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     of the drop once RSI closes back over 30 and switches OFF again if RSI goes back under. On the 16: JBHT -0.80R ->
     -0.56R, MNST -1.01R -> -0.50R, BHP -1.11R -> -0.41R, no winner changed sign. Over all 3,554 trades the average is
     about the same (+0.68% vs +0.68%) with the risk measured against the disaster line, so R reads smaller (+0.10R).
+    HE ASKED HOW THE AVERAGE STAYED THE SAME, then "what do you think, spend some time analyzing different methods"
+    (2026-09-22). `studies/backburner_stops.py` -> validation/backburner_stops.json, table on /backburners: EIGHT
+    stops on the SAME 3,554 trades (729 names, suspects out), same buys, same half at the 12 EMA, same old-high target.
+        the stop                                              avg     middle  won   worst 1-in-20  early  half  blocks
+        round 1 (3 bars under the fill from the start)       +0.66%  +0.11%  53%   -4.4%          19%    81%   136/177
+        round 2 (RSI cross, 0.1 bar)                          +0.68%  +0.04%  51%   -3.9%          35%    64%   135/177
+        RSI cross, 0.25 / 0.5 / 1 bar of room                 +0.70 / +0.71 / +0.78%, middle +0.04 / +0.02 / -0.03%
+        DAN AS WRITTEN: nothing until the half, then the low  +0.86%  +0.28%  57%   -4.5%           5%    95%   148/177
+        half, then the low with 0.5 bar of room               +0.87%  +0.23%  55%   -4.6%           5%    95%   139/177
+        never (disaster line only)                            +1.01%  +1.43%  56%   -6.2%           5%    95%   142/177
+    WHAT IT SAYS: arming a stop at the RSI cross, before the bounce is real, was the round-2 mistake -- every RSI-cross
+    way has a WORSE middle trade than round 1 (a tight stop right where the re-test lands). DAN'S RULE AS WRITTEN is the
+    best-balanced: highest win rate, best blocks of 20 (84%), a positive middle trade, and the same tail as round 1.
+    "Never" makes more on average with a fat left tail (-6.2% at 1 in 20, 4 of 6 years in stocks): it is the rest sitting
+    through drawdowns until the old high; not a stop, a hold. ROUND 3 = Dan as written, same 16, set "backburners3".
+    On the 16: UNP flipped to +0.49R (its rest reached the old high), BURL is now -0.96R (no half, disaster line),
+    the rest as round 2. LESSON: a stop that goes live before the trade has proven anything is the worst of both worlds.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
