@@ -12,6 +12,8 @@ Nothing is claimed about this trade until these are looked at (rule 10).
 Writes validation/backburner_tcg/*.png + index.json  ->  /backburners
 """
 import concurrent.futures as cf
+import glob as _glob
+import io
 import json
 import os
 import sys
@@ -41,6 +43,7 @@ OUT = os.path.join("validation", "backburner_tcg")
 COST = L.COST
 
 
+CLEAN_MIN = 0.60               # a clean run: this share of the last 20 daily bars made a higher low than the day before
 DISASTER_BARS = 6.0            # the only line while the hourly is still oversold: a "day loser", not a chart stop
 
 
@@ -336,6 +339,14 @@ def trades_for(sym, kind, v=None):
     run = np.full(len(sc), np.nan)
     run[T.RUN_LOOK:] = (sc[T.RUN_LOOK:] - sc[:-T.RUN_LOOK]) / np.where(satr[T.RUN_LOOK:] > 0, satr[T.RUN_LOOK:], np.nan)
     s_run = L.align_to(df, "1h", frames, "1d", run)
+    # HIS RULE, round 1 and round 3 (BHP "does not look like a clean run up, very messy chart"; UNP "really wild daily
+    # candles ... too hectic for a clean backburner play"). A big run is not the same as a CLEAN one. Of the measures I
+    # tried against his 14 grades -- path straightness, body share, daily range, share of up days -- the one that keeps
+    # all ten of his "clean" and drops both of his "hectic" is Dan's own language: how many of the last 20 DAILY bars
+    # made a HIGHER LOW than the day before. BHP 0.58, UNP 0.53; his clean ones run 0.63 to 0.84.
+    dl_ = sdf["Low"].values.astype(float)
+    clean = pd.Series(np.r_[np.nan, dl_[1:] > dl_[:-1]].astype(float)).rolling(20, min_periods=20).mean().values
+    s_clean = L.align_to(df, "1h", frames, "1d", clean)
     top = pd.Series(sdf["High"].values.astype(float)).rolling(T.HIGH_LOOK, min_periods=T.HIGH_LOOK).max().values
     s_top = L.align_to(df, "1h", frames, "1d", top)
     ext_t = L.align_to(df, "1h", frames, "1d", T._last_extreme_time(sdf, 1)[0])
@@ -361,6 +372,11 @@ def trades_for(sym, kind, v=None):
             continue
         if not (np.isfinite(s_run[m_]) and s_run[m_] >= 4 and t_up[m_] > 0.5):
             continue                                    # the run into the high, and the weekly trend intact
+        # NO CLEAN-RUN FILTER YET. I fitted "the share of the last 20 daily bars making a higher low" to his 14 grades
+        # and it looked like it split them; coded with the study's own window it keeps BHP (0.70, which he rejected
+        # twice) and drops UNP and HLT (both of which he liked). That is an overfit on 14 points, not his eye. The
+        # number is still recorded on every trade so the page can show it -- and he is marking daily runs on /cleanruns
+        # so the measure can be built from his marks instead of my guess.
         a = atr[m_]
         fills = [float(min(o[k], p30[k]))]; fill_bars = [int(k)]; e_last = k
         for j in range(k, min(n - 1, k + D.SECOND_BID_BARS)):
@@ -383,6 +399,7 @@ def trades_for(sym, kind, v=None):
             r = walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi, v)
         got.append(dict(sym=sym, kind=kind, k=int(k), e=int(e_last), entry=entry, fills=fills, fill_bars=fill_bars,
                         stop=float(stop), risk_pct=float(rp), t=str(df.index[k]), run=float(s_run[m_]),
+                        clean=float(s_clean[m_]),
                         target=float(s_top[m_]) if np.isfinite(s_top[m_]) else None,
                         R=float(r["pct"] / rp), **r))
     return got
@@ -528,6 +545,13 @@ def main():
         for got, err in ex.map(_one, names, chunksize=4):
             rows += got; errs += err
     print("  %d trades (%.0fs)" % (len(rows), time.time() - t0), flush=True)
+    seen = set()
+    for g_ in sorted(_glob.glob(os.path.join("validation", "trade_notes_backburners*.csv"))):
+        for ln in io.open(g_, encoding="utf-8").read().splitlines()[1:]:
+            seen.add(ln.split(",")[0])
+    if "--fresh" in sys.argv:
+        rows = [r for r in rows if "%s_%s_%d.png" % (r["kind"], r["sym"], r["k"]) not in seen]
+        print("  %d of them are trades he has not graded before" % len(rows), flush=True)
     same = os.path.join(OUT, "index_round1.json")
     if "--same" in sys.argv and os.path.exists(same):
         want = {(c_["kind"], c_["sym"], c_["k"]) for c_ in json.load(open(same))["charts"]}
@@ -559,7 +583,9 @@ def main():
                  rest_on_rule=float(np.mean([r["how"].startswith("the rest sold on its rule") or "higher low" in r["how"] for r in rows])),
                  two_fills=float(np.mean([len(r["fills"]) > 1 for r in rows])),
                  median_risk=float(np.median([r["risk_pct"] for r in rows])))
-    slim = [{k_: v for k_, v in d_.items() if k_ != "steps"} for d_ in drawn]
+    def _plain(v):
+        return v.item() if hasattr(v, "item") else v
+    slim = [{k_: _plain(v) for k_, v in d_.items() if k_ != "steps"} for d_ in drawn]
     json.dump(dict(stats=stats, charts=slim), open(os.path.join(OUT, "index.json"), "w"), indent=1)
     print("  drawn %d, problems %d  (%.0fs)" % (len(drawn), sum(1 for d_ in drawn if d_["problems"]), time.time() - t0))
     print("  stats:", {k_: round(v, 3) for k_, v in stats.items()})

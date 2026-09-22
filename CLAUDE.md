@@ -586,6 +586,21 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         TEST HE ASKED FOR IN ROUND 1 IS STILL NOT BUILT.
       - CDNS "what was the target again?" -> there is none any more; the chart was still drawing the old high in blue
         "for reference". Removed, and the footer now says THERE IS NO TARGET.
+    "WHY DO WE KEEP LOOKING AT THE SAME TRADES WHEN THE ONES I HAVE ISSUES WITH SHOULDN'T EVEN BE BACKBURNERS"
+    (2026-09-22). Right, and it was my miss: freezing the 16 isolated the stop but made him re-grade BHP and UNP, which
+    he had already thrown out, twice. TWO CHANGES:
+      - `pics_backburner_tcg.py --fresh` never draws a trade he has already graded (it reads every
+        validation/trade_notes_backburners*.csv). The set on /backburners is now 16 he has never seen.
+      - I TRIED TO BUILD THE CLEAN-RUN FILTER AND IT FAILED ITS OWN CHECK, so it is NOT shipped. I measured six things
+        on the 20 daily bars before each dip and fitted them to his 14 grades; "the share of days making a higher low"
+        looked like it split clean from hectic (his clean median 0.68, BHP 0.58, UNP 0.53). Coded with the study's own
+        window it scores BHP 0.70 -- the one he rejected twice -- and drops UNP and HLT, both of which he liked. An
+        overfit on 14 points, caught only because the two windows disagreed. LESSON: fit and code the SAME window, and
+        a filter is not shipped until it reproduces his grades on the version that will actually run.
+      - INSTEAD HE MARKS: `pics_cleanrun.py` -> /cleanruns, 24 DAILY charts of the run into a real backburner dip, each
+        one STOPPED AT THE DIP so the outcome cannot colour the mark, no trade drawn, no numbers shown. He marks clean
+        / passable / too messy with a note. Eleven measures per chart sit in the index under "hidden" and are never
+        shown. Then the filter is built from what his clean runs share -- the method that worked for the EQ (#26m).
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.

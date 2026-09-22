@@ -1,0 +1,99 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Clean run, or too messy?</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --up:#3ddc97;--dn:#ff5c72;--amber:#ffb84d;--mono:ui-monospace,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:22px 26px 4px;max-width:1500px}
+  h1{font-size:21px;margin:0 0 6px}
+  .sub{color:var(--dim);max-width:980px}
+  .sub b{color:var(--fg)}
+  main{padding:4px 26px 80px;max-width:1500px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;margin:14px 0}
+  .warn{border-color:#5a3a20;background:#1a1410}
+  img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;cursor:zoom-in}
+  .line{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-bottom:7px}
+  .line b{color:var(--fg)}
+  .marks{display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap}
+  input.note{flex:1;min-width:260px;background:#1a1e25;border:1px solid var(--line);color:var(--fg);
+             border-radius:8px;padding:8px 10px;font:13px inherit}
+  .saved{font-size:12px;color:var(--up);min-width:130px}
+  .verdict{background:#1a1e25;border:1px solid var(--line);color:var(--dim);padding:7px 16px;border-radius:9px;
+           cursor:pointer;font-size:13px;font-weight:600;user-select:none}
+  .verdict.on{background:rgba(255,184,77,.16);border-color:var(--amber);color:var(--amber)}
+  #bar{position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5;color:var(--dim);font-family:var(--mono);font-size:13px}
+  #zoom{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:30;cursor:zoom-out;padding:8px}
+  #zoom img{max-width:99vw;max-height:98vh;width:auto}
+</style></head>
+<body>
+<header>
+  <h1>Clean run, or too messy?</h1>
+  <div class="sub">You rejected two backburners for the <b>run</b>, not the trade: BHP "this does not look like a clean run up,
+    very messy chart", UNP "really wild daily candles &mdash; too hectic for a clean backburner play". I tried to guess the measure
+    from your 14 grades and it failed its own check: the one I fitted keeps BHP and throws out two you liked. So instead of
+    guessing, <b>you mark these and I build the measure from your marks.</b></div>
+  <div class="sub" style="margin-top:8px">24 daily charts, each one the run into a real backburner dip. <b>Every chart stops at the
+    dip</b> &mdash; nothing after it is drawn, so the outcome can't sway you. No trade, no entry, no numbers. Just: would you call that
+    a clean run?</div>
+</header>
+<main>
+  <div id="bar"></div>
+  <div id="charts"></div>
+</main>
+<div id="zoom"></div>
+<script>
+const $ = s => document.querySelector(s);
+fetch('/validation/clean_run/index.json?v=' + Date.now()).then(r => r.json()).then(d => {
+  $('#charts').innerHTML = d.charts.map(c => `<div class="card">
+      <div class="line">#${c.n} &middot; ${c.sym} <span style="color:var(--faint)">daily</span> &middot; the dip on ${String(c.t).slice(0,10)}</div>
+      <img src="/validation/clean_run/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym}">
+      <div class="marks" data-id="${c.png}">
+        <span class="verdict" data-v="clean">clean run</span>
+        <span class="verdict" data-v="ok">passable</span>
+        <span class="verdict" data-v="messy">too messy</span>
+        <input class="note" placeholder="what makes it clean or messy (optional, and the most useful part)">
+        <span class="saved"></span>
+      </div></div>`).join('');
+  const count = () => {
+    const done = [...document.querySelectorAll('.marks')].filter(m => m.querySelector('.verdict.on')).length;
+    $('#bar').textContent = `${done} of ${d.charts.length} marked` + (done === d.charts.length ? '  —  all done, tell Claude' : '');
+  };
+  fetch('/api/tradenote?set=cleanrun').then(r => r.json()).catch(() => ({})).then(notes => {
+    notes = notes || {};
+    document.querySelectorAll('.marks').forEach(m => {
+      const id = m.dataset.id, prev = String(notes[id] || '');
+      const i = prev.indexOf(' | ');
+      const v = (i < 0 ? prev : prev.slice(0, i)).trim();
+      m.querySelector('.note').value = i < 0 ? '' : prev.slice(i + 3);
+      m.querySelectorAll('.verdict').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+      const save = () => {
+        const on = m.querySelector('.verdict.on');
+        const body = (on ? on.dataset.v : '') + (m.querySelector('.note').value ? ' | ' + m.querySelector('.note').value : '');
+        const sp = m.querySelector('.saved');
+        const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
+        fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({set: 'cleanrun', n: id, note: body})})
+          .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
+                       setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
+          .catch(fail);
+      };
+      m.querySelectorAll('.verdict').forEach(b => b.onclick = () => {
+        const was = b.classList.contains('on');
+        m.querySelectorAll('.verdict').forEach(x => x.classList.remove('on'));
+        if (!was) b.classList.add('on');
+        save(); count();
+      });
+      let t = null;
+      m.querySelector('.note').oninput = () => { clearTimeout(t); t = setTimeout(save, 600); };
+    });
+    count();
+  });
+  document.querySelectorAll('img').forEach(im => im.onclick = () => {
+    const z = $('#zoom'); z.innerHTML = `<img src="${im.getAttribute('src')}">`; z.style.display = 'flex';
+  });
+});
+$('#zoom').onclick = () => { $('#zoom').style.display = 'none'; };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#zoom').style.display = 'none'; });
+</script>
+</body></html>

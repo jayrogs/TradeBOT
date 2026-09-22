@@ -889,6 +889,12 @@ def backburners_page():
     return send_from_directory("static", "backburners.html")
 
 
+@app.route("/cleanruns")
+def cleanruns_page():
+    """HE marks which daily runs are clean enough to be a backburner; the filter is built from his marks."""
+    return send_from_directory("static", "cleanruns.html")
+
+
 @app.route("/eqanticipate")
 def eqanticipate_page():
     """The EQ acted on after the FIRST swing back (The Chart Guys' 50% rule), drawn and graded."""

@@ -15,7 +15,7 @@ import urllib.request
 
 BASE = "http://localhost:5001"
 HERE = os.path.dirname(os.path.abspath(__file__))
-PAGES = ["/", "/eq", "/eqcharts", "/eqcoils", "/eqtrades", "/eqfree", "/eqmark", "/eqrisk", "/scalein", "/backburners", "/eqanticipate","/rides", "/ridecharts", "/bb", "/trends", "/trendstudy",
+PAGES = ["/", "/eq", "/eqcharts", "/eqcoils", "/eqtrades", "/eqfree", "/eqmark", "/eqrisk", "/scalein", "/backburners", "/eqanticipate", "/cleanruns","/rides", "/ridecharts", "/bb", "/trends", "/trendstudy",
          "/names", "/cases", "/study", "/rules", "/paint", "/scan", "/markets", "/desk",
          "/exitcharts", "/log", "/backburner", "/trendcases"]
 # file -> how many days old is too old
@@ -42,7 +42,8 @@ INDEXES = ([("validation/eq_cases/eq_cases_index.json", "validation/eq_cases"),
             ("validation/eq_risk/eq_risk_index.json", "validation/eq_risk"),
             ("validation/scale_in/scale_in_index.json", "validation/scale_in"),
             ("validation/backburner_tcg/index.json", "validation/backburner_tcg"),
-            ("validation/eq_anticipate/index.json", "validation/eq_anticipate")]
+            ("validation/eq_anticipate/index.json", "validation/eq_anticipate"),
+            ("validation/clean_run/index.json", "validation/clean_run")]
            + [(f.replace("\\", "/"), os.path.dirname(f).replace("\\", "/"))
               for f in sorted(_glob.glob(os.path.join("validation", "exit_cases", "*", "*index*.json")))])
 
