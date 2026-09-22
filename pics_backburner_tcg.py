@@ -376,6 +376,17 @@ def trades_for(sym, kind, v=None):
     dl_ = sdf["Low"].values.astype(float)
     clean = pd.Series(np.r_[np.nan, dl_[1:] > dl_[:-1]].astype(float)).rolling(20, min_periods=20).mean().values
     s_clean = L.align_to(df, "1h", frames, "1d", clean)
+    # MESSY CANDLES, fitted on 155 charts labelled by eye (2026-09-22, his ask: "we should make an automatic filter
+    # to not have shitty charting names"). Of sixteen measures the only one that agrees with BOTH my 155 eye labels
+    # and his own five "messy chart" rejects is how much GROUND the run covered against how far it actually went:
+    # the sum of the day-to-day moves over the 55 days into the dip, divided by the net travel. A march is near 2;
+    # a fight is 5 and up. The `clean` share above was fitted on two examples and barely separates (0.60 vs 0.81).
+    step_ = np.abs(np.diff(sc, prepend=np.nan))
+    ground = pd.Series(step_).rolling(55, min_periods=55).sum().values
+    net_ = np.abs(sc - pd.Series(sc).shift(55).values)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        chop_d = ground / np.where(net_ > 0, net_, np.nan)
+    s_chop = L.align_to(df, "1h", frames, "1d", chop_d)
     top = pd.Series(sdf["High"].values.astype(float)).rolling(T.HIGH_LOOK, min_periods=T.HIGH_LOOK).max().values
     s_top = L.align_to(df, "1h", frames, "1d", top)
     ext_t = L.align_to(df, "1h", frames, "1d", T._last_extreme_time(sdf, 1)[0])
@@ -432,6 +443,7 @@ def trades_for(sym, kind, v=None):
         got.append(dict(sym=sym, kind=kind, k=int(k), e=int(e_last), entry=entry, fills=fills, fill_bars=fill_bars,
                         stop=float(stop), risk_pct=float(rp), t=str(df.index[k]), run=float(s_run[m_]),
                         clean=float(s_clean[m_]),
+                        chop=float(s_chop[m_]) if np.isfinite(s_chop[m_]) else None,
                         off12=float(s_off12[m_]) if np.isfinite(s_off12[m_]) else None,
                         fresh=float(s_fresh[m_]) if np.isfinite(s_fresh[m_]) else None,
                         hot=float(s_hot[m_]) if np.isfinite(s_hot[m_]) else None,
@@ -573,6 +585,8 @@ def main():
     for i, a in enumerate(sys.argv):
         if a == "--procs" and i + 1 < len(sys.argv):
             procs = int(sys.argv[i + 1])
+        if a == "--log" and i + 1 < len(sys.argv):
+            sys.stdout = sys.stderr = io.open(sys.argv[i + 1], "w", buffering=1, encoding="utf-8", errors="replace")
     t0 = time.time()
     os.makedirs(OUT, exist_ok=True)
     names = [(s_, k_) for s_, k_ in S.universe() if k_ in ("stock", "etf", "crypto") and s_ not in T.SUSPECT]
@@ -588,10 +602,19 @@ def main():
     if "--fresh" in sys.argv:
         rows = [r for r in rows if "%s_%s_%d.png" % (r["kind"], r["sym"], r["k"]) not in seen]
         print("  %d of them are trades he has not graded before" % len(rows), flush=True)
-    same = os.path.join(OUT, "index_round1.json")
-    if "--same" in sys.argv and os.path.exists(same):
-        want = {(c_["kind"], c_["sym"], c_["k"]) for c_ in json.load(open(same))["charts"]}
-        picks = [r for r in rows if (r["kind"], r["sym"], r["k"]) in want]     # the SAME 16 he graded, new stop
+    # --same [round1|round5]: redraw exactly the trades he already graded in that round, with today's rules.
+    # THE SET IS READ FROM HIS NOTES, not from an index file: an index is rewritten on every run, and one run of
+    # --same wiped the round-5 drawings (2026-09-22). His notes are the only copy that is safe.
+    if "--same" in sys.argv:
+        which = sys.argv[sys.argv.index("--same") + 1] if len(sys.argv) > sys.argv.index("--same") + 1 else "round5"
+        note_file = {"round1": "trade_notes_backburners.csv", "round5": "trade_notes_backburners5.csv"}.get(which)
+        want = set()
+        for ln in io.open(os.path.join("validation", note_file), encoding="utf-8").read().splitlines()[1:]:
+            p_ = ln.split(",")[0].rsplit(".", 1)[0].split("_")
+            if len(p_) >= 3:
+                want.add((p_[0], "_".join(p_[1:-1]), int(p_[-1])))
+        picks = [r for r in rows if (r["kind"], r["sym"], r["k"]) in want]
+        print("  --same %s: %d of his %d graded trades still pass today's rules" % (which, len(picks), len(want)))
     else:
         rng = np.random.default_rng(20260921)
         wins = [r for r in rows if r["R"] > 0.15]

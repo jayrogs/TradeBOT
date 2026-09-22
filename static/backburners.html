@@ -180,7 +180,10 @@ Promise.all([
   const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
       <div class="line">${c.sym} <span style="color:var(--faint)">hourly</span> &middot; ${c.t}
         &middot; ${c.fills.length == 1 ? 'one buy at 30' : 'bought at 30 and again at 20'}
-        &middot; first stop <b>${c.risk_pct.toFixed(2)}%</b> away &middot; <b>${pc(c.pct)}</b> (${rr(c.R)}) &middot; ${c.how}</div>
+        &middot; first stop <b>${c.risk_pct.toFixed(2)}%</b> away &middot; <b>${pc(c.pct)}</b> (${rr(c.R)}) &middot; ${c.how}
+        ${c.chop == null ? '' : `&middot; run covered <b>${c.chop.toFixed(1)}x</b> the ground it travelled` +
+          (c.chop < 3 ? ' <span style="color:var(--up)">(a march)</span>'
+                      : c.chop >= 5 ? ' <span style="color:var(--dn)">(a fight)</span>' : '')}</div>
       <img src="/validation/backburner_tcg/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym}">
       <div class="marks" data-id="${c.png}">
         <span class="verdict" data-v="good">that is a backburner</span>

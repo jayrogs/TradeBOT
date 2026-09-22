@@ -696,6 +696,42 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     the shape method has enough to work with. Until then MESSY IS NOT FILTERED and the pool still contains names he
     would not trade. NOT A VERDICT ON HIS EYE -- a limit of mine, and it is written down so nobody re-fits it on four
     examples and ships it.
+44b. SOLVED, THE SAME DAY, WITH 160 LABELS INSTEAD OF 25 (2026-09-22, his approval: "yeah I guess we can do that if it
+    will help you codify a way to filter out messy charts, the backburner method is going really well this is like the
+    last issue"). `studies/messy_label.py` drew 160 runs the same way he is shown them (daily, the 55 bars into the dip,
+    stopped at the dip, every ingredient recorded but hidden). I labelled all 160 BY EYE against his own rejects, in
+    eight batches: 111 clean, 44 messy, 5 I could not call. Then every measure was re-fitted on those.
+    ONE MEASURE AGREES WITH BOTH MY EYE AND HIS. CHOP: the ground the run covered day to day over those 55 days,
+    divided by how far it actually travelled. A march is near 2; a fight is 5 and up.
+        measure                                   my 155 labels   his 32 marks   (0.50 = a coin flip)
+        chop (ground covered / net travel)             0.82           0.76
+        how far the run went, in normal bars           0.84           0.75
+        crosses of the 12 EMA                          0.77           0.62
+        `clean` (the higher-low share already in the code, fitted on two examples)   0.60   0.62
+    THE FIX THAT MADE IT WORK WAS NOT A NEW MEASURE: UNP was in my earlier fits as a KEEP. It is a messy REJECT in his
+    own words ("really wild daily candles ... too hectic for a clean backburner play"). With it mislabelled, the best
+    measure looked like a coin flip. #44's "nothing separates" was partly my own bad label.
+    AND THE MONEY AGREES, on the same trades, one variable (`studies/backburner_chop.py`, 729 names, 2,825 trades):
+        the run                                        n      avg   middle   won      R   years  blocks
+        a march: under 3x the ground it travelled     985   +1.37%  +0.74%   66%   +0.17  10/11  44/49
+        3 to 4x                                       781   +0.56%  +0.43%   61%   +0.11   9/10  30/39
+        4 to 5x                                       446   +0.39%  +0.28%   60%   +0.08   5/8   13/22
+        a fight: 5x and up (what he rejected)         613   +0.62%  +0.36%   63%   +0.11   9/9   25/30
+        everything (what the page does now)          2,825   +0.83%  +0.49%   63%   +0.12  10/11 109/141
+    READ THAT HONESTLY: the money does NOT say messy is bad -- the fight is not the worst row, 4-to-5x is. It says the
+    MARCH is the good trade, worth about double the pool average, and it is not run size or freshness in disguise (link
+    to run size -0.13; the march wins inside every run-size band and every freshness band: +0.85/+1.34/+1.73% and
+    +1.08/+1.05/+1.60%).
+    THE COST, SAID PLAINLY: a cut at 5x catches 4 of his 5 rejects and throws out 7 of his 27 KEEPS. Under 3x keeps
+    only 8 of his 27. So this is a DIAL, NOT A SWITCH: the number is shown on every trade on /backburners (a march in
+    green, a fight in red) and nothing is filtered out until he says where to cut. BTI, at 3.7, is the one reject it
+    misses.
+    THE BAR IT IS MEASURED AT MATTERS: the code records it at k-1, one hour before the buy, so nothing from the entry
+    bar can leak in. Measured at the dip bar instead it separates the same (0.81 / 0.76) but the numbers differ by up
+    to 2x on individual trades -- check which bar before comparing two runs.
+    AND A MISTAKE FROM THIS: `--same` redrew the round-1 set and DELETED his round-5 drawings, because it read an index
+    file that is rewritten on every run. It now reads the set from HIS NOTES (`--same round1|round5`), which are the
+    only copy that is safe, and `pics_backburner_tcg.py` takes `--log`.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
