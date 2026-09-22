@@ -159,6 +159,21 @@ Promise.all([
     }
     $('#stops').insertAdjacentHTML('beforeend', t + `</table></div>`);
   });
+  fetch('/validation/backburner_firstsell.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).then(st => {
+    if (!st || !st.table) return;
+    let t = `<div class="card"><b>Sixteen places to sell the half, same trades, Dan's stop, the rest walked</b>
+      <div class="sub" style="margin:4px 0 6px">Farther targets make more per trade and cost more: fewer trades ever sell the
+      half, so more sit with no stop, and the hold doubles. Per bar held the hourly 12 EMA is the best of the sixteen.</div>
+      <table><tr><th class="l">the half sells at</th><th>average</th><th>middle</th><th>won</th><th>worst 1 in 20</th>
+      <th>half sold</th><th>years up</th><th>blocks up</th></tr>`;
+    for (const w of st.meta.ways) {
+      const s = st.table['everything | ' + w]; if (!s) continue;
+      t += `<tr><td class="l">${w}</td><td class="${cls(s.avg)}">${pc(s.avg)}</td><td class="${cls(s.middle)}">${pc(s.middle)}</td>
+        <td>${(100 * s.won).toFixed(0)}%</td><td class="bad">${pc(s.p5)}</td><td>${(100 * s.half).toFixed(0)}%</td>
+        <td>${s.years_up} of ${s.years}</td><td>${s.blocks_up} of ${s.blocks}</td></tr>`;
+    }
+    $('#stops').insertAdjacentHTML('beforeend', t + `</table></div>`);
+  });
   const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
       <div class="line">${c.sym} <span style="color:var(--faint)">hourly</span> &middot; ${c.t}
         &middot; ${c.fills.length == 1 ? 'one buy at 30' : 'bought at 30 and again at 20'}

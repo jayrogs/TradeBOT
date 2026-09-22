@@ -151,7 +151,59 @@ RESTS = {
 }
 
 
-def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p70, lows, v):
+# THE FIRST SELL (his ask 2026-09-22: "since the ema12 sell is so good, is there any other type of sell you can test
+# that's even better?? using all the tools we know about"). Only where the half sells changes; Dan's stop arms when it
+# sells; the rest is walked. `ctx` carries the levels: hourly 26/50 EMA, the price where hourly RSI reads 50/60/70,
+# the daily 12 EMA on the hourly clock, the top of the drop (last confirmed hourly high before the buy), yesterday's low.
+FIRST_SELLS = {
+    "hourly 12 EMA touch (the page)":                 "ema12",
+    "hourly 12 EMA, on a CLOSE above it":             "ema12_close",
+    "hourly 26 EMA touch":                            "ema26",
+    "hourly 50 EMA touch":                            "ema50",
+    "hourly RSI back over 30 (sell the first bounce)": "rsi30",
+    "hourly RSI 50":                                  "rsi50",
+    "hourly RSI 60":                                  "rsi60",
+    "hourly RSI 70 (overbought)":                     "rsi70",
+    "1 normal bar above the average paid":            "atr1",
+    "2 normal bars above the average paid":           "atr2",
+    "38.2% of the drop won back":                     "fib382",
+    "50% of the drop won back":                       "fib50",
+    "61.8% of the drop won back":                     "fib618",
+    "the top of the drop (the last hourly high)":     "top",
+    "the daily 12 EMA touch":                         "d12",
+    "yesterday's low (the gap filled; stocks only)":  "ylow",
+}
+
+
+def _level(rule, j, ctx, entry, low0, a):
+    """The price the first piece sells at on bar j, or None if that rule has no level here."""
+    if rule == "ema12" or rule == "ema12_close":
+        return ctx["ema12"][j]
+    if rule == "ema26":
+        return ctx["ema26"][j]
+    if rule == "ema50":
+        return ctx["ema50"][j]
+    if rule.startswith("rsi"):
+        return ctx["p" + rule[3:]][j]
+    if rule == "atr1":
+        return entry + a
+    if rule == "atr2":
+        return entry + 2 * a
+    if rule.startswith("fib"):
+        top = ctx["top"]
+        if not np.isfinite(top) or top <= low0:
+            return np.nan
+        return low0 + {"fib382": 0.382, "fib50": 0.5, "fib618": 0.618}[rule] * (top - low0)
+    if rule == "top":
+        return ctx["top"]
+    if rule == "d12":
+        return ctx["d12"][j]
+    if rule == "ylow":
+        return ctx["ylow"][j]
+    return np.nan
+
+
+def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p70, lows, v, ctx=None):
     """Pieces come off one at a time; the stop under the low of the drop goes live when the first piece sells and
     applies to whatever is left. `lows` = every LIVE low confirmation (confirm bar, form bar, price), phantoms
     included (rule 40), for the walked stop."""
@@ -164,6 +216,7 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
         j2 = min(e_last + 1, n - 1)
         return dict(end=j2, exit_px=float(o[j2]), pct=float((o[j2] - entry) / entry * 100 - cost), half_at=None,
                     half_px=None, steps=steps, how="through the disaster line on the buy bar")
+    first = v.get("first_sell", "ema12")
     pieces = [(1 / 3, "ema"), (1 / 3, "rsi70"), (1 / 3, v["rest"])] if v["thirds"] else [(0.5, "ema"), (0.5, v["rest"])]
     got, sold = 0.0, 0.0                      # profit share booked, share sold
     half_at = half_px = None
@@ -200,8 +253,17 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
         while pieces:
             share, rule = pieces[0]
             px = None
-            if rule == "ema" and np.isfinite(ema12[j]) and h[j] >= ema12[j]:
-                px = float(max(o[j], ema12[j]))
+            if rule == "ema":
+                if first == "ema12" or ctx is None:
+                    if np.isfinite(ema12[j]) and h[j] >= ema12[j]:
+                        px = float(max(o[j], ema12[j]))
+                elif first == "ema12_close":
+                    if np.isfinite(ema12[j]) and c[j] > ema12[j]:
+                        px = float(o[j + 1]) if j + 1 <= last else float(c[last])
+                else:
+                    lv = _level(first, j, ctx, entry, low0, a)
+                    if np.isfinite(lv) and lv > entry * 0.5 and h[j] >= lv:
+                        px = float(max(o[j], lv))
             elif rule == "rsi70" and np.isfinite(p70[j]) and h[j] >= p70[j]:
                 px = float(max(o[j], p70[j]))
             elif rule == "high" and np.isfinite(target) and h[j] >= target:
@@ -245,10 +307,25 @@ def trades_for(sym, kind, v=None):
     rsi, au, ad = IND.rsi_parts(c, D.N_RSI)
     ema12 = XM.ema(c, 12)
     p30 = D.rsi_price(c, au, ad, 30); p20 = D.rsi_price(c, au, ad, 20); p70 = D.rsi_price(c, au, ad, 70)
-    lows = None
+    lows = highs = None
+    ctx = None
     if v and "rest" in v:
         import eq_livecheck as LC
-        lows = [(int(e_[0]), int(e_[1]), float(e_[2])) for e_ in LC.live_events(df)[0] if e_[3] == "low"]
+        ev_ = LC.live_events(df)[0]
+        lows = [(int(e_[0]), int(e_[1]), float(e_[2])) for e_ in ev_ if e_[3] == "low"]
+        highs = [(int(e_[0]), int(e_[1]), float(e_[2])) for e_ in ev_ if e_[3] == "high"]
+        if v.get("first_sell", "ema12") not in ("ema12",):
+            ylow = np.full(n, np.nan)
+            if kind in ("stock", "etf"):
+                day = df.index.normalize().values
+                first_i = np.r_[0, np.where(day[1:] != day[:-1])[0] + 1]
+                last_i = np.r_[first_i[1:] - 1, n - 1]
+                for q in range(1, len(first_i)):
+                    ylow[first_i[q]:last_i[q] + 1] = float(np.min(l[first_i[q - 1]:last_i[q - 1] + 1]))
+            ctx = dict(ema12=ema12, ema26=XM.ema(c, 26), ema50=XM.ema(c, 50),
+                       p50=D.rsi_price(c, au, ad, 50), p60=D.rsi_price(c, au, ad, 60), p70=p70, p30=p30,
+                       d12=L.align_to(df, "1h", frames, "1d", XM.ema(sdf["Close"].values.astype(float), 12)),
+                       ylow=ylow, top=np.nan)
     sc = sdf["Close"].values.astype(float)
     satr = P._atr(sdf)
     run = np.full(len(sc), np.nan)
@@ -293,7 +370,10 @@ def trades_for(sym, kind, v=None):
         if rp < 3 * cost or rp > 40.0:
             continue
         if v and "rest" in v:
-            r = walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi, p70, lows, v)
+            if ctx is not None:
+                # the top of the drop: the last hourly high CONFIRMED before the buy (live pivots, rule 40)
+                ctx = dict(ctx, top=next((px_ for ci_, fj_, px_ in reversed(highs) if ci_ <= k), np.nan))
+            r = walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi, p70, lows, v, ctx)
         else:
             r = walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi, v)
         got.append(dict(sym=sym, kind=kind, k=int(k), e=int(e_last), entry=entry, fills=fills, fill_bars=fill_bars,

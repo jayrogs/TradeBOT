@@ -522,6 +522,30 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     the money, won 79% of the time, middle +0.45%; THE REST, WALKED +0.24% = 30%, won 45%, middle -0.13%. The 5% of
     trades that never bounce to the EMA lose -5.3% each and cost -0.27% per trade overall -- the whole price of "no stop
     until the half". Crypto: the half is 74% (won 89%). RULE FOR ME: no more "most of it"; a share is a number.
+    THE FIRST SELL, SIXTEEN PLACES (same day, his ask: "since the ema12 sell is so good, is there any other type of sell
+    you can test that's even better?? using all the tools we know about"; `studies/backburner_firstsell.py` ->
+    validation/backburner_firstsell.json; same trades, Dan's stop arms when the half sells, the rest walked; paired):
+        the half sells at                 avg    middle  won   1-in-20  half sold  hold(bars)  vs 12 EMA   t    yrs better
+        hourly 12 EMA touch (the page)   +0.80  +0.44   61%   -4.0%     95%        21           --
+        hourly 26 EMA                    +0.87  +0.74   66%   -5.7%     89%        28          +0.08     2.4   6/11
+        hourly 50 EMA                    +0.90  +0.80   69%   -6.2%     87%        29          +0.10     2.7   6/11
+        RSI back over 30                 +0.46  -0.00   50%   -3.0%     97%        14          -0.34   -11.7   0/11
+        hourly RSI 50 / 60 / 70          +0.85 / +1.06 / +1.21   middle +0.74 / +1.24 / +1.86   half sold 88 / 78 / 63%
+                                          RSI 60: +0.26 vs the EMA, t 4.4, 8 of 11 years, hold 40 bars, 1-in-20 -7.6%
+        1 / 2 normal bars above the buy  +0.67 / +0.93   middle +0.41 / +1.01   won 67 / 76%   1-in-20 -4.9 / -7.1%
+        38.2 / 50 / 61.8% of the drop    +0.73 / +0.91 / +1.00   middle +0.46 / +0.83 / +1.23   half sold 92 / 85 / 79%
+                                          61.8%: +0.20 vs the EMA, t 3.3, 8 of 11 years, hold 35 bars, 1-in-20 -7.5%
+        the top of the drop              +1.21  +2.05   63%  -10.4%     62%        53          +0.42     4.0   7/11
+        the daily 12 EMA                 +0.66  +0.34   61%   -5.1%     90%        22          -0.14    -2.8   0/11
+        yesterday's low (stocks)         +0.64  +0.01   50%   -8.1%     86%        19          -0.16    -1.0   3/11
+    WHAT IT SAYS: the farther the target, the more per trade AND the more it costs -- fewer trades ever sell the half
+    (so under "no stop until the half" a third of them sit with no stop for days: the 1-in-20 loss goes from -4% to
+    -10%), and the hold doubles or triples. PER BAR HELD the 12 EMA is the best of the sixteen (+0.038%/bar vs RSI 60
+    +0.027, the top +0.023), and by #29 (trades a year) that is the number. The honest upgrades are HOURLY RSI 60 and
+    61.8% OF THE DROP: +0.20-0.26% more a trade, 8 of 11 years, for double the hold and double the tail. Selling the
+    first bounce (RSI back over 30) is the one clearly WORSE choice (-0.34%, 0 of 11 years), and so is the daily 12 EMA
+    as a first target. NOT A FAIR TEST OF FAR TARGETS ON ITS OWN: the stop rule ("nothing until the half") was held
+    fixed, and a far target needs its own stop; that is the next single change if he wants a far target.
     HIS RULE, IN HIS WORDS (2026-09-22): "we can only be changing one thing at a time, to isolate the variable. Can't
     solve for x if y is unsolved too." One change per round, graded, before the next.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
