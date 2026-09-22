@@ -344,6 +344,29 @@ def trades_for(sym, kind, v=None):
     # tried against his 14 grades -- path straightness, body share, daily range, share of up days -- the one that keeps
     # all ten of his "clean" and drops both of his "hectic" is Dan's own language: how many of the last 20 DAILY bars
     # made a HIGHER LOW than the day before. BHP 0.58, UNP 0.53; his clean ones run 0.63 to 0.84.
+    # HIS DEFINITION (2026-09-22): "back burner is after a large move, UP OFF THE EMAS"; a 12 EMA ride is a DIFFERENT
+    # trade ("zoom in and use a smaller timeframe oversold bounce as an entry onto the larger timeframe ema ride").
+    # So: at the top of the run, how far had price pulled away from the daily 12 and 26 EMAs, in daily normal bars.
+    # AND HIS SHARPER VERSION OF THE SAME THING (2026-09-22, on the megaphone): "previous price history was already at
+    # the levels we were looking at now .. that's not a significant run up, it's just oscillations." So the run has to
+    # reach levels price was NOT already at: the top of the last 20 daily bars against the top of the 60 before those,
+    # in daily normal bars. His three oscillation rejects (UNP 0.09, LYV 0.80, BHP 1.01) are the three lowest of the 18
+    # trades he has graded; twelve of his thirteen keeps are above 2.0.
+    sh_ = sdf["High"].values.astype(float)
+    se12 = XM.ema(sc, 12); se26 = XM.ema(sc, 26)
+    off12_d = np.full(len(sc), np.nan); off26_d = np.full(len(sc), np.nan)
+    for q_ in range(T.RUN_LOOK, len(sc)):
+        j_ = q_ - T.RUN_LOOK + int(np.argmax(sh_[q_ - T.RUN_LOOK:q_]))
+        if satr[j_] > 0:
+            off12_d[q_] = (sh_[j_] - se12[j_]) / satr[j_]
+            off26_d[q_] = (sh_[j_] - se26[j_]) / satr[j_]
+    top20 = pd.Series(sh_).rolling(T.RUN_LOOK, min_periods=T.RUN_LOOK).max().values
+    prior60 = pd.Series(sh_).rolling(60, min_periods=30).max().shift(T.RUN_LOOK).values
+    with np.errstate(invalid="ignore"):
+        fresh_d = (top20 - prior60) / np.where(satr > 0, satr, np.nan)
+    s_fresh = L.align_to(df, "1h", frames, "1d", fresh_d)
+    s_off12 = L.align_to(df, "1h", frames, "1d", off12_d)
+    s_off26 = L.align_to(df, "1h", frames, "1d", off26_d)
     dl_ = sdf["Low"].values.astype(float)
     clean = pd.Series(np.r_[np.nan, dl_[1:] > dl_[:-1]].astype(float)).rolling(20, min_periods=20).mean().values
     s_clean = L.align_to(df, "1h", frames, "1d", clean)
@@ -400,6 +423,9 @@ def trades_for(sym, kind, v=None):
         got.append(dict(sym=sym, kind=kind, k=int(k), e=int(e_last), entry=entry, fills=fills, fill_bars=fill_bars,
                         stop=float(stop), risk_pct=float(rp), t=str(df.index[k]), run=float(s_run[m_]),
                         clean=float(s_clean[m_]),
+                        off12=float(s_off12[m_]) if np.isfinite(s_off12[m_]) else None,
+                        fresh=float(s_fresh[m_]) if np.isfinite(s_fresh[m_]) else None,
+                        off26=float(s_off26[m_]) if np.isfinite(s_off26[m_]) else None,
                         target=float(s_top[m_]) if np.isfinite(s_top[m_]) else None,
                         R=float(r["pct"] / rp), **r))
     return got

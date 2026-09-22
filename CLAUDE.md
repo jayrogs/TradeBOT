@@ -616,6 +616,31 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         (the share of total candle length spent going DOWN), six score least, shuffled. The page opens with his two
         rejects and two keeps drawn side by side and my read of each in plain words. He only taps the BAD ones, then
         one "the rest are fine" button -- three or four taps instead of twelve decisions.
+43. HE GAVE ME THE DEFINITION I DID NOT HAVE, AND IT MEASURES (2026-09-22, after marking /cleanruns). Two sentences:
+      "back burner is AFTER A LARGE MOVE, UP OFF THE EMAS. An ema 12 ride is nice on a larger timeframe if you wanna
+       zoom in and use a smaller timeframe oversold bounce as an entry onto the larger timeframe ema ride. I wouldn't
+       really call that a backburner though."
+      "previous price history was already at the levels we were looking at now .. that's not a significant run up,
+       it's just OSCILLATIONS." (on LYV, which he called a megaphone: "a reverse eq, higher highs and lower lows.")
+    MY RUN TEST WAS "the daily rose 4+ normal bars in 20 days", which passes an EMA RIDE and passes OSCILLATION inside
+    an old range. Two measures out of his words, both on the daily, both in daily normal bars:
+      FRESH = the top of the last 20 bars minus the top of the 60 before those. "Did the run reach levels price was
+        not already at." HIS THREE OSCILLATION REJECTS ARE THE THREE LOWEST OF ALL 18 TRADES HE HAS GRADED
+        (UNP 0.09, LYV 0.80, BHP 1.05) and twelve of his thirteen keeps are over 2.0 (the one below is ETH Jan 2018,
+        under its December peak -- arguably his rule rejects that too).
+      OFF12 = at the top of the run, how far price had pulled away from the daily 12 EMA. Every one of his five
+        rejects is under 2.36; seven of thirteen keeps are above it. Right direction, too blunt to cut on yet: it is
+        what separates ALAB and BTC (both "really an EMA rider, take it a timeframe down"), which FRESH does not.
+    FRESH ON THE WHOLE POOL (`studies/backburner_fresh.py` -> validation/backburner_fresh.json, 3,554 trades, the
+    page's own rules, only the cut changes). Avg / middle / won / years up / blocks of 20 up:
+        oscillation, under 1 normal bar over its 60-day high    416  +0.65% / +0.26% / 56% /  7 of 9  /  13 of 20
+        borderline, 1 to 2                                      310  +0.65% / +0.37% / 58% /  6 of 7  /  12 of 15
+        HIS BACKBURNER, cleared it by 2+                      2,828  +0.84% / +0.49% / 63% / 10 of 11 / 107 of 141
+        cleared it by 4+                                      1,816  +0.90% / +0.49% / 63% / 10 of 11 /  69 of 90
+        everything (the page today)                           3,554  +0.80% / +0.45% / 62%
+    HIS RULE IS WORTH ABOUT +0.19% A TRADE AND 7 POINTS OF WIN RATE over the trades it throws out, and it throws out
+    only 20%. Crypto: +2.10% vs +1.28%. IT IS FITTED ON 18 OF HIS MARKS AND NOT YET SHIPPED AS A FILTER -- the next
+    round of drawings uses it and he grades whether the pool is now his.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
