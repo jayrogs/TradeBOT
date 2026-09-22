@@ -670,6 +670,32 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     fresh calculation in a scratch script, because the scratch one will not respect the study's clock.
     TSLA, graded good, is worth keeping: "ended up bouncing really well, with LL and no follow through. That's not
     really a backburner trade though, more a regular trade" -- a lower low with no follow-through is its own setup.
+44. "MESSY CANDLES": SIXTEEN MEASURES, THREE WINDOWS, AND I STILL CANNOT CODE IT (2026-09-22). He rejected BTI, KEY,
+    DOCN and BHP on their candles ("oscillating all over the place, gaps everywhere"; "the size of daily candles is
+    pretty big all the time, long wicks both directions"), then: "we should make an AUTOMATIC filter to not have
+    shitty charting names, I'm not gonna manually filter every single stock name in existence"; "you could probably
+    CODIFY the choppiness of that chart, it doesn't have to define the entire existence of the stock"; and when I
+    said I could see it, "why can't you try and filter it out then".
+    I CAN SEE IT. CW rides a smooth rising 12 EMA in a staircase, every candle above it, ZERO crosses in 55 days,
+    320 -> 475. BTI weaves ACROSS the 12 EMA, chops around a flat EMA between 40.2 and 41.5 for three weeks, spikes
+    to 38, comes back: eight crosses. Put side by side they are obviously different charts.
+    EVERY WAY I TRIED TO TURN THAT INTO A NUMBER FAILED:
+      per trade, 20 and 40 and 55 daily bars: gaps, wick share, body size, candle size vs the normal bar, crosses of
+        the 12 EMA, ground covered / net travel, share of days above the EMA, share of days the EMA rose, overlap,
+        biggest bar vs average. His keeps are scattered right through his rejects on every one. On the 55 bars he is
+        actually shown: chop -- his messiest keep 45.2, his cleanest reject 4.96.
+      per NAME over its whole daily history (`studies/name_quality.py`, 782 names): medians 0.53 for his keeps and
+        0.58 for his rejects, and HIG -- a name HE KEPT -- is the messiest of all 23. BTI ranks CLEANER than most of
+        his keeps. So it is not a name property either.
+      by SHAPE, no hand-made measure at all (the 55-bar path, distance from the 12 EMA, candle size and body as one
+        vector; nearest neighbour, leave one out): 19 of 25 right, when always saying "good" scores 21.
+    WHY, MY READING: every ingredient I can name is present in his GOOD charts at the same levels. The difference is
+    how the parts arrange over the whole run, not how much of each there is. 4 rejects against 21 keeps is also far
+    too few for anything to separate honestly -- two of my earlier "successes" were this same trap.
+    WHAT IS ACTUALLY LEFT: more labels. If he taps the bad ones on 60-80 runs, even a weak signal becomes findable and
+    the shape method has enough to work with. Until then MESSY IS NOT FILTERED and the pool still contains names he
+    would not trade. NOT A VERDICT ON HIS EYE -- a limit of mine, and it is written down so nobody re-fits it on four
+    examples and ships it.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
