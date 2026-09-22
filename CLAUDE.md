@@ -546,6 +546,23 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     first bounce (RSI back over 30) is the one clearly WORSE choice (-0.34%, 0 of 11 years), and so is the daily 12 EMA
     as a first target. NOT A FAIR TEST OF FAR TARGETS ON ITS OWN: the stop rule ("nothing until the half") was held
     fixed, and a far target needs its own stop; that is the next single change if he wants a far target.
+    "WHY WOULDN'T I WANT MORE PER TRADE" -- HE WAS RIGHT, AND MY "PER BAR HELD" ARGUMENT WAS WRONG. I claimed the 12 EMA
+    wins by #29 without running an account. `studies/backburner_slots.py` -> validation/backburner_slots.json: the same
+    signals, stocks + ETFs, 581 names, 4.9 years, a CASH account (nothing borrowed, equal share per slot, a trade holds
+    its slot to its exit), 60 runs. A year / worst dip (marked at closes only, so shallower than the truth, #37):
+        the half sells at          5 slots          10 slots         20 slots
+        hourly 12 EMA (the page)   +27.8% / -7.9%   +22.3% / -8.3%   +16.8% / -7.8%
+        hourly 50 EMA              +29.0% / -11.0%  +24.6% / -10.4%  +19.1% / -10.4%
+        61.8% of the drop          +30.0% / -14.2%  +25.8% / -12.0%  +20.3% / -14.5%
+        hourly RSI 60              +27.9% / -18.9%  +24.8% / -17.0%  +20.0% / -16.8%
+        hourly RSI 70              +25.0% / -21.9%  +19.9% / -20.3%  +18.5% / -18.7%
+        the top of the drop        +17.5% / -25.2%  +16.7% / -22.9%  +16.7% / -21.7%
+    At 10-20 slots the farther targets make 2-3.5% MORE A YEAR (10%-90% bands mostly apart) because the slots were not
+    the constraint: the 12 EMA frees its slot sooner but there are not enough signals to refill it. The price is the
+    dip: -8% becomes -10 to -17%. Too far (RSI 70, the top of the drop) and the account makes LESS: too many trades
+    never sell the half. The sweet spot is the hourly 50 EMA or 61.8% of the drop. NOT YET: a daily mark of the dip, the
+    far target's own stop (held fixed at "nothing until the half"), crypto, and drawings of it. LESSON: an argument
+    about what the account would do is not a result; run the account.
     HIS RULE, IN HIS WORDS (2026-09-22): "we can only be changing one thing at a time, to isolate the variable. Can't
     solve for x if y is unsolved too." One change per round, graded, before the next.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
