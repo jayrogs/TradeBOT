@@ -588,6 +588,14 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
       - A DIRECTIONAL PATTERN IS LESS LIKELY AGAINST CLEAR RELATIVE STRENGTH: a rising wedge on a name much stronger
         than its peers is usually waiting for the peers, not exhaustion. My pattern studies score patterns alone (13d).
     TCG also has a correlations e-book by Joey (already read, #18) -- the webinar is the deeper version.
+    AND I WATCHED IT, not just read it (his words: "seeing the charts is so important too" -- right, the transcript is
+    him saying "this here" at a chart I could not see). `yt-dlp` for the video, `ffmpeg -ss` for a frame at each of the
+    16 moments he puts a chart up; frames in scratch/tcg_youtube/frames/ (private). TCG_METHOD.md #20b. What only the
+    pictures show: he compares two names SIDE BY SIDE WITH A SYNCED CROSSHAIR (never an overlay), every pane carries a
+    green 12 EMA, an orange 26 EMA, volume and an RSI panel -- INCLUDING THE RATIO CHART -- and the last-man-standing
+    quad puts ES/NQ/RTY/YM on one timeframe each with its RSI, so "which one has not broken" and "are the others
+    extended" are one glance. Nothing else is on his charts. NEW RULE FOR ME: when a source is a video and the words
+    point at a picture, pull the frames.
 
 ## What is settled (do not re-litigate)
 
