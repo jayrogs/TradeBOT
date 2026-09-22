@@ -648,6 +648,28 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
               expiry) | NEWS AND EARNINGS out (FIX was 2025-01-27, the DeepSeek crash; UNP was 2024-08-05) | the stop
               under the DAILY higher low, not the hourly one (ETH) | take more off after a big bounce, thirds (HLT) |
               the 12 EMA ride is a different trade, entered a timeframe down (he calls this one obvious, low priority)
+    HIS ROUND-5 GRADING (2026-09-22, 16 fresh trades, set "backburners5"): 9 good, 6 "fix", 1 bad. THE FRESHNESS
+    FILTER HELD -- not one complaint about oscillation or a bounce dressed as a run, which was the whole point.
+    The complaints moved to two NEW things, and I can measure NEITHER of them yet:
+      MESSY CANDLES (BTI "oscillating all over the place, gaps everywhere"; DOCN "the size of daily candles is pretty
+        big all the time, long wicks both directions ... and so the dip was very dirty"; KEY "technically a backburner
+        but I wouldn't like this name, candles all over the place, lots of gaps, long bodies and wicks"). FOUR examples
+        now with BHP, and he names the ingredients: gaps, body size, wick size, big candles all the time. I measured
+        all four on the 20 daily bars before each dip and NONE separates them from his 20 keeps (gaps: his messy 0.45
+        median, his keeps 0.30, but BIDU 0.75 and COP 0.65 are keeps).
+      NOT RUNNING HOT ANY MORE (MOD "the daily chart had so many days for the ema12 to catch up, not really a name
+        running hot at this point ... didn't keep up the momentum the past several days, which cools off the hot run
+        up"; BKNG "a lot of time to wind down in this eq after the last HH, the big move up was really just one candle
+        that didn't go much higher than the last HH"; HIG "more of a sustained daily uptrend, less the classic
+        backburner and more a generic oversold bounce"). Price-above-the-daily-12-EMA at the dip does NOT catch them:
+        his three score 0.79 / 1.15 / 2.06 against a keeps median of 1.25.
+    AND A LOOK-AHEAD BUG OF MINE, CAUGHT IN THE SAME HOUR: my first pass at "still hot" measured price against the 12
+    EMA on the DIP DAY'S OWN CLOSE -- which is low because of the dip. It made all three of his rejects look strongly
+    negative and I nearly shipped it. The study's own numbers are causal (align_to gives the last daily bar that had
+    CLOSED before the buy) and they show no separation at all. RULE: fit on the STUDY'S recorded numbers, never on a
+    fresh calculation in a scratch script, because the scratch one will not respect the study's clock.
+    TSLA, graded good, is worth keeping: "ended up bouncing really well, with LL and no follow through. That's not
+    really a backburner trade though, more a regular trade" -- a lower low with no follow-through is its own setup.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.

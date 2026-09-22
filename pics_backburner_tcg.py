@@ -366,6 +366,11 @@ def trades_for(sym, kind, v=None):
     with np.errstate(invalid="ignore"):
         fresh_d = (top20 - prior60) / np.where(satr > 0, satr, np.nan)
     s_fresh = L.align_to(df, "1h", frames, "1d", fresh_d)
+    # AND HIS ROUND-5 WORDS (MOD): "the daily chart had so many days for the ema12 to catch up, NOT REALLY A NAME
+    # RUNNING HOT at this point for a backburner". BKNG: "a lot of time to wind down in this eq after the last HH".
+    # So: at the DIP, is price still up off the daily 12 EMA -- or has the EMA caught up while it wound sideways?
+    hot_d = np.where(satr > 0, (sc - se12) / satr, np.nan)
+    s_hot = L.align_to(df, "1h", frames, "1d", hot_d)
     s_off12 = L.align_to(df, "1h", frames, "1d", off12_d)
     s_off26 = L.align_to(df, "1h", frames, "1d", off26_d)
     dl_ = sdf["Low"].values.astype(float)
@@ -429,6 +434,7 @@ def trades_for(sym, kind, v=None):
                         clean=float(s_clean[m_]),
                         off12=float(s_off12[m_]) if np.isfinite(s_off12[m_]) else None,
                         fresh=float(s_fresh[m_]) if np.isfinite(s_fresh[m_]) else None,
+                        hot=float(s_hot[m_]) if np.isfinite(s_hot[m_]) else None,
                         off26=float(s_off26[m_]) if np.isfinite(s_off26[m_]) else None,
                         target=float(s_top[m_]) if np.isfinite(s_top[m_]) else None,
                         R=float(r["pct"] / rp), **r))
