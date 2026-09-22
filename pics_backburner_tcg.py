@@ -229,6 +229,7 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
         hi = max(hi, float(h[j]))
         if half_at is None:
             low0 = min(low0, float(l[j]))
+        oversold = rsi[j] <= 30
         rest_rule = pieces[0][1] if pieces else None
         # the walked stop: every low that has CONFIRMED by now, formed after the buy, above the current line
         if half_at is not None and rest_rule == "hl_close":
@@ -241,13 +242,17 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
             new = hi - 3 * a
             if new > line:
                 line = new; steps.append((int(j), float(line)))
-        # 1. the stop, on a wick (the line under the low / chandelier) or on a close (the walked higher low)
-        hit = l[j] <= line or (hl_line is not None and c[j] < hl_line)
+        # 1. the stop, on a wick (the line under the low / chandelier) or on a close (the walked higher low).
+        # HIS ROUND-3 NOTE ON MNST, "still sold while oversold": while the hourly RSI is still at or under 30 the ONLY
+        # line that can take the trade out is the wide disaster line. Everything else waits for RSI to come back over.
+        live = stop if oversold else line
+        hit = l[j] <= live or (hl_line is not None and c[j] < hl_line and not oversold)
         if hit and pieces:
             px = o[j + 1] if j + 1 <= last else c[last]
             share = sum(p_ for p_, _ in pieces)
             pct = (got + share * (px - entry) / entry) * 100 - cost * (1 + (0.5 if sold else 0))
-            how = ("the rest stopped" if half_at is not None else "stopped out") + (" under the higher low" if hl_line is not None and c[j] < hl_line and l[j] > line else "")
+            how = ("the rest stopped" if half_at is not None else "stopped out") + (
+                " under the higher low" if (hl_line is not None and not oversold and c[j] < hl_line and l[j] > live) else "")
             return dict(end=int(j), exit_px=float(px), pct=float(pct), half_at=half_at, half_px=half_px, steps=steps, how=how)
         # 2. the pieces, in order
         while pieces:
@@ -414,7 +419,7 @@ def draw(sym, df, sdf, tr, path):
         ax.plot([max(j0, x0) - x0, min(j1, x1) - x0], [y0, y0], color=RED, lw=1.0 if q == 0 else 1.6,
                 ls=":" if q == 0 else "--", alpha=0.55 if q == 0 else 1.0, zorder=7)
     ax.hlines(tr["entry"], k - x0, len(d) - 1, colors="#e6e9ee", lw=1.1, ls=":", zorder=8)
-    if tr.get("target") and tr["target"] <= hi + 0.1 * rng:
+    if False and tr.get("target") and tr["target"] <= hi + 0.1 * rng:      # no target any more (his CDNS note)
         ax.hlines(tr["target"], 0, len(d) - 1, colors=BLUE, lw=1.1, ls="-.", zorder=6)
         an0 = ax.annotate("the old high", (len(d) - 1, tr["target"]), xytext=(5, 0), textcoords="offset points",
                           ha="left", va="center", color=BLUE, fontsize=8, zorder=20)
@@ -475,10 +480,10 @@ def draw(sym, df, sdf, tr, path):
     fig.text(0.045, 0.080, "green arrows = bought inside the candle as hourly RSI touched 30 (and 20)    "
              "white dotted = the average paid    orange = half sold when the bounce reached the hourly 12 EMA (purple)",
              color=DIM, fontsize=8.5, ha="left")
-    fig.text(0.045, 0.048, "red dotted = NO STOP yet (a wide disaster line only)    "
-             "red dashed = the stop under the low of the drop, set the moment the half is sold",
+    fig.text(0.045, 0.048, "red dotted = NO STOP (a wide disaster line only) while the hourly RSI is 30 or under    "
+             "red dashed = the stop under the low of the drop, live once the half is sold AND RSI is back over 30",
              color=DIM, fontsize=8.5, ha="left")
-    fig.text(0.045, 0.016, "blue = the old high, for reference only    red dashed steps up = the stop walked under each higher low; out on a close under it",
+    fig.text(0.045, 0.016, "red dashed steps up = the stop walked under each higher low; out on a close under it. THERE IS NO TARGET.",
              color=DIM, fontsize=8.5, ha="left")
     probs = PR.overlaps(fig, panels)
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")

@@ -565,6 +565,27 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     about what the account would do is not a result; run the account.
     HIS RULE, IN HIS WORDS (2026-09-22): "we can only be changing one thing at a time, to isolate the variable. Can't
     solve for x if y is unsolved too." One change per round, graded, before the next.
+    HIS ROUND-3 GRADING (2026-09-22, 14 of 16, validation/trade_notes_backburners3.csv): 10 good, 2 bad, 1 fix, and on
+    two losers "didn't bounce well but HANDLED WELL" -- the management is now his. What the four notes were:
+      - MNST "still sold while oversold" -> A REAL HOLE AND I FIXED IT (round 4). Dan's stop arms when the half sells,
+        and on MNST the half sold AT RSI 28, so the stop went live while still oversold and took it out at 24. Now the
+        ONLY line that can end a trade while the hourly RSI is 30 or under is the wide disaster line: the stop under
+        the low of the drop AND the walked higher low both wait for RSI back over 30. MNST exits at RSI 34, -0.50R ->
+        -0.47R. All 3,554: avg +0.799% -> +0.800%, middle +0.436 -> +0.446, won 61.2 -> 61.7%. Tiny, and right.
+      - ETH "was the higher low on the higher timeframe set? If so we might wanna use that as the stop, not just the
+        lower timeframe trend loss" -> THE NEXT SINGLE CHANGE. The rest walks under HOURLY higher lows; the whole point
+        of the trade is that the hourly dip marks the DAILY higher low, so the stop belongs under the DAILY one and the
+        hold is for the daily move. `walk_rest` already takes a pivot list; it needs the idea chart's.
+      - BURL "was this news? if it bounces to cool off rsi that's a red flag ... the long stop is for when we are
+        scaling in during a solid dip" -> HIS RULE AND THE E-BOOK'S EXPIRY, SAME THING. BURL bounced from RSI 28 to 35,
+        rolled over and fell to 19 while the wide disaster line stayed under it. THE WIDE LINE IS ONLY VALID WHILE THE
+        DIP IS STILL DIPPING: a bounce that cools the RSI without reaching the 12 EMA ends the setup. Not coded.
+      - BHP "why did you run this one with new rules, it's not a backburner" -> because I froze the SAME 16 on purpose
+        so only the stop changed (his own one-variable rule). The reason it is in the pool at all is that my run filter
+        is size only (4+ normal bars in 20 days); BHP's 20 days were +4.4% with 1.3% daily ranges. THE CLEANLINESS
+        TEST HE ASKED FOR IN ROUND 1 IS STILL NOT BUILT.
+      - CDNS "what was the target again?" -> there is none any more; the chart was still drawing the old high in blue
+        "for reference". Removed, and the footer now says THERE IS NO TARGET.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.

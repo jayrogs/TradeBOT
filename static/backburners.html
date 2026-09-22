@@ -44,8 +44,8 @@
     1. The name just had <b>a big run to a new high</b>. You missed it. You do not chase it &mdash; you put it on the back burner.<br>
     2. You buy the <b>FIRST</b> time RSI touches <b>30</b> after that high &mdash; <b>inside the candle, at the touch</b>. A second buy waits at <b>20</b>.<br>
     3. The bigger uptrend is <b>still intact</b>. The drop is not news or earnings. The name trades heavily. Regular hours only.<br>
-    4. <b>No stop until the half is sold</b> (Dan as written, and your round-1 note: "it feels really bad to sell while it's
-       oversold"). Only a wide disaster line until then. When the bounce reaches the <b>12 EMA</b>, sell half and put the stop
+    4. <b>Nothing sells you while the hourly RSI is still 30 or under</b> &mdash; only a wide disaster line is live (round 4, your
+       MNST note: "still sold while oversold"). Once the half is sold at the <b>12 EMA</b> AND RSI is back over 30, the stop goes
        <b>under the low of the drop</b>.<br>
     5. The rest has <b>no target</b>: the stop is walked up under each <b>higher low</b> and it sells on a close under the last one
        (the e-book's plan 3, and your own standard exit). "The old high" was my invention; nine ways to sell the rest are in the
@@ -54,11 +54,11 @@
 </header>
 <main>
   <div id="nums"></div>
-  <div class="card warn"><b>Round 3: same 16 charts, the stop Dan describes.</b> <span class="sub">Round 1 put a stop 3 normal
-    bars under the fill on the buy bar, and a waterfall candle went straight through it (JBHT, MNST). Round 2 armed a stop as soon
-    as RSI crossed back over 30, which was too early. Eight stops were run on all 3,554 trades (table below); the one that
-    reads best is Dan's: nothing until the half is sold, then under the low of the drop. Your round-1 note sits under each
-    chart. Grade again: is the stop right now?</span></div>
+  <div class="card warn"><b>Round 4: same 16 charts. Nothing can sell you while the hourly RSI is 30 or under.</b>
+    <span class="sub">Round 3 armed the stop the moment the half sold &mdash; and on MNST the half sold at RSI 28, so the stop went
+    live while it was still oversold and took it out at RSI 24. You caught it. Now the ONLY line that can end the trade while RSI is
+    30 or under is the wide disaster line; the stop under the low of the drop and the walked higher low both wait. MNST now exits at
+    RSI 34. Your round-3 note sits under each chart.</span></div>
   <div id="stops"></div>
   <h2>Winners</h2><div id="wins"></div>
   <h2>Losers</h2><div id="losses"></div>
@@ -84,7 +84,7 @@ const ROWS = [
   ["first print + run, IN THE FIRST TWO BARS of a day that GAPPED under yesterday's low", '... at the open of a GAP-DOWN day (stocks)'],
   ["first print + run, first two bars of the day, NO gap under yesterday's low", '... at the open, NO gap down (stocks)'],
 ];
-fetch('/api/tradenote?set=backburners').then(r => r.json()).catch(() => ({})).then(n => { window.__r1 = n || {}; }).then(() =>
+fetch('/api/tradenote?set=backburners3').then(r => r.json()).catch(() => ({})).then(n => { window.__r1 = n || {}; }).then(() =>
 Promise.all([
   fetch('/validation/backburner_tcg/index.json?v=' + Date.now()).then(r => r.json()),
   fetch('/validation/backburner_dan.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
@@ -179,7 +179,7 @@ Promise.all([
         &middot; ${c.fills.length == 1 ? 'one buy at 30' : 'bought at 30 and again at 20'}
         &middot; first stop <b>${c.risk_pct.toFixed(2)}%</b> away &middot; <b>${pc(c.pct)}</b> (${rr(c.R)}) &middot; ${c.how}</div>
       <img src="/validation/backburner_tcg/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym}">
-      <div class="sub" style="margin-top:6px;font-size:12.5px">round 1 you said: <b>${(R1[c.png] || '(nothing)').replace(' | ', ' — ')}</b></div>
+      <div class="sub" style="margin-top:6px;font-size:12.5px">round 3 you said: <b>${(R1[c.png] || '(not graded)').replace(' | ', ' — ')}</b></div>
       <div class="marks" data-id="${c.png}">
         <span class="verdict" data-v="good">that is a backburner</span>
         <span class="verdict" data-v="bad">would not take it</span>
@@ -190,7 +190,7 @@ Promise.all([
   const R1 = window.__r1 || {};
   $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
   $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
-  fetch('/api/tradenote?set=backburners3').then(r => r.json()).catch(() => ({})).then(notes => {
+  fetch('/api/tradenote?set=backburners4').then(r => r.json()).catch(() => ({})).then(notes => {
     notes = notes || {};
     document.querySelectorAll('.marks').forEach(m => {
       const id = m.dataset.id, prev = String(notes[id] || '');
@@ -204,7 +204,7 @@ Promise.all([
         const sp = m.querySelector('.saved');
         const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
         fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({set: 'backburners3', n: id, note: body})})
+          body: JSON.stringify({set: 'backburners4', n: id, note: body})})
           .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
                        setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
           .catch(fail);
