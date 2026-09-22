@@ -569,6 +569,26 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
 
+42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
+    most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
+    4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
+      - THE "DOWN LESS" TRAP. A rising ratio means the name is going UP MORE **or** DOWN LESS, and only the first makes
+        money: "you can be positioned bull in a relatively strong name, but if it is still going down you still lose
+        money". `strong` in tcg_lab (#34, the single biggest swing rule here) is only "the ratio is over its daily 12
+        EMA" -- it does not separate the two, so some of that +0.44% a trade may be down-less names. NEXT TEST, and it
+        is one variable: split every strong row into up-more and down-less.
+      - A RATIO READ NEEDS THE DRIVER TO MOVE TOO: if you want a QQQ bounce you need SPY to bounce. Never tested here.
+      - THE SHIFT FROM WEAK TO STRONG IS CAUSED BY A HOLD OF A KEY LEVEL (a double bottom at support, a rejection at
+        resistance), and he names it the number one cause. Testable, never tested.
+      - "LAST MAN STANDING", his named play: of four correlated names (ES/NQ/RTY/YM), when THREE have broken to lower
+        lows and the three are EXTENDED and due a bounce, the fourth is a low-risk bottom fish. Fully codeable with
+        validation/sector_map.json, and nothing like it exists here.
+      - RATIO DIVERGENCE (the ratio holds a higher low while the name makes a lower low, or the ratio breaks resistance
+        first), timed with a stair step. ALL ORDINARY TA APPLIES TO THE RATIO CHART ITSELF: EQs, 12 EMA riders, support.
+      - A DIRECTIONAL PATTERN IS LESS LIKELY AGAINST CLEAR RELATIVE STRENGTH: a rising wedge on a name much stronger
+        than its peers is usually waiting for the peers, not exhaustion. My pattern studies score patterns alone (13d).
+    TCG also has a correlations e-book by Joey (already read, #18) -- the webinar is the deeper version.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.
