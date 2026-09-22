@@ -44,12 +44,17 @@
     1. The name just had <b>a big run to a new high</b>. You missed it. You do not chase it &mdash; you put it on the back burner.<br>
     2. You buy the <b>FIRST</b> time RSI touches <b>30</b> after that high &mdash; <b>inside the candle, at the touch</b>. A second buy waits at <b>20</b>.<br>
     3. The bigger uptrend is <b>still intact</b>. The drop is not news or earnings. The name trades heavily. Regular hours only.<br>
-    4. When the bounce reaches the <b>12 EMA</b>, sell half. Move the stop <b>under the low of the drop</b>. Now it cannot hurt you.<br>
+    4. <b>No stop while the hourly RSI is still under 30</b> (round 2, your grading of round 1: "it feels really bad to sell while
+       it's oversold"). Once RSI is back over 30 the stop goes <b>under the low of the drop</b>; if RSI dips back under 30 the stop
+       is off again until it comes back. When the bounce reaches the <b>12 EMA</b>, sell half.<br>
     5. The rest is for <b>the old high</b>. The dip on the hourly is there to mark the <b>daily higher low</b>.
   </div>
 </header>
 <main>
   <div id="nums"></div>
+  <div class="card warn"><b>Round 2: same 16 charts, new stop.</b> <span class="sub">Round 1 put a stop 3 normal bars under the
+    fill on the buy bar, and a waterfall candle went straight through it (JBHT, MNST). Your round-1 note sits under each chart.
+    Grade again: is the stop right now?</span></div>
   <h2>Winners</h2><div id="wins"></div>
   <h2>Losers</h2><div id="losses"></div>
 </main>
@@ -74,6 +79,7 @@ const ROWS = [
   ["first print + run, IN THE FIRST TWO BARS of a day that GAPPED under yesterday's low", '... at the open of a GAP-DOWN day (stocks)'],
   ["first print + run, first two bars of the day, NO gap under yesterday's low", '... at the open, NO gap down (stocks)'],
 ];
+fetch('/api/tradenote?set=backburners').then(r => r.json()).catch(() => ({})).then(n => { window.__r1 = n || {}; }).then(() =>
 Promise.all([
   fetch('/validation/backburner_tcg/index.json?v=' + Date.now()).then(r => r.json()),
   fetch('/validation/backburner_dan.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
@@ -123,6 +129,7 @@ Promise.all([
         &middot; ${c.fills.length == 1 ? 'one buy at 30' : 'bought at 30 and again at 20'}
         &middot; first stop <b>${c.risk_pct.toFixed(2)}%</b> away &middot; <b>${pc(c.pct)}</b> (${rr(c.R)}) &middot; ${c.how}</div>
       <img src="/validation/backburner_tcg/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym}">
+      <div class="sub" style="margin-top:6px;font-size:12.5px">round 1 you said: <b>${(R1[c.png] || '(nothing)').replace(' | ', ' — ')}</b></div>
       <div class="marks" data-id="${c.png}">
         <span class="verdict" data-v="good">that is a backburner</span>
         <span class="verdict" data-v="bad">would not take it</span>
@@ -130,9 +137,10 @@ Promise.all([
         <input class="note" placeholder="what you see (optional)">
         <span class="saved"></span>
       </div></div>`;
+  const R1 = window.__r1 || {};
   $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
   $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
-  fetch('/api/tradenote?set=backburners').then(r => r.json()).catch(() => ({})).then(notes => {
+  fetch('/api/tradenote?set=backburners2').then(r => r.json()).catch(() => ({})).then(notes => {
     notes = notes || {};
     document.querySelectorAll('.marks').forEach(m => {
       const id = m.dataset.id, prev = String(notes[id] || '');
@@ -146,7 +154,7 @@ Promise.all([
         const sp = m.querySelector('.saved');
         const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
         fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({set: 'backburners', n: id, note: body})})
+          body: JSON.stringify({set: 'backburners2', n: id, note: body})})
           .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
                        setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
           .catch(fail);
@@ -164,7 +172,7 @@ Promise.all([
   document.querySelectorAll('img').forEach(im => im.onclick = () => {
     const z = $('#zoom'); z.innerHTML = `<img src="${im.getAttribute('src')}">`; z.style.display = 'flex';
   });
-});
+}));
 $('#zoom').onclick = () => { $('#zoom').style.display = 'none'; };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#zoom').style.display = 'none'; });
 </script>

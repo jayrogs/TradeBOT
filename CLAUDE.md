@@ -461,6 +461,27 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     confirmation, replaced or not), never on the finished list. A result from the finished list is printed beside its
     live version or not at all. And when he asks "are you sure", the answer is a new check, not a restatement.
 
+41. HE GRADED /backburners, ROUND 1 (2026-09-21 evening, 16 charts, notes in validation/trade_notes_backburners.csv):
+    12 good, 2 bad, 1 fix, and on the losers "almost all had some issue". THE SETUP IS RIGHT: not one "that's not a
+    backburner". THE STOP WAS WRONG, and it was mine: 3 normal bars under the fill, set on the buy bar, so a waterfall
+    candle went straight through it (JBHT: "why did this even sell??? we need sharp dips, those get bought up the best";
+    MNST: "it feels really bad to sell while it's oversold"). His rules from the grading, in his words as far as possible:
+      - NO STOP WHILE THE HOURLY RSI IS STILL OVERSOLD. (Dan: one fill = no stop, the unfilled second bid is the protection.)
+      - THE RUN MUST BE CLEAN, not just big (BHP "very messy chart", UNP "daily just a bit too hectic"). My run check
+        is size over 20 days only. Not coded yet.
+      - A BOUNCE THAT COOLS THE RSI ENDS THE SETUP: "makes further legs down less healthy for bull dip buying" (BURL).
+      - NEWS DAYS OUT (FIX was 2025-01-27, the DeepSeek Monday; UNP was 2024-08-05). Still no filter.
+      - HLT: "would've cashed out a bit more after the big bounce" -> thirds, not halves; the rest-for-the-old-high leg
+        gives bounces back (JBHT round 2 too).
+    ROUND 2 (`pics_backburner_tcg.py --same`, the SAME 16, set "backburners2", his round-1 note shown under each): no
+    chart stop while RSI <= 30 (a disaster line 6 normal bars under the lowest fill only), the stop goes under the low
+    of the drop once RSI closes back over 30 and switches OFF again if RSI goes back under. On the 16: JBHT -0.80R ->
+    -0.56R, MNST -1.01R -> -0.50R, BHP -1.11R -> -0.41R, no winner changed sign. Over all 3,554 trades the average is
+    about the same (+0.68% vs +0.68%) with the risk measured against the disaster line, so R reads smaller (+0.10R).
+    HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
+    you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
+    ones, and only when the drawings look like his trade do numbers get run. One change per round.
+
 ## What is settled (do not re-litigate)
 
 14. Confirmation and price never come from the same bar. A buy fills at the next bar's open.

@@ -41,8 +41,16 @@ OUT = os.path.join("validation", "backburner_tcg")
 COST = L.COST
 
 
-def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a):
-    """Half at the 12 EMA, stop under the low of the drop, the rest for the old high -- bar by bar, recorded."""
+DISASTER_BARS = 6.0            # the only line while the hourly is still oversold: a "day loser", not a chart stop
+
+
+def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi):
+    """ROUND 2 (his grading of round 1, 2026-09-21: JBHT "why did this even sell??? we need sharp dips", MNST "it
+    feels really bad to sell while it's oversold"). Round 1 put a stop 3 normal bars under the fill on the buy bar
+    itself, and on a waterfall candle that same candle went through it. Dan: with one fill there is NO stop, the
+    unfilled second bid is the protection. So now: while the hourly RSI is still at or under 30 there is no chart
+    stop, only a wide disaster line (`stop`, DISASTER_BARS under the lowest fill). The moment RSI closes back over
+    30 -- the bounce is on -- the stop goes UNDER THE LOW OF THE DROP. Half at the 12 EMA, the rest for the old high."""
     n = len(c)
     last = min(n - 1, e_last + L.MAX_BARS)
     cost = COST.get(kind, 0.05)
@@ -50,11 +58,25 @@ def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a):
     if l[e_last] <= stop:
         j2 = min(e_last + 1, n - 1)
         return dict(end=j2, exit_px=float(o[j2]), pct=float((o[j2] - entry) / entry * 100 - cost), half_at=None,
-                    half_px=None, steps=[(int(e_last), float(stop))], how="through the stop on the bar it was bought")
+                    half_px=None, steps=[(int(e_last), float(stop))], how="through the disaster line on the buy bar")
     line = stop
     steps = [(int(e_last), float(stop))]
     half_at = half_px = None
+    armed = False                                   # the real stop is only live while RSI is back over 30
     for j in range(e_last + 1, last + 1):
+        if half_at is None:
+            # his rule: never sell while it is still oversold. The stop is live only while the last close had RSI
+            # over 30; when RSI goes back under, the stop is off again and re-arms under the new low of the drop.
+            if rsi[j - 1] <= 30:
+                low0 = min(low0, float(l[j]))
+                if armed:
+                    armed = False
+                    line = stop
+                    steps.append((int(j), float(line)))
+            elif not armed:
+                armed = True
+                line = low0 - 0.1 * a
+                steps.append((int(j), float(line)))
         if l[j] <= line:
             px = o[j + 1] if j + 1 <= last else c[last]
             got = 0.5 * (half_px - entry) / entry if half_at is not None else 0.0
@@ -67,8 +89,9 @@ def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a):
                 half_at = int(j)
                 half_px = float(max(o[j], ema12[j]))
                 low0 = min(low0, float(np.min(l[e_last + 1:j + 1])))
-                line = low0 - 0.1 * a
-                steps.append((int(j), float(line)))
+                if low0 - 0.1 * a != line:
+                    line = low0 - 0.1 * a
+                    steps.append((int(j), float(line)))
         elif np.isfinite(target) and h[j] >= target:
             px = float(max(o[j], target))
             pct = (0.5 * (half_px - entry) / entry + 0.5 * (px - entry) / entry) * 100 - cost * 1.5
@@ -136,11 +159,11 @@ def trades_for(sym, kind):
                 fills.append(float(min(o[j], p20[j])) if j > k else float(p20[j])); fill_bars.append(int(j)); e_last = j
                 break
         entry = float(np.mean(fills))
-        stop = min(fills) - D.STOP_BARS * a
+        stop = min(fills) - DISASTER_BARS * a
         rp = (entry - stop) / entry * 100
-        if rp < 3 * cost or rp > 25.0:
+        if rp < 3 * cost or rp > 40.0:
             continue
-        r = walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a)
+        r = walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi)
         got.append(dict(sym=sym, kind=kind, k=int(k), e=int(e_last), entry=entry, fills=fills, fill_bars=fill_bars,
                         stop=float(stop), risk_pct=float(rp), t=str(df.index[k]), run=float(s_run[m_]),
                         target=float(s_top[m_]) if np.isfinite(s_top[m_]) else None,
@@ -158,13 +181,13 @@ def draw(sym, df, sdf, tr, path):
     fig = plt.figure(figsize=(16, 8.6), dpi=100)
     fig.patch.set_facecolor(DARK)
     gs = fig.add_gridspec(2, 2, width_ratios=[1.55, 1], height_ratios=[3.2, 1], wspace=0.12, hspace=0.06,
-                          top=0.92, bottom=0.12)
+                          top=0.92, bottom=0.14)
     ax = fig.add_subplot(gs[0, 0])
     bnd = CK.bundle(df, x0, len(d)); bnd["spans"] = []
     CK.render(ax, bnd, "", "%m-%d %H:%M")
     c_all = df["Close"].values.astype(float)
     ax.plot(xs, XM.ema(c_all[:x1 + 1], 12)[x0:x1 + 1], color=PURPLE, lw=1.3, zorder=6)
-    lo = min(float(np.nanmin(d["Low"].values)), tr["stop"])
+    lo = min(float(np.nanmin(d["Low"].values)), min(y for _j, y in tr["steps"][1:]) if len(tr["steps"]) > 1 else tr["stop"])
     hi = float(np.nanmax(d["High"].values))
     if tr.get("target"):
         hi = max(hi, min(tr["target"], hi * 1.08))
@@ -175,10 +198,9 @@ def draw(sym, df, sdf, tr, path):
     plt.setp(ax.get_xticklabels(), visible=False)
     # the stop as it moved, the average fill, the old high
     steps = tr["steps"] + [(end, tr["steps"][-1][1])]
-    sx, sy = [], []
-    for (j0, y0), (j1, _y) in zip(steps, steps[1:]):
-        sx += [max(j0, x0) - x0, min(j1, x1) - x0]; sy += [y0, y0]
-    ax.plot(sx, sy, color=RED, lw=1.6, ls="--", zorder=7)
+    for q, ((j0, y0), (j1, _y)) in enumerate(zip(steps, steps[1:])):
+        ax.plot([max(j0, x0) - x0, min(j1, x1) - x0], [y0, y0], color=RED, lw=1.0 if q == 0 else 1.6,
+                ls=":" if q == 0 else "--", alpha=0.55 if q == 0 else 1.0, zorder=7)
     ax.hlines(tr["entry"], k - x0, len(d) - 1, colors="#e6e9ee", lw=1.1, ls=":", zorder=8)
     if tr.get("target") and tr["target"] <= hi + 0.1 * rng:
         ax.hlines(tr["target"], 0, len(d) - 1, colors=BLUE, lw=1.1, ls="-.", zorder=6)
@@ -238,11 +260,13 @@ def draw(sym, df, sdf, tr, path):
         axd.set_title("the daily: the run, and its 12 EMA (purple)", loc="left", color=DIM, fontsize=9.5, pad=3)
         plt.setp(axd.get_xticklabels(), fontsize=6)
         panels.append((axd, hb["d"]))
-    fig.text(0.045, 0.045, "green arrows = bought INSIDE the candle, the moment hourly RSI touched 30 (and 20)    "
-             "white dotted = the average paid    red dashed = the stop: wide at first, then UNDER THE LOW OF THE DROP",
+    fig.text(0.045, 0.080, "green arrows = bought inside the candle as hourly RSI touched 30 (and 20)    "
+             "white dotted = the average paid    orange = half sold when the bounce reached the hourly 12 EMA (purple)",
              color=DIM, fontsize=8.5, ha="left")
-    fig.text(0.045, 0.015, "orange = half sold when the bounce reached the hourly 12 EMA (purple)    "
-             "blue = the old high, where the rest is sold    right = the daily, dotted line is the day of the dip",
+    fig.text(0.045, 0.048, "red dotted = NO STOP yet, RSI still under 30 (a wide disaster line only)    "
+             "red dashed = the stop under the low of the drop, live once RSI is back over 30",
+             color=DIM, fontsize=8.5, ha="left")
+    fig.text(0.045, 0.016, "blue = the old high, where the rest is sold    right = the daily, dotted line is the day of the dip",
              color=DIM, fontsize=8.5, ha="left")
     probs = PR.overlaps(fig, panels)
     fig.savefig(path, facecolor=fig.get_facecolor(), bbox_inches="tight")
@@ -287,11 +311,16 @@ def main():
         for got, err in ex.map(_one, names, chunksize=4):
             rows += got; errs += err
     print("  %d trades (%.0fs)" % (len(rows), time.time() - t0), flush=True)
-    rng = np.random.default_rng(20260921)
-    wins = [r for r in rows if r["R"] > 0.15]
-    losses = [r for r in rows if r["R"] <= -0.15]
-    picks = [wins[i] for i in rng.choice(len(wins), 8, replace=False)] + \
-            [losses[i] for i in rng.choice(len(losses), 8, replace=False)]
+    same = os.path.join(OUT, "index_round1.json")
+    if "--same" in sys.argv and os.path.exists(same):
+        want = {(c_["kind"], c_["sym"], c_["k"]) for c_ in json.load(open(same))["charts"]}
+        picks = [r for r in rows if (r["kind"], r["sym"], r["k"]) in want]     # the SAME 16 he graded, new stop
+    else:
+        rng = np.random.default_rng(20260921)
+        wins = [r for r in rows if r["R"] > 0.15]
+        losses = [r for r in rows if r["R"] <= -0.15]
+        picks = ([wins[i] for i in rng.choice(len(wins), 8, replace=False)]
+                 + [losses[i] for i in rng.choice(len(losses), 8, replace=False)])
     by = {}
     for tr in picks:
         by.setdefault((tr["sym"], tr["kind"]), []).append(tr)
@@ -302,7 +331,7 @@ def main():
     drawn.sort(key=lambda x: -x["R"])
     for i, tr in enumerate(drawn, 1):
         tr["n"] = i
-    keep = {d_["png"] for d_ in drawn} | {"index.json"}
+    keep = {d_["png"] for d_ in drawn} | {"index.json", "index_round1.json"}
     for f in os.listdir(OUT):
         if f not in keep:
             os.remove(os.path.join(OUT, f))
