@@ -843,6 +843,20 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     HE IS RIGHT THAT THE FASTEST DIPS ARE THE BEST (about +0.45% a trade over the rest). THE SLOWEST ARE NOT THE WORST:
     the middle is. So it is not a "skip slow dips" filter; cutting to the fastest quarter throws out 75% of the trades
     (#29). Its natural use is choosing which signal gets a slot when the slots are full. Not built.
+    HE CAUGHT THE TWO-AT-ONCE AGAIN ("we really gotta try and only do one at a time and not get ahead of ourselves"). Row B
+    changed the 25 buy AND the cancel together. `studies/backburner_bidwallet.py` -> validation/backburner_bidwallet.json
+    splits them, stocks + ETFs, SAME CASH per slot (a slot is split into as many equal buys as the version allows; buys that
+    never fill sit in cash):
+        change                                   per trade   per slot   a year at 10 slots   dip
+        now: 30 + 20, pulled over 40              +0.83%      +0.30%     +9.7%                -7.0%
+        ONLY pull at 31 instead of 40             +0.73%      +0.30%     +10.2%               -6.3%
+        ONLY add the 25 buy                       +1.07%      +0.28%     +8.6%                -7.2%
+    Pulling at 31 (his "cooled") is free: same money, a slightly smaller dip. Adding the 25 buy makes each trade look
+    better and the account worse: more cash tied up for less. RECOMMENDED: no 25 buy; 31 is his choice. Page unchanged
+    until he picks.
+    NOT YET A RESULT, AND ITS OWN QUESTION: "30 only" comes out at +19.1% a year here, but only because this model locks the
+    second buy's half of the slot in cash for the WHOLE trade, when in life that order is pulled within 12 hours and the
+    cash goes back to work. How much of the slot the first buy should take is a separate variable, not tested.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
