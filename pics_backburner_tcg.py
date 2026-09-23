@@ -340,6 +340,12 @@ def trades_for(sym, kind, v=None):
     run = np.full(len(sc), np.nan)
     run[T.RUN_LOOK:] = (sc[T.RUN_LOOK:] - sc[:-T.RUN_LOOK]) / np.where(satr[T.RUN_LOOK:] > 0, satr[T.RUN_LOOK:], np.nan)
     s_run = L.align_to(df, "1h", frames, "1d", run)
+    # THE SAME RUN IN PLAIN PERCENT (2026-09-22). Measured in the name's own normal bars, a quiet index fund that
+    # climbed 3% scores the same as a stock that climbed 45%. He rejected IWD (+3%), XYL (+5%) and XLC (+5%) as "not a
+    # big run up" while my bar measure called all three big. He sees the real size.
+    run_pct = np.full(len(sc), np.nan)
+    run_pct[T.RUN_LOOK:] = 100.0 * (sc[T.RUN_LOOK:] / sc[:-T.RUN_LOOK] - 1.0)
+    s_run_pct = L.align_to(df, "1h", frames, "1d", run_pct)
     # HIS RULE, round 1 and round 3 (BHP "does not look like a clean run up, very messy chart"; UNP "really wild daily
     # candles ... too hectic for a clean backburner play"). A big run is not the same as a CLEAN one. Of the measures I
     # tried against his 14 grades -- path straightness, body share, daily range, share of up days -- the one that keeps
@@ -442,6 +448,7 @@ def trades_for(sym, kind, v=None):
             r = walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi, v)
         got.append(dict(sym=sym, kind=kind, k=int(k), e=int(e_last), entry=entry, fills=fills, fill_bars=fill_bars,
                         stop=float(stop), risk_pct=float(rp), t=str(df.index[k]), run=float(s_run[m_]),
+                        run_pct=float(s_run_pct[m_]) if np.isfinite(s_run_pct[m_]) else None,
                         clean=float(s_clean[m_]),
                         chop=float(s_chop[m_]) if np.isfinite(s_chop[m_]) else None,
                         off12=float(s_off12[m_]) if np.isfinite(s_off12[m_]) else None,

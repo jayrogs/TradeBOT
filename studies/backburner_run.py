@@ -30,18 +30,21 @@ import backburner_study as S      # noqa: E402
 import trend_ride as R            # noqa: E402
 import pics_backburner_tcg as PB  # noqa: E402
 
-OUT = os.path.join("validation", "backburner_run.json")
-WAYS = ["the run was 4 to 5 normal bars (the smallest the pool allows)",
-        "5 to 6",
-        "6 to 7",
-        "7 to 9",
-        "9 and up",
-        "HIS TEN SAID 5.6+: everything from 5.6 up",
-        "6 and up",
-        "everything (what the page does now, 4+)"]
-CUTS = [lambda x: (x >= 4) & (x < 5), lambda x: (x >= 5) & (x < 6), lambda x: (x >= 6) & (x < 7),
-        lambda x: (x >= 7) & (x < 9), lambda x: x >= 9,
-        lambda x: x >= 5.6, lambda x: x >= 6, lambda x: x == x]
+OUT = os.path.join("validation", "backburner_run_pct.json")
+# ROUND 2 (same day): the run in PLAIN PERCENT over the 20 days, not in normal bars. His three "not a big run up"
+# rejects on the matched /messymark set were IWD +3%, XYL +5%, XLC +5%; the seven he would trade ran +7% to +230%.
+FIELD = "run_pct"
+WAYS = ["the run was under 5%",
+        "5 to 7%",
+        "7 to 10%",
+        "10 to 20%",
+        "20% and up",
+        "HIS TEN SAID 6%+: everything from 6% up",
+        "10% and up",
+        "everything (what the page does now)"]
+CUTS = [lambda x: x < 5, lambda x: (x >= 5) & (x < 7), lambda x: (x >= 7) & (x < 10),
+        lambda x: (x >= 10) & (x < 20), lambda x: x >= 20,
+        lambda x: x >= 6, lambda x: x >= 10, lambda x: x == x]
 
 
 def _work(args):
@@ -51,7 +54,7 @@ def _work(args):
         got = PB.trades_for(sym, kind)
         for w_i, sel in enumerate(CUTS):
             for r in got:
-                if r.get("run") is None or not bool(sel(np.array([r["run"]]))[0]):
+                if r.get(FIELD) is None or not bool(sel(np.array([r[FIELD]]))[0]):
                     continue
                 rows.append([w_i, r["pct"], r["risk_pct"], 1.0 if r["half_at"] is not None else 0.0,
                              1.0 if (r["half_at"] is None and "stop" in r["how"]) else 0.0,
