@@ -345,8 +345,15 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
     return dict(end=int(last), exit_px=px, pct=float(pct), half_at=half_at, half_px=half_px, steps=steps, how="time ran out")
 
 
+# THE BUYS DIFFER BY MARKET (#45, 2026-09-23). In crypto the deeper buys are the best dollars, so the page pyramids:
+# $10k at RSI 30, $20k at 25, $30k at 20 (backburner_dollars: +2.38% per dollar vs +1.89% for 30 + 20 at $10k each). In
+# stocks where the money goes in makes no difference, so they keep 30 + 20, one equal amount each. His pick, "sure okay".
+CRYPTO_BUYS = dict(bids=[25, 20], dollars={30: 10.0, 25: 20.0, 20: 30.0})
+
+
 def trades_for(sym, kind, v=None):
-    v = v or STOP                                   # the page's own rules unless a study passes a variant
+    if v is None:                                   # the page's own rules unless a study passes a variant
+        v = dict(STOP, **CRYPTO_BUYS) if kind == "crypto" else STOP
     frames = S.frames_for(sym, kind)
     frames = {k_: v for k_, v in frames.items() if k_ in ("1h", "1d", "1w")}
     if kind in ("stock", "etf"):
@@ -482,6 +489,7 @@ def trades_for(sym, kind, v=None):
         # CLOSED above v["cancel_second"] (default 40, the page until he picks; his rule is 31). One unit per level, the
         # position price is their average. A candle that falls through several levels fills each of them.
         fills = [float(min(o[k], p30[k]))]; fill_bars = [int(k)]; e_last = k
+        fill_lv = [30]
         levels = [(lv, D.rsi_price(c, au, ad, lv) if lv not in (20, 30) else (p20 if lv == 20 else p30))
                   for lv in sorted(v.get("bids", [20]), reverse=True)]
         for j in range(k, min(n - 1, k + D.SECOND_BID_BARS)):
@@ -492,8 +500,14 @@ def trades_for(sym, kind, v=None):
             while levels and np.isfinite(levels[0][1][j]) and l[j] <= levels[0][1][j]:
                 lp = levels[0][1][j]
                 fills.append(float(min(o[j], lp)) if j > k else float(lp)); fill_bars.append(int(j)); e_last = j
+                fill_lv.append(levels[0][0])
                 levels.pop(0)
-        entry = float(np.mean(fills))
+        dol = v.get("dollars")
+        if dol:     # the position price for DOLLAR amounts per level: total dollars / total shares
+            dd = [dol.get(lv, 0.0) for lv in fill_lv]
+            entry = float(sum(dd) / sum(d_ / f_ for d_, f_ in zip(dd, fills) if d_ > 0))
+        else:
+            entry = float(np.mean(fills))
         stop = min(fills) - DISASTER_BARS * a
         rp = (entry - stop) / entry * 100
         if rp < 3 * cost or rp > 40.0:

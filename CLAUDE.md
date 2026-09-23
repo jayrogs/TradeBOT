@@ -906,6 +906,9 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     crypto into one average can hide the opposite behaviour of each; and #35's "scale in +0.35R" on the daily was an
     all-markets number that has not been split this way. The 10/20/30 pyramid on crypto: +2.38% per dollar vs +1.89%
     (backburner_dollars), at about triple the worst trade. Futures and forex: not measured.
+    SHIPPED FOR CRYPTO ONLY (his "sure okay"): CRYPTO_BUYS in pics_backburner_tcg -- $10k at 30, $20k at 25, $30k at 20,
+    the position priced as total dollars / total shares. Crypto pool, 341 trades, return on the money in each trade:
+    +2.90% average (was +2.12%), middle +1.70%, won 76% (was 70%). Stocks unchanged: 30 + 20, one equal amount each.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
