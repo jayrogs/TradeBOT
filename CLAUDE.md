@@ -1096,6 +1096,11 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     (+40.2% -> +35.7% at 10 slots) -- now each later buy is placed at its own time with the cash free then.
     CAVEATS: four years, 2024 alone +75-118% in the top rows (the crypto run); crypto pyramids add 2x and 3x the first buy,
     so one coin can take several slots' worth of cash; survivorship (#35). His call on the sizing and the slot count.
+    HIS QUESTION "what makes the most money" -- full slot at 30, later buys on top, 20 runs (typical / unlucky 10% / lucky
+    10% a year, typical worst drop, the worst run's drop): 1 at once +52.0% / +34.9 / +63.8, -25.8% (-35.3%) | 2 +48.1% /
+    +37.6 / +60.5, -17.8% (-29.0%) | 3 +52.4% / +41.1 / +58.0, -16.8% (-20.9%) | 4 +46.3%, -16.8% | 5 +46.6% / +42.0 /
+    +51.8, -14.7% (-18.7%) | 6 +43.7%, -13.4%. THE MOST IS 3 AT ONCE; 1 makes the same with far bigger drops; 5 makes a
+    few % less typically but its UNLUCKY case (+42.0%) is as good as 3's (+41.1%) with a smaller drop.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
