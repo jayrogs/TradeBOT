@@ -218,6 +218,117 @@ def _databento_hourly(log):
         log("databento_recent failed: %s" % ex)
 
 
+CHARTS = os.path.join("static", "bblive_charts")
+
+
+def card_chart(sym, kind, fr, lines, path):
+    """One small picture for a card (his words: "It's too busy dude I thought I was gonna see charts too").
+    Left: the last ~3 days hourly with the 12 EMA; the order lines are drawn ONLY in the empty space to the right of
+    the last candle, labelled there -- nothing sits on the candles (rule 11). Right: the last 60 days daily with its 12
+    EMA, to see the run. Measured with pics_ride.overlaps before it is saved."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import chartkit as CK
+    import pics_ride as PR
+    h = fr["1h"]
+    if kind in ("stock", "etf"):
+        h = h[(h.index.hour >= 9) & (h.index.hour <= 15)]
+    d = fr["1d"]
+    win_h, win_d = min(60, len(h)), min(60, len(d))
+    fig = plt.figure(figsize=(11, 3.9), dpi=90)
+    fig.patch.set_facecolor(PB.DARK)
+    gs = fig.add_gridspec(1, 2, width_ratios=[1.7, 1], wspace=0.10, left=0.05, right=0.97, top=0.88, bottom=0.12)
+    ax = fig.add_subplot(gs[0, 0])
+    b = CK.bundle(h, len(h) - win_h, win_h); b["spans"] = []; b["pivots"] = []; b["eq"] = [False] * win_h
+    CK.render(ax, b, "", "%m-%d %H:%M")
+    c_all = h["Close"].values.astype(float)
+    ax.plot(np.arange(win_h), XM.ema(c_all, 12)[-win_h:], color=PB.PURPLE, lw=1.3, zorder=6)
+    hi = float(h["High"].values[-win_h:].max()); lo = float(h["Low"].values[-win_h:].min())
+    ys = [y for y, _c, _l in lines]
+    lo, hi = min([lo] + ys), max([hi] + ys)
+    rng = max(hi - lo, 1e-9)
+    ax.set_ylim(lo - 0.08 * rng, hi + 0.16 * rng)     # room above the top line for its label
+    pad = max(30, int(0.55 * win_h))
+    ax.set_xlim(-1, win_h + pad)
+    x_a, x_b = win_h + 0.5, win_h + pad - 1
+    side, last_y = "right", None
+    for y, colr, lab in sorted(lines, key=lambda t: -t[0]):
+        ax.plot([x_a, x_b], [y, y], color=colr, lw=1.6, ls="-", zorder=8)
+        # two lines close together put their labels at opposite ends (CAKE: 2.46 / 2.40 / 2.32 stacked on each other)
+        if last_y is not None and abs(last_y - y) < 0.09 * rng:
+            side = "left" if side == "right" else "right"
+        else:
+            side = "right"
+        last_y = y
+        an = ax.annotate(lab, (x_b if side == "right" else x_a + 0.5, y), xytext=(0, 4), textcoords="offset points",
+                         ha=side, va="bottom", color=colr, fontsize=9, weight="bold", zorder=20)
+        PR.keep_inside(ax, an)
+    ax.set_title("hourly", color=PB.DIM, fontsize=9, loc="left", pad=4)
+    step = max(win_h // 5, 1)
+    ax.set_xticks(np.arange(win_h)[::step])
+    ax.set_xticklabels([t.strftime("%m-%d %H:%M") for t in h.index[-win_h:][::step]], fontsize=7)
+    ax2 = fig.add_subplot(gs[0, 1])
+    bd = CK.bundle(d, len(d) - win_d, win_d); bd["spans"] = []; bd["pivots"] = []; bd["eq"] = [False] * win_d
+    CK.render(ax2, bd, "", "%m-%d")
+    dc = d["Close"].values.astype(float)
+    ax2.plot(np.arange(win_d), XM.ema(dc, 12)[-win_d:], color=PB.PURPLE, lw=1.2, zorder=6)
+    ax2.set_title("daily: the run", color=PB.DIM, fontsize=9, loc="left", pad=4)
+    step2 = max(win_d // 4, 1)
+    ax2.set_xticks(np.arange(win_d)[::step2])
+    ax2.set_xticklabels([t.strftime("%m-%d") for t in d.index[-win_d:][::step2]], fontsize=7)
+    for a_ in (ax, ax2):
+        a_.tick_params(colors=PB.DIM, labelsize=7)
+    probs = PR.overlaps(fig, [(ax, h.iloc[-win_h:]), (ax2, d.iloc[-win_d:])])
+    fig.savefig(path, facecolor=fig.get_facecolor())
+    plt.close(fig)
+    return probs
+
+
+def _draw_cards(arm, opn, frs, account):
+    os.makedirs(CHARTS, exist_ok=True)
+    keep, problems = set(), 0
+    for a in arm:
+        fr = frs.get(a["sym"])
+        if fr is None:
+            continue
+        lines = [(a["buy_at"], PB.GREEN, "buy at %s" % _fmt(a["buy_at"]))]
+        used, cap = 1.0, float(account.get("crypto_max_buckets", 3)) if a["kind"] == "crypto" else 99.0
+        dol = a.get("dollars") or {}
+        for lv, px in a.get("later") or []:
+            m = (float(dol.get(lv, dol.get(str(lv), 0.0))) / float(dol.get(30, dol.get("30", 1.0)))) if dol else 1.0
+            m = max(0.0, min(m, cap - used))
+            used += m
+            if m > 0:                     # a buy the bucket cap rules out is not drawn
+                lines.append((px, "#8fd9b6", "more at %s (RSI %d)" % (_fmt(px), lv)))
+        fn = "armed_%s_%s.png" % (a["kind"], a["sym"])
+        pr_ = card_chart(a["sym"], a["kind"], fr, lines, os.path.join(CHARTS, fn))
+        a["chart"], a["chart_problems"] = "/bblive_charts/" + fn, pr_
+        problems += len(pr_); keep.add(fn)
+    for t in opn:
+        fr = frs.get(t["sym"])
+        if fr is None:
+            continue
+        lines = [(t["entry"], "#e6e9ee", "bought %s" % _fmt(t["entry"])), (t["stop"], PB.RED, "stop %s" % _fmt(t["stop"]))]
+        if not t["half_sold"]:
+            lines.append((t["half_at"], PB.AMBER, "sell half %s" % _fmt(t["half_at"])))
+        fn = "open_%s_%s.png" % (t["kind"], t["sym"])
+        pr_ = card_chart(t["sym"], t["kind"], fr, lines, os.path.join(CHARTS, fn))
+        t["chart"], t["chart_problems"] = "/bblive_charts/" + fn, pr_
+        problems += len(pr_); keep.add(fn)
+    for f in os.listdir(CHARTS):
+        if f not in keep:
+            try:
+                os.remove(os.path.join(CHARTS, f))
+            except OSError:
+                pass
+    return problems
+
+
+def _fmt(v):
+    return "%.2f" % v if v >= 100 else "%.3f" % v if v >= 1 else "%.4g" % v
+
+
 def tick(log=print):
     t0 = time.time()
     _databento_hourly(log)
@@ -243,6 +354,7 @@ def tick(log=print):
     except Exception:
         src = {}
     arm, opn, errs, seen, stale, ages = [], [], 0, 0, [], {}
+    frs = {}
     now_ny = pd.Timestamp.now(tz="America/New_York").tz_localize(None)
     now_utc = pd.Timestamp.utcnow().tz_localize(None)
     jobs = []
@@ -280,6 +392,7 @@ def tick(log=print):
         except Exception:
             errs += 1
     import concurrent.futures as cf
+    frame_of = {j[0]: j[2] for j in jobs}
     with cf.ProcessPoolExecutor(max_workers=8) as ex:
         for a, o, err in ex.map(_one, jobs, chunksize=4):
             if a:
@@ -289,8 +402,15 @@ def tick(log=print):
                 errs += 1
     for x in arm + opn:
         x["data_age_h"] = ages.get(x["sym"])
+        frs[x["sym"]] = frame_of.get(x["sym"])
+    try:
+        chart_problems = _draw_cards(arm, opn, frs, PB.ACCOUNT)
+    except Exception as ex:
+        chart_problems = -1
+        log("bb_live: charts failed: %s" % ex)
     arm.sort(key=lambda x: -x["away"])          # nearest to its buy price first
     out = dict(updated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), names=seen, errors=errs, stale=stale,
+               chart_problems=chart_problems,
                seconds=int(time.time() - t0), account=PB.ACCOUNT, armed=arm, open=opn)
     os.makedirs("livelog", exist_ok=True)
     json.dump(out, io.open(OUT + ".tmp", "w", encoding="utf-8"), indent=1, default=float)

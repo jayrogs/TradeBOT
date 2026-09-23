@@ -31,3 +31,4 @@ venv/
 
 # extracted book text and scratch work: never published
 scratch/
+static/bblive_charts/
