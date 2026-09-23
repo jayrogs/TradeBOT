@@ -36,7 +36,20 @@ import backburner_dan as D        # noqa: E402
 OUT = os.path.join("validation", "backburner_cryptolead.json")
 # his follow-up: "You can check for other leaders too shit idk all of them". The big coins in the data, biggest first;
 # a coin can only be led by one ABOVE it in this list (BTC by none), every other coin by any of them.
-LEADERS = ["BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "ADA", "TRX", "AVAX", "LINK", "DOT", "LTC", "BCH", "SUI", "XLM", "HBAR"]
+LEADERS = ["BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "ADA", "TRX", "AVAX", "LINK", "LTC", "BCH", "SUI", "XLM", "HBAR"]
+# DOT IS OUT (his call 2026-09-23: "I'd drop dot then, and just let those names not have a leader pairing"): it "led" 41
+# coins only because it is a very average altcoin, not because anyone trades off it.
+# AND EVERY PAIRING MUST BE A REAL TIE (his words: "make sure these are actually tied to the coins from your research
+# online too"). From CoinGecko (scratch/coingecko/, pulled 2026-09-23): the chain a token is built on and its category.
+#   ETH   the Ethereum ecosystem or a layer 2, or a token that lives only on Ethereum / Arbitrum / Optimism / Base / Polygon
+#   SOL   the Solana ecosystem or Solana meme coins, or a Solana-only token
+#   BNB   BNB Chain, or a BNB-Chain-only token        AVAX  the Avalanche ecosystem, or an Avalanche-only token
+#   SUI   the Sui ecosystem, or a Sui-only token      ADA   the Cardano ecosystem
+#   DOGE  a meme coin (the meme sector's leader)      LTC   a proof-of-work coin
+#   BTC   a Bitcoin fork, a proof-of-work coin, or one of the 20 biggest coins (BTC leads the whole market)
+# XRP, TRX, LINK, BCH, XLM and HBAR have no ecosystem list to tie to, so they lead nothing. A coin takes the best-matching
+# leader it is TIED to; if its best match is not tied, the next best tied one; if none is tied, it has no leader.
+CG = os.path.join("scratch", "coingecko")
 
 
 def _closes(sym, tf):
@@ -46,6 +59,67 @@ def _closes(sym, tf):
     ix = pd.DatetimeIndex(d.index)
     ix = ix.tz_localize(None) if ix.tz is not None else ix
     return pd.Series(d["Close"].values.astype(float), index=ix)
+
+
+_TIES = None
+
+
+def ties():
+    """{leader: set of our symbols tied to it} from the CoinGecko pull, and the reason for each tie."""
+    global _TIES
+    if _TIES is not None:
+        return _TIES
+    mk = json.load(io.open(os.path.join(CG, "markets.json"), encoding="utf-8"))
+    lst = json.load(io.open(os.path.join("scratch", "cg_list.json"), encoding="utf-8"))
+    best = {}                                   # symbol -> the biggest coin with that symbol
+    for cid, sy, cap in mk["top"]:
+        if sy not in best or cap > best[sy][1]:
+            best[sy] = (cid, cap)
+    top20 = {sy for cid, sy, cap in sorted(mk["top"], key=lambda x: -x[2])[:20]}
+    plat = {x["id"]: [k for k, v in (x.get("platforms") or {}).items() if k and v] for x in lst}
+    def members(cat):
+        ids = {cid for cid, sy in mk.get(cat, [])}
+        return {sy for sy, (cid, cap) in best.items() if cid in ids} | {sy for cid, sy in mk.get(cat, []) if sy not in best}
+    only = {}                                   # symbol -> its single chain, when it lives on exactly one
+    for sy, (cid, cap) in best.items():
+        p = plat.get(cid, [])
+        if len(p) == 1:
+            only[sy] = p[0]
+    home_p = os.path.join(CG, "home.json")
+    if os.path.exists(home_p):
+        # VERSION 2 (same day): the ecosystem LISTS include bridged copies -- ENA and WLFI counted as Solana, ATOM as BNB,
+        # FET as Cardano -- so the tie is now each coin's HOME chain (CoinGecko's asset_platform_id: where it was built),
+        # plus two sector ties read from the coin's own categories (meme -> DOGE, proof of work -> LTC / BTC) and the
+        # 20 biggest coins -> BTC. A coin on its own chain with no sector tie has no leader.
+        home = json.load(io.open(home_p, encoding="utf-8"))
+        chain = {"ethereum": "ETH", "arbitrum-one": "ETH", "optimistic-ethereum": "ETH", "base": "ETH", "polygon-pos": "ETH",
+                 "zksync": "ETH", "linea": "ETH", "scroll": "ETH", "blast": "ETH", "mantle": "ETH", "solana": "SOL",
+                 "binance-smart-chain": "BNB", "avalanche": "AVAX", "sui": "SUI", "cardano": "ADA"}
+        T = {}
+        for sy, h in home.items():
+            if chain.get(h.get("home")):
+                T.setdefault(chain[h["home"]], set()).add(sy)
+            cats = " ".join(h.get("categories") or []).lower()
+            if "meme" in cats:
+                T.setdefault("DOGE", set()).add(sy)
+            if "proof of work" in cats or "bitcoin fork" in cats:
+                T.setdefault("LTC", set()).add(sy)
+                T.setdefault("BTC", set()).add(sy)
+        T.setdefault("BTC", set()).update(top20)
+        _TIES = T
+        return T
+    T = {"ETH": members("ethereum-ecosystem") | members("layer-2")
+                | {s for s, p in only.items() if p in ("ethereum", "arbitrum-one", "optimistic-ethereum", "base", "polygon-pos")},
+         "SOL": members("solana-ecosystem") | members("solana-meme-coins") | {s for s, p in only.items() if p == "solana"},
+         "BNB": members("binance-smart-chain") | {s for s, p in only.items() if p == "binance-smart-chain"},
+         "AVAX": members("avalanche-ecosystem") | {s for s, p in only.items() if p == "avalanche"},
+         "SUI": members("sui-ecosystem") | {s for s, p in only.items() if p == "sui"},
+         "ADA": members("cardano-ecosystem"),
+         "DOGE": members("meme-token"),
+         "LTC": members("proof-of-work-pow"),
+         "BTC": members("bitcoin-fork") | members("proof-of-work-pow") | top20}
+    _TIES = T
+    return T
 
 
 def leader_of(sym, dailies):
@@ -69,7 +143,11 @@ def leader_of(sym, dailies):
             corr[L_] = float(j.iloc[:, 0].corr(j.iloc[:, 1]))
     if not corr:
         return None, {}
-    return max(corr, key=corr.get), corr
+    T = ties()
+    for L_ in sorted(corr, key=corr.get, reverse=True):   # the best-matching leader it is actually TIED to
+        if sym in T.get(L_, set()):
+            return L_, corr
+    return None, corr
 
 
 def _work(args):
@@ -149,6 +227,12 @@ def main():
             row("  leader oversold too", g[g.rsi_new <= 35])
             row("  leader not oversold", g[g.rsi_new > 35])
     json.dump(out, io.open(OUT, "w", encoding="utf-8"), indent=1)
+    by = {}
+    for s_, v in lead.items():
+        by.setdefault(v[0] or "none", []).append(s_)
+    print("\n  THE PAIRINGS (tied, DOT out):")
+    for L_, v in sorted(by.items(), key=lambda x: -len(x[1])):
+        print("    %-5s %3d  %s" % (L_, len(v), " ".join(sorted(v))))
 
 
 if __name__ == "__main__":

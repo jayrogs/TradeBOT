@@ -1031,6 +1031,21 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     file, seam 1067.39 -> 1072.85; original kept in history/_backup/. On full history BNB leads 3 coins, not 58. The crypto
     pool gains BNB's own trades (361, +3.04% a trade). The leader split is unchanged in substance: with his matching,
     oversold-too +3.08% (43), weak-not-flushed +2.60% (106), fine +3.55% (149). Page unchanged.
+    HIS CORRECTIONS (same day): "I'd drop dot then, and just let those names not have a leader pairing. Just like make
+    sure these are actually tied to the coins from your research online too." DOT is out as a leader. Every pairing now
+    needs a REAL tie from CoinGecko (scratch/coingecko/: the top 2,000 coins, the category lists, and each of our 146
+    coins' HOME chain). First try used CoinGecko's ecosystem LISTS, which include bridged copies (ENA and WLFI counted as
+    Solana, ATOM as BNB, FET as Cardano, ICP as Ethereum); the rule now uses the HOME chain (where the coin was built):
+    Ethereum or its layer 2s -> ETH, Solana -> SOL, BNB Chain -> BNB, Avalanche -> AVAX, Sui -> SUI, Cardano -> ADA; plus
+    two sector ties from the coin's own categories -- a meme coin -> DOGE, proof of work -> LTC / BTC -- and the 20 biggest
+    coins -> BTC. The coin takes its best-matching TIED leader; none tied, no leader. Result: ETH 60 (ARB, OP, UNI, AAVE,
+    ENA, LDO ...), DOGE 17 (PEPE, SHIB, BONK, WIF, FLOKI ...), BTC 12 (the majors), SOL 11 (JUP, JTO, PYTH, PENGU,
+    FARTCOIN ...), BNB 5 (CAKE, ASTER ...), LTC 3 (BCH, DASH, ZEC), AVAX 1 (JOE), ADA 1 (NIGHT), NO LEADER 38 (the coins
+    on their own chains: ATOM, NEAR, ICP, SUI, APT, SEI, TIA, TAO, FIL ...).
+    ON THE TIED PAIRINGS: leader oversold too +3.67% (38) | weak, not flushed +2.43% (99) | fine +3.26% (123). THE
+    WEAK-NOT-FLUSHED GROUP IS THE WORST ON EVERY VERSION OF HIS MATCHING (+2.43 / +2.50 / +2.60%), which is Dan's warning --
+    but it still makes +2.4% a trade, so skipping it would cost money a year (#29). Page unchanged; the pairing is kept
+    for later (sizing, ratio charts).
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
