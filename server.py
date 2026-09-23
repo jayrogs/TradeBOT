@@ -895,6 +895,12 @@ def cleanruns_page():
     return send_from_directory("static", "cleanruns.html")
 
 
+@app.route("/messymark")
+def messymark_page():
+    """Ten runs, five that wandered little and five a lot, shuffled: does his eye pick out the wandering ones?"""
+    return send_from_directory("static", "messymark.html")
+
+
 @app.route("/eqanticipate")
 def eqanticipate_page():
     """The EQ acted on after the FIRST swing back (The Chart Guys' 50% rule), drawn and graded."""

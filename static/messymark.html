@@ -1,0 +1,122 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Which of these would you not trade?</title>
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --up:#3ddc97;--dn:#ff5c72;--amber:#ffb84d;--mono:ui-monospace,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:22px 26px 4px;max-width:1500px}
+  h1{font-size:21px;margin:0 0 6px}
+  .sub{color:var(--dim);max-width:1000px}
+  .sub b{color:var(--fg)}
+  main{padding:4px 26px 90px;max-width:1500px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;margin:14px 0}
+  .warn{border-color:#5a3a20;background:#1a1410}
+  img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;cursor:zoom-in}
+  .line{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-bottom:7px}
+  .line b{color:var(--fg)}
+  .marks{display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap}
+  input.note{flex:1;min-width:240px;background:#1a1e25;border:1px solid var(--line);color:var(--fg);
+             border-radius:8px;padding:8px 10px;font:13px inherit}
+  .saved{font-size:12px;color:var(--up);min-width:130px}
+  .verdict{background:#1a1e25;border:1px solid var(--line);color:var(--dim);padding:9px 18px;border-radius:9px;
+           cursor:pointer;font-size:14px;font-weight:600;user-select:none}
+  .verdict.on{background:rgba(255,92,114,.18);border-color:var(--dn);color:var(--dn)}
+  #bar{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5;color:var(--dim);
+       font-family:var(--mono);font-size:13px;border-bottom:1px solid var(--line)}
+  #done{background:rgba(61,220,151,.14);border:1px solid var(--up);color:var(--up);padding:9px 20px;border-radius:9px;
+        cursor:pointer;font-size:14px;font-weight:600;margin-left:14px}
+  #zoom{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:30;cursor:zoom-out;padding:8px}
+  #zoom img{max-width:99vw;max-height:98vh;width:auto}
+</style></head>
+<body>
+<header>
+  <h1>Which of these would you not trade?</h1>
+  <div class="sub">Ten runs into a real backburner dip. Each chart <b>stops at the dip</b>, so nothing after it can
+    sway you. You have not seen any of them before.</div>
+
+  <div class="card warn"><b>What this is for</b>
+    <div class="sub" style="margin-top:4px">I found one number that matches how you threw out BTI, KEY, DOCN, BHP and
+      UNP: <b>how much the price wandered up and down during the run, against how far it actually got</b>. A straight
+      climb wanders about twice as far as it travels; a jerky one wanders five times or more.<br><br>
+      <b>Five of these ten wandered a little. Five wandered a lot. They are shuffled and the number is hidden.</b>
+      If your taps land on the wandering ones, it is your eye and I will use it. If they do not, it is only mine and
+      I will drop it.<br><br>
+      <b>Only tap the ones you would not trade.</b> Leave the rest alone. A word on why helps but skip it if you want.
+      Hit "the rest are fine" at the end so I know you looked.</div>
+  </div>
+</header>
+<main>
+  <div id="bar"></div>
+  <div id="charts"></div>
+</main>
+<div id="zoom"></div>
+<script>
+const $ = s => document.querySelector(s);
+fetch('/validation/messy_mark/index.json?v=' + Date.now()).then(r => r.json()).then(d => {
+  $('#charts').innerHTML = d.charts.map(c => `<div class="card">
+      <div class="line">#${c.n} &middot; <b>${c.sym}</b> <span style="color:var(--faint)">daily</span> &middot; the dip on ${String(c.t).slice(0,10)}</div>
+      <img src="/validation/messy_mark/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym}">
+      <div class="marks" data-id="${c.png}">
+        <span class="verdict">&#10007; would not trade this one</span>
+        <input class="note" placeholder="why, in a few words (optional)">
+        <span class="saved"></span>
+      </div></div>`).join('');
+  const count = () => {
+    const bad = [...document.querySelectorAll('.verdict.on')].length;
+    $('#bar').innerHTML = `${bad} marked of ${d.charts.length}` +
+      `<button id="done">the rest are fine &mdash; done</button>`;
+    $('#done').onclick = () => {
+      let n = 0, fail = 0;
+      const marks = [...document.querySelectorAll('.marks')];
+      Promise.all(marks.map(m => {
+        if (m.querySelector('.verdict.on') || m.dataset.ok) return Promise.resolve();
+        m.dataset.ok = '1'; n++;
+        return fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({set: 'messymark', n: m.dataset.id, note: 'fine'})})
+          .then(r => { if (!r.ok) fail++; }).catch(() => { fail++; });
+      })).then(() => {
+        const bad = [...document.querySelectorAll('.verdict.on')].length;
+        $('#bar').innerHTML = fail
+          ? `<span style="color:var(--dn)">NOT SAVED &mdash; ${fail} failed. Tell Claude.</span>`
+          : `saved: ${bad} you would not trade, ${n} fine. Tell Claude.`;
+      });
+    };
+  };
+  fetch('/api/tradenote?set=messymark').then(r => r.json()).catch(() => ({})).then(notes => {
+    notes = notes || {};
+    document.querySelectorAll('.marks').forEach(m => {
+      const id = m.dataset.id, prev = String(notes[id] || '');
+      const i = prev.indexOf(' | ');
+      const v = (i < 0 ? prev : prev.slice(0, i)).trim();
+      m.querySelector('.note').value = i < 0 ? '' : prev.slice(i + 3);
+      if (v === 'bad') m.querySelector('.verdict').classList.add('on');
+      if (v === 'fine') m.dataset.ok = '1';
+      const save = () => {
+        const on = m.querySelector('.verdict.on');
+        const body = (on ? 'bad' : 'fine') + (m.querySelector('.note').value ? ' | ' + m.querySelector('.note').value : '');
+        const sp = m.querySelector('.saved');
+        const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
+        fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({set: 'messymark', n: id, note: body})})
+          .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
+                       setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
+          .catch(fail);
+      };
+      m.querySelector('.verdict').onclick = () => {
+        m.querySelector('.verdict').classList.toggle('on');
+        m.dataset.ok = '1'; save(); count();
+      };
+      let t = null;
+      m.querySelector('.note').oninput = () => { clearTimeout(t); t = setTimeout(save, 600); };
+    });
+    count();
+  });
+  document.querySelectorAll('img').forEach(im => im.onclick = () => {
+    const z = $('#zoom'); z.innerHTML = `<img src="${im.getAttribute('src')}">`; z.style.display = 'flex';
+  });
+});
+$('#zoom').onclick = () => { $('#zoom').style.display = 'none'; };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#zoom').style.display = 'none'; });
+</script>
+</body></html>
