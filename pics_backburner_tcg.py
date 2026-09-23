@@ -544,7 +544,7 @@ def trades_for(sym, kind, v=None):
             t_ = pd.Timestamp(df.index[k])
             if (t_.tz_localize(None) if t_.tz is not None else t_).normalize() in news_days:
                 continue      # HIS RULE (2026-09-23): "we absolutely need a news earnings skip, it muddies the water way too much"
-        if not (np.isfinite(s_run_pct[m_]) and s_run_pct[m_] >= RUN_PCT_MIN):
+        if not (np.isfinite(s_run_pct[m_]) and s_run_pct[m_] >= v.get("run_pct_min", RUN_PCT_MIN)):
             continue      # HIS RULE (2026-09-22, /messymark): IWD +3%, XYL +5%, XLC +5% were "not a big run up" / "a
                           # beautiful uptrend ema rider, not a run up for a backburner". Measured in normal bars all three
                           # looked big; in plain percent they are small. Removes 6% of trades at no cost (backburner_run_pct).

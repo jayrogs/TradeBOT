@@ -965,6 +965,25 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     _news_days in pics_backburner_tcg. Crypto and ETFs are not touched (no earnings). News with no opening gap (mid-day
     headlines) is not caught.
 
+50. THE BACKBURNER ON FUTURES AND FOREX, FIRST LOOK (2026-09-23, his question: "How come we haven't tested these w futures,
+    commodities, or forex yet?"). Honest answer: futures WERE in backburner_tcg / backburner_dan and fell out when the
+    drawing page was built on stocks, ETFs and crypto; forex was always out. `studies/backburner_markets.py` ->
+    validation/backburner_markets.json, the page's own trade (stock-style buys), two rows, one change:
+        market                           page exactly (run 10%+)                  without the 10% rule
+        futures, all                     187 trades  +0.96%  mid +0.36%  59%  5/5y  376  +0.49%  mid +0.12%  55%
+          energy (CL BZ NG HO RB QM QG)   28  +3.15%  mid +0.78%  68%              the same 28
+          metals                          97  +0.60%  mid +0.39%  63%  4/5y        143  +0.50%
+          farm                            26  +0.91%                               43   +0.48%
+          stock-index futures             18 (too few)                             109  -0.12%  won 45%  2/4y
+          currencies and bonds             0                                        35  +0.07%
+        forex, the 11 real-hourly pairs    0                                        36  -0.03%  won 50%
+        forex, the other pairs (Yahoo)     0                                       239  about +0.3%, won ~90% -- NOT TRUSTED
+    WHAT IT SAYS: futures behave like stocks under his rules (+0.96% a trade, every year up) but there are few of them
+    (~47 trades a year on 32 contracts); the 10% rule is what keeps the stock-index futures out, and without it they lose.
+    FOREX: a 10% run in a month almost never happens, so the backburner as he defines it does not fire on currencies; with
+    the rule off, the pairs with real data make nothing. The ~90% win rate on the Yahoo pairs is a data warning, not a
+    result (2-year Yahoo hourly bars, see #31). Sub-groups are too small for any verdict (13g). Not on the page; his call.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
