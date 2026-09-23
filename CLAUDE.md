@@ -872,6 +872,20 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     "50 / 50 on 10 slots" (+10.8%) -- in both the 30 buy is 1/20 of the account. So the real finding is that holding
     money back for the 20 buy is worth about nothing, and the extra a year comes from having more of the account working.
     The price: a bad trade costs more (-6.0% vs -3.3% at 1 in 20). His call.
+    IN PLAIN DOLLARS, his framing ("increments of $10k ... only look at total percentage return. So not to get confused";
+    `studies/backburner_dollars.py` -> validation/backburner_dollars.json; no account, a fixed amount rests at each level,
+    same 2,069 trades, the page's cancel/stop/exits). Return = money made / money that went in:
+        buys ($k at 30 / 25 / 20)        stocks + ETFs   crypto   every market   worst trade
+        30 only (10)                      +0.54%         +1.55%   +0.70%         -$2.6k
+        NOW 30 + 20 (10 / 10)             +0.54%         +1.89%   +0.76%         -$4.3k
+        30 + 25 + 20 (10 / 10 / 10)       +0.53%         +2.08%   +0.77%         -$6.5k
+        pyramid 30 + 25 + 20 (10/20/30)   +0.50%         +2.38%   +0.79%         -$11.8k
+        pyramid 30 + 20 (10 / 20)         +0.52%         +2.09%   +0.77%         -$5.9k
+        top-heavy (30 / 20 / 10)          +0.54%         +1.90%   +0.76%         -$14.1k
+    STOCKS: EVERY DOLLAR EARNS THE SAME WHEREVER IT GOES IN (+0.50 to +0.54%). More buys only means more money in, more
+    money made and bigger worst trades; the split does not matter. CRYPTO: THE DEEPER BUYS EARN MORE PER DOLLAR, so the
+    pyramid is best (+2.38% vs +1.89% now, 8 of 10 years like the rest), at about triple the worst trade. This is also why
+    backburner_split's account favoured all-in at 30 on stocks: when every dollar earns the same, money held back is idle.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
