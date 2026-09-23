@@ -646,7 +646,9 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
               target (CDNS) -> the stop walks under higher lows, no target | the run must reach fresh levels (this one)
         OPEN  a bounce that COOLS THE RSI should end the setup and the wide stop with it (BURL, and the e-book's own
               expiry) | NEWS AND EARNINGS out (FIX was 2025-01-27, the DeepSeek crash; UNP was 2024-08-05) | the stop
-              under the DAILY higher low, not the hourly one (ETH) | take more off after a big bounce, thirds (HLT) |
+              under the DAILY higher low, not the hourly one (ETH) -- ONLY WHEN THE SECTOR HAS MOMENTUM, read from ratio
+              charts (his words 2026-09-23: "that's what I would do, if I think the sector is getting more momentum.
+              Sector momentum is best identified with ratio charts"; step 1 is backburner_sector.py) | take more off after a big bounce, thirds (HLT) |
               the 12 EMA ride is a different trade, entered a timeframe down (he calls this one obvious, low priority)
     HIS ROUND-5 GRADING (2026-09-22, 16 fresh trades, set "backburners5"): 9 good, 6 "fix", 1 bad. THE FRESHNESS
     FILTER HELD -- not one complaint about oscillation or a bounce dressed as a run, which was the whole point.
@@ -916,6 +918,16 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     validation/backburner_gate.json, same 2,069 trades: old +1.17% / honest +1.17% a trade (stocks +0.83 / +0.82, crypto
     +2.90 / +2.95). IT INFLATED NOTHING, and the page now uses the honest version (STOP gate_prev=True). The close check
     under the walked higher low stays on the hour's own close: it is decided at the close and sold at the next open.
+
+47. RATIO CHARTS ARE PARKED UNTIL THE BACKBURNER IS FINISHED (2026-09-23, his words: "Reading ratio charts is a whole nother
+    thing honestly, so we might wanna finish backburners first"). One crude first look was already run and is kept, not
+    claimed (`studies/backburner_sector.py` -> validation/backburner_sector.json; sector fund / SPY above its daily 12 EMA,
+    split by the sector itself up or down, #42's "down less" trap; crypto = coin / BTC):
+        stocks: every trade +0.80% (1,633) | gaining AND rising (up more) +0.84% (807) | gaining but falling (down less)
+                +0.56% (117) | losing but rising +0.58% (330) | losing and falling +0.98% (379)
+        crypto: 255 of 278 trades already have the coin gaining on BTC -- a big run up does that by itself.
+    As coded, the read barely separates the stock trades. MY VERSION, one line on one ratio: not a verdict on ratio charts
+    (13g). The ETH stop (hold for the daily move when the sector has momentum) waits for this, per his open-list note.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
