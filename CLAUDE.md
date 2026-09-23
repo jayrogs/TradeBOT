@@ -785,6 +785,23 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     one that beats the page at 5-10 slots (+2.6 to +4.0% a year, 10-90% bands apart, a shallower dip), and ties at 20.
     HE PICKED IT ("sure", 2026-09-22): RUN_PCT_MIN = 10.0 is now the page's rule.
 
+44e. HIS BURL RULE, MY THREE VERSIONS (2026-09-22, `studies/backburner_cool.py` -> validation/backburner_cool.json; switches
+    `cool` and `cancel_second` in pics_backburner_tcg, OFF on the page). His words: "if it bounces to cool off rsi that's a
+    red flag .. the long stop is for when we are scaling in during a solid dip". Same 2,069 trades, paired with the page:
+        version                                                  avg     middle  won   vs page   years better  fires
+        the page now                                            +1.04%  +0.63%  64%     --          --          --
+        RSI back over 35 / 40, then stop under the low           +0.95 / +1.02   60/63%  -0.09/-0.02  3/11, 2/11   16% / 4%
+        no second buy once RSI closed over 35                    +1.01%  +0.62%  64%   -0.03%      2/11
+        BURL'S OWN LEVEL: back over 31 / 33, then out on the     +0.78 / +0.86   55/59%  -0.26/-0.18  0/11, 0/11   28% / 17%
+          next close under 30
+        back over 31 / 33, then stop under the low               +0.83 / +0.88   56/59%  -0.21/-0.16  2/11, 2/11   31% / 23%
+    MY FIRST TWO VERSIONS NEVER TOUCHED BURL: its bounce peaked at RSI 34.9, under my 35. At its real level (over 31, then
+    out on the next close under 30) BURL goes from -4.07% to -1.41%, as he said. ON THE WHOLE POOL THAT VERSION COSTS
+    -0.26% A TRADE, WORSE IN ALL 11 YEARS: it fires on 28% of trades and most of them go on to reach the 12 EMA anyway
+    (win rate 64% -> 55%). It does cut the worst trade (-23.4% -> -15.6%). Same shape as #35's "you are paid for buying
+    while it is still falling". NOT A VERDICT ON HIS RULE (13g): what is missing is what separates a BURL from the bounces
+    that come back, which only drawings of both can show. Not drawn yet (rule 10).
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:

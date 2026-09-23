@@ -232,8 +232,34 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
     seen_above = False
     hl_line = None
     li = 0
+    # HIS BURL RULE (round 1 and 3): "if it bounces to cool off rsi that's a red flag ... the long stop is for when we
+    # are scaling in during a solid dip". Once a bounce has lifted the hourly RSI to `cool` BEFORE the half sold, the
+    # dip is no longer dipping and the wide disaster line stops protecting it. v["cool"] = (level, mode):
+    #   "low"   the stop goes under the low of the drop as it stood when RSI cooled, oversold or not
+    #   "exit"  out at the open after the next close back at or under 30 (the second leg down has started)
+    # Decided on the LAST CLOSE (rsi[j-1]), so nothing is known before it could be.
+    cool = v.get("cool")
+    cooled = False
+    cool_line = None
     for j in range(e_last + 1, last + 1):
         hi = max(hi, float(h[j]))
+        if cool and half_at is None and pieces:
+            if not cooled and rsi[j - 1] >= cool[0]:
+                cooled = True
+                cool_line = low0 - 0.1 * a
+                steps.append((int(j), float(cool_line)))
+            if cooled and cool[1] == "exit" and rsi[j - 1] <= 30:
+                px = float(o[j])
+                share = sum(p_ for p_, _ in pieces)
+                pct = (got + share * (px - entry) / entry) * 100 - cost
+                return dict(end=int(j), exit_px=px, pct=float(pct), half_at=None, half_px=None, steps=steps,
+                            how="out: the bounce cooled the RSI and it rolled back under 30")
+            if cooled and cool[1] == "low" and l[j] <= cool_line:
+                px = float(o[j + 1]) if j + 1 <= last else float(c[last])     # sold at the next open, like every stop here
+                share = sum(p_ for p_, _ in pieces)
+                pct = (got + share * (px - entry) / entry) * 100 - cost
+                return dict(end=int(j), exit_px=px, pct=float(pct), half_at=None, half_px=None, steps=steps,
+                            how="out: the bounce cooled the RSI and it went back under the low")
         if half_at is None:
             low0 = min(low0, float(l[j]))
         oversold = rsi[j] <= 30
@@ -436,8 +462,9 @@ def trades_for(sym, kind, v=None):
         a = atr[m_]
         fills = [float(min(o[k], p30[k]))]; fill_bars = [int(k)]; e_last = k
         for j in range(k, min(n - 1, k + D.SECOND_BID_BARS)):
-            if j > k and rsi[j - 1] > 40:
-                break
+            if j > k and rsi[j - 1] > v.get("cancel_second", 40):
+                break     # the second bid is pulled once a bounce has cooled the RSI past this (his BURL rule, v2:
+                          # "the long stop is for when we are scaling in during a SOLID dip" -- no adding after a bounce)
             if np.isfinite(p20[j]) and l[j] <= p20[j]:
                 fills.append(float(min(o[j], p20[j])) if j > k else float(p20[j])); fill_bars.append(int(j)); e_last = j
                 break
