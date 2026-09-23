@@ -226,6 +226,13 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
                     half_px=None, steps=steps, how="through the disaster line on the buy bar")
     first = v.get("first_sell", "ema12")
     pieces = [(1 / 3, "ema"), (1 / 3, "rsi70"), (1 / 3, v["rest"])] if v["thirds"] else [(0.5, "ema"), (0.5, v["rest"])]
+    # HIS HLT NOTE (round 1): "probably would've cashed out a bit more after the big bounce". v["trim"] = (rule, share):
+    # after the half, one more piece of `share` sells when the bounce is big, and the last piece rides as before.
+    #   "rsicNN" an hourly CLOSE with RSI at or over NN, sold at the next open
+    #   "upN"    price N normal bars over the position price, sold there
+    if v.get("trim") and not v["thirds"]:
+        t_rule, t_share = v["trim"]
+        pieces = [(0.5, "ema"), (t_share, t_rule), (0.5 - t_share, v["rest"])]
     got, sold = 0.0, 0.0                      # profit share booked, share sold
     half_at = half_px = None
     line = stop
@@ -282,7 +289,7 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
         oversold = rsi[j] <= 30
         rest_rule = pieces[0][1] if pieces else None
         # the walked stop: every low that has CONFIRMED by now, formed after the buy, above the current line
-        if half_at is not None and rest_rule == "hl_close":
+        if half_at is not None and any(r_ == "hl_close" for _s, r_ in pieces):     # the walk runs under every piece left
             while li < len(lows) and lows[li][0] <= j:
                 ci_, fj_, px_ = lows[li]; li += 1
                 if fj_ > e_last and (hl_line is None or px_ > hl_line):
@@ -326,6 +333,10 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
                         px = float(max(o[j], lv))
             elif rule == "rsi70" and np.isfinite(p70[j]) and h[j] >= p70[j]:
                 px = float(max(o[j], p70[j]))
+            elif rule.startswith("rsic") and half_at is not None and rsi[j] >= float(rule[4:]):
+                px = float(o[j + 1]) if j + 1 <= last else float(c[last])
+            elif rule.startswith("up") and half_at is not None and h[j] >= entry + float(rule[2:]) * a:
+                px = float(max(o[j], entry + float(rule[2:]) * a))
             elif rule == "high" and np.isfinite(target) and h[j] >= target:
                 px = float(max(o[j], target))
             elif rule == "ema_close":

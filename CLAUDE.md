@@ -929,6 +929,21 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     As coded, the read barely separates the stock trades. MY VERSION, one line on one ratio: not a verdict on ratio charts
     (13g). The ETH stop (hold for the daily move when the sector has momentum) waits for this, per his open-list note.
 
+48. HIS HLT RULE, "CASH OUT A BIT MORE AFTER THE BIG BOUNCE" (2026-09-23, `studies/backburner_trim.py` ->
+    validation/backburner_trim.json; switch `trim` = (rule, share) in pics_backburner_tcg, OFF on the page). One change:
+    after the half sells at the 12 EMA, a QUARTER more sells when the bounce is big; the last quarter rides as before.
+    Same 2,069 trades, paired:
+        a quarter more at                  avg     middle   won    vs page   years better
+        (the page now)                    +1.17%   +0.66%   64%      --        --
+        an hourly close with RSI 60+      +1.15%   +0.80%   66%    -0.03%     4/11
+        RSI 65+ / 70+                     +1.15 / +1.14%   +0.72 / +0.67%
+        3 normal bars over the buy        +1.14%   +1.00%   67%    -0.04%     6/11
+        5 normal bars over the buy        +1.13%   +0.74%   65%    -0.04%     4/11
+    IT IS A COMFORT TRADE, NOT MORE MONEY: the average barely moves (-0.03 to -0.04%) while the ordinary trade gets much
+    better (middle +0.66% -> +1.00% at 3 bars) and more trades win. Same as #41 found for cutting earlier. Crypto at 3 bars
+    is the one place it is better on every number (+3.06% vs +2.95%, middle +2.40% vs +1.68%, won 78% vs 75%). Not drawn
+    yet (rule 10); his call.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
