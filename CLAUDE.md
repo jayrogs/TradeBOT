@@ -1072,6 +1072,31 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     The per-trade numbers reported earlier the same day included them; they are ~4% of the stock names. RUN
     data_scale_check.py AFTER ANY DATA PULL.
 
+53. HOW BIG AND HOW MANY, TESTED WIDE (2026-09-23, his words: "Test as broad and wide as you need"; `studies/backburner_sizing.py`
+    -> validation/backburner_sizing.json). The account of #52, ONE change a row from the base (5 slots, the page's buys,
+    same-hour signals in random order), 20 runs, 2022-09 .. 2026-09, cash only, marked every day. A year / worst dip:
+        the page now, 3 / 5 / 10 slots                  +25.2% / -11.3%   +25.7% / -8.4%    +17.2% / -8.8%
+        (1, 2, 4, 6, 8 slots in the file; 3-5 is the top, it falls off past 6)
+        sized by risk at the disaster line 1% / 2% / 3% +16.9% / -6.5%    +19.4% / -7.9%    +21.1% / -8.4%   (no better)
+        fastest dips first when signals share an hour  5 slots +28.6% / -10.4% -- inside the random-order band (+20.7 to
+                                                        +29.2%): not a clear win
+        ALL IN AT 30, ONE BUY, 3 / 5 / 10 slots         +46.2% / -14.8%   +43.0% / -11.8%   +31.1% / -9.4%
+        FULL SLOT AT 30, THE LATER BUYS ON TOP (each at its own time, only with cash free then), 3 / 5 / 8 / 10 slots
+                                                        +52.4% / -16.8%   +46.6% / -14.7%   +40.5% / -11.1%   +35.7% / -9.6%
+        SPY bought and held                             +18.5% / -19.0%
+    WHAT IT SAYS: the trade was never the constraint, the MONEY WAS. The page splits every slot between the buy at 30 and a
+    buy at 20 that happens about one trade in six, so half of each stock slot (5/6 of a crypto one) sits idle and the
+    slot count caps what else can use it. Putting the whole slot in at 30 -- and adding the later buys on top from free
+    cash when they happen -- keeps the same trades and more money working: 10 slots goes from +17.2% to +35.7% a year
+    with about the same worst dip (-8.8% -> -9.6%). Every calendar year up in every row.
+    THREE BUGS OF MINE FOUND AND FIXED IN THE SAME HOUR, all flattering: (1) "fastest first" ranked a whole DAY's signals
+    by speed, so a 3pm dip took a slot before a 10am one (+35.5% -> +28.6%); (2) both account tests settled a day's sales
+    before its buys, so a slot freed at 3pm was used at 10am -- now every buy, sale and release runs in real time order;
+    (3) the first "later buys on top" sized the whole position at the first buy KNOWING whether the later buys would fill
+    (+40.2% -> +35.7% at 10 slots) -- now each later buy is placed at its own time with the cash free then.
+    CAVEATS: four years, 2024 alone +75-118% in the top rows (the crypto run); crypto pyramids add 2x and 3x the first buy,
+    so one coin can take several slots' worth of cash; survivorship (#35). His call on the sizing and the slot count.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:

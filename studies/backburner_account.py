@@ -181,7 +181,8 @@ def main():
             continue
         print()
         for n_ in SLOTS:
-            res = [account(tr, closes, days, n_, s_) for s_ in range(RUNS)]
+            import backburner_sizing as SZ          # the time-ordered engine (2026-09-23): buys and sales in real order
+            res = [SZ.account(tr, closes, days, s_, slots=n_)[:3] for s_ in range(RUNS)]
             st_ = [stats(r[0], days) for r in res]
             ann = np.array([x["a_year"] for x in st_]); dips = np.array([x["dip"] for x in st_])
             mid = int(np.argsort(ann)[len(ann) // 2])
