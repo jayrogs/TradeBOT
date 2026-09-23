@@ -801,6 +801,18 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     (win rate 64% -> 55%). It does cut the worst trade (-23.4% -> -15.6%). Same shape as #35's "you are paid for buying
     while it is still falling". NOT A VERDICT ON HIS RULE (13g): what is missing is what separates a BURL from the bounces
     that come back, which only drawings of both can show. Not drawn yet (rule 10).
+    HIS CORRECTION: "I noticed burl cooled off rsi pretty quickly with its bounce" -- BURL's RSI went 26.5 -> 34.9 in three
+    hours while price rose 0.8%. `studies/backburner_coolshape.py` split the 1,866 trades whose RSI got back over 31
+    before the half by the SHAPE of that bounce (all known at the cooling close; saved = rule minus page, same trades):
+        the bounce                                  n     page     saved   reached the 12 EMA
+        fast (3h or less) AND price under half a bar  73   +1.61%   -0.58%   99%   <- BURL's shape
+        price bounced two normal bars or more        600   +1.94%   -0.17%   96%
+        RSI SLOW to cool: 4 to 6 hours               115   -0.84%   +0.12%   97%
+        RSI SLOW to cool: 7 hours or more             43   -1.56%   +0.02%   98%
+    BURL'S SHAPE IS COMMON AND USUALLY FINE: fast RSI and little price move still reach the EMA 99% of the time. BURL was
+    the unlucky one, not a pattern I can find. THE TRADES THAT GO WRONG ARE THE SLOW ONES -- RSI crawling back over 31
+    for 4+ hours -- which lose on average, and that is HIS OWN JBHT NOTE from round 1: "Slow, steady RSI cooling drops
+    are not good for buying". 158 trades, 8% of the pool. Next test, one variable: out at the open when the bounce is slow.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
