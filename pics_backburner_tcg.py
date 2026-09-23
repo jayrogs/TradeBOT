@@ -54,6 +54,12 @@ COMMODITY_FUTURES = {"CL_F", "BZ_F", "NG_F", "HO_F", "RB_F",
 # THIN CONTRACTS OUT (his words 2026-09-23: "Remove thinly traded completely"): a middle hourly volume under 150 contracts
 # over the last year -- aluminum ALI (12), oats ZO (11), dairy DC (18), rough rice ZR (84), orange juice OJ (105), mini gas
 # QG (68), mini oil QM (122), palladium PA (138). Their candles are gappy and one order can move them.
+# HOW THE MONEY GOES IN (#53, his pick 2026-09-23: "Okay we can do 5 at once"). The account is 5 buckets; a trade gets one.
+# The WHOLE bucket buys at the touch of RSI 30. The later buys (20 for stocks and futures; 25 and 20 for crypto, at 2x and
+# 3x the first) are ADDED ON TOP out of spare cash when they happen, never borrowed. The old way split each bucket and left
+# half of it waiting for an RSI 20 that comes about one trade in six. backburner_sizing: +46.6% a year, worst drop -14.7%,
+# against +25.7% / -8.4% the old way (SPY +18.5% / -19.0%), 2022-09 .. 2026-09.
+ACCOUNT = dict(buckets=5, first_buy="the whole bucket at RSI 30", later_buys="on top, from spare cash, when they happen")
 NEWS_GAP = 2.0                 # HIS NEWS / EARNINGS SKIP (#49): a stock that opened with a gap this many daily normal bars
 SECTOR_CALM = 1.0              # ... on the buy day or the day before, while its sector fund gapped under this: company news
 RUN_PCT_MIN = 10.0             # HIS RULE: the 20-day run must be at least this many PERCENT (a real-size run up).

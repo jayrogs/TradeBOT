@@ -1101,6 +1101,9 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     +37.6 / +60.5, -17.8% (-29.0%) | 3 +52.4% / +41.1 / +58.0, -16.8% (-20.9%) | 4 +46.3%, -16.8% | 5 +46.6% / +42.0 /
     +51.8, -14.7% (-18.7%) | 6 +43.7%, -13.4%. THE MOST IS 3 AT ONCE; 1 makes the same with far bigger drops; 5 makes a
     few % less typically but its UNLUCKY case (+42.0%) is as good as 3's (+41.1%) with a smaller drop.
+    HE PICKED 5 AT ONCE ("Okay we can do 5 at once"). ACCOUNT in pics_backburner_tcg and the /backburners rules say it: 5
+    buckets, the whole bucket at RSI 30, the later buys on top from spare cash. OPEN QUESTION PUT TO HIM: on crypto the
+    pyramid then means +2x and +3x a bucket at 25 and 20 -- up to 6 buckets in one coin on a deep flush, if cash is free.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
