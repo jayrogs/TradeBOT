@@ -1124,6 +1124,14 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     A MISTAKE ON THE WAY: I first wrote this as backburner_live.py, which already existed (the older 5m detector the
     scanner and pics_backburner use) -- overwritten, restored from git the same minute, the new code renamed bb_live.py.
     LOOK BEFORE WRITING A FILE NAME THAT SOUNDS LIKE IT MIGHT EXIST.
+    AND A BIGGER ONE, FOUND BY THE LIVE LOOP (same hour): server.py starts its loops with module-level threads, and
+    something in the server uses a pool of worker processes; on Windows every worker RE-IMPORTS server.py, so every loop
+    ran again inside every worker -- 20 copies. The new live loop then launched 21 copies of an 8-core pass at once
+    (killed within minutes). The old loops had been running 20 copies of their Yahoo downloads the whole time, which is
+    a likely cause of the Yahoo rate limits. FIX: the loops start only when multiprocessing.current_process().name is
+    "MainProcess". After it: one server, one live pass. A dropped Polygon connection no longer kills a pass (each name
+    fails alone). Yahoo was still refusing the 24 futures an hour later; they are skipped and named on the page until it
+    recovers.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the

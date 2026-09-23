@@ -1245,11 +1245,17 @@ def _live_loop():
 
 
 import threading
-threading.Thread(target=_live_loop, daemon=True).start()
-threading.Thread(target=_bb_loop, daemon=True).start()
-threading.Thread(target=_bb_live_loop, daemon=True).start()
-threading.Thread(target=_ride_loop, daemon=True).start()
-threading.Thread(target=_eq_loop, daemon=True).start()
+# THE LOOPS START IN THE REAL SERVER PROCESS ONLY (2026-09-23). Something in the server uses a pool of worker processes;
+# on Windows each worker RE-IMPORTS this file, and these module-level lines then started every loop again inside every
+# worker -- 20 copies of each. Found when the new live-backburner loop launched 21 copies of an 8-core pass at once.
+# (It had also been running 20 copies of the old loops' Yahoo downloads, which is a likely cause of the rate limits.)
+import multiprocessing as _mp
+if _mp.current_process().name == "MainProcess":
+    threading.Thread(target=_live_loop, daemon=True).start()
+    threading.Thread(target=_bb_loop, daemon=True).start()
+    threading.Thread(target=_bb_live_loop, daemon=True).start()
+    threading.Thread(target=_ride_loop, daemon=True).start()
+    threading.Thread(target=_eq_loop, daemon=True).start()
 
 
 

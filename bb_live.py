@@ -70,13 +70,18 @@ def _polygon(sym, span, start, key):
     end = pd.Timestamp.now(tz="America/New_York").strftime("%Y-%m-%d")
     url = ("https://api.polygon.io/v2/aggs/ticker/%s/range/1/%s/%s/%s?adjusted=true&sort=asc&limit=50000"
            % (sym, span, start, end))
+    r = None
     for attempt in range(5):
-        r = requests.get(url, params={"apiKey": key}, timeout=30)
+        try:
+            r = requests.get(url, params={"apiKey": key}, timeout=30)
+        except Exception:                 # a dropped connection is one name's problem, never the whole pass's
+            time.sleep(2 + 3 * attempt)
+            continue
         if r.status_code == 429:
             time.sleep(2 + 3 * attempt)
             continue
         break
-    if r.status_code != 200:
+    if r is None or r.status_code != 200:
         return None
     rows = r.json().get("results") or []
     if not rows:
@@ -104,6 +109,13 @@ def _join(old, new):
 
 
 def _stock_frames(sym, kind, key):
+    try:
+        return _stock_frames_(sym, kind, key)
+    except Exception:
+        return None, None
+
+
+def _stock_frames_(sym, kind, key):
     fr = S.frames_for(sym, kind)
     h1, d1 = fr.get("1h"), fr.get("1d")
     if h1 is None or d1 is None:
