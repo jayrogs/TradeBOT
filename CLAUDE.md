@@ -1025,7 +1025,12 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     listed it late; he: "BNB's been around forever tho") and on the first run it "led" 58 coins by being measured over a
     different, recent stretch -- a leader now must have data from at least as early as the coin. (2) Correlation finds the
     coin a name moves MOST LIKE, not the one it FOLLOWS: DOT "leads" 42 coins because it is a very typical alt. A real
-    leader read needs timing (who moves first), not likeness. Offered: BNB's full history from Binance's public data.
+    leader read needs timing (who moves first), not likeness.
+    BNB BACKFILLED (his yes, same day): `backfill_binance.py BNB` pulled 69,661 hourly bars 2017-11-06 .. 2025-10-22 from
+    Binance's public mirror (data-api.binance.vision; api.binance.com answers 451 from the US) IN FRONT of the Coinbase
+    file, seam 1067.39 -> 1072.85; original kept in history/_backup/. On full history BNB leads 3 coins, not 58. The crypto
+    pool gains BNB's own trades (361, +3.04% a trade). The leader split is unchanged in substance: with his matching,
+    oversold-too +3.08% (43), weak-not-flushed +2.60% (106), fine +3.55% (149). Page unchanged.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
