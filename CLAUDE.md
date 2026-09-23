@@ -767,6 +767,24 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
 
+44d. THE RUN IN PLAIN PERCENT, AND THE ACCOUNT (2026-09-22). On the matched /messymark set (every run 5.6-7.5 normal
+    bars) he rejected IWD (+3%), XYL (+5%, "just a beautiful uptrend ema rider, not a run up for a backburner really")
+    and XLC (+5%), and would trade the seven that ran +7% to +230%. HE WAS NOT JUDGING WANDERING, HE WAS JUDGING SIZE --
+    and my run measure, in the name's own normal bars, cannot see size: a quiet fund's normal bar is tiny, so +3% scores
+    like +45%. `run_pct` (the 20-day move in percent) is now recorded on every trade.
+    PER TRADE (`studies/backburner_run.py` -> validation/backburner_run_pct.json): under 5% +0.40% (119), 5-7% +0.37%
+    (167), 7-10% +0.24% (473), 10-20% +0.52% (1,160), 20%+ +1.70% (909, 10 of 11 years). SHIPPED: RUN_PCT_MIN = 6.0 in
+    pics_backburner_tcg -- his line; it removes 6% of the trades and costs nothing (+0.86% vs +0.84%).
+    THE ACCOUNT (`studies/backburner_runwallet.py` -> validation/backburner_runwallet.json; stocks + ETFs, cash, 60 runs,
+    4.9 years; a year / worst dip at closes):
+        runs taken      5 slots          10 slots         20 slots
+        6%+ (the page)  +28.6% / -10.5%  +22.7% / -9.0%   +16.6% / -5.7%
+        10%+            +32.6% / -8.6%   +25.3% / -8.2%   +15.8% / -6.1%
+        20%+            +23.5% / -11.2%  +15.5% / -7.0%   +8.4% / -3.5%
+    HIS #29 WAS RIGHT AGAIN: 20%+ makes double per trade and LESS A YEAR (114 trades a year against 312). 10%+ is the
+    one that beats the page at 5-10 slots (+2.6 to +4.0% a year, 10-90% bands apart, a shallower dip), and ties at 20.
+    NOT SHIPPED: his call.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:

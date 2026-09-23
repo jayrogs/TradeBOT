@@ -44,6 +44,7 @@ COST = L.COST
 
 
 FRESH_MIN = 2.0                # HIS RULE: the run must clear its own 60-day high by this many daily normal bars
+RUN_PCT_MIN = 6.0              # HIS RULE: the 20-day run must be at least this many PERCENT (a real-size run up)
 CLEAN_MIN = 0.60               # a clean run: this share of the last 20 daily bars made a higher low than the day before
 DISASTER_BARS = 6.0            # the only line while the hourly is still oversold: a "day loser", not a chart stop
 
@@ -421,6 +422,10 @@ def trades_for(sym, kind, v=None):
         if not (np.isfinite(s_fresh[m_]) and s_fresh[m_] >= FRESH_MIN):
             continue      # HIS RULE (2026-09-22): "previous price history was already at the levels we were looking
                           # at now .. that's not a significant run up, it's just oscillations."
+        if not (np.isfinite(s_run_pct[m_]) and s_run_pct[m_] >= RUN_PCT_MIN):
+            continue      # HIS RULE (2026-09-22, /messymark): IWD +3%, XYL +5%, XLC +5% were "not a big run up" / "a
+                          # beautiful uptrend ema rider, not a run up for a backburner". Measured in normal bars all three
+                          # looked big; in plain percent they are small. Removes 6% of trades at no cost (backburner_run_pct).
         # NO SEPARATE CLEAN-RUN FILTER. I fitted "the share of the last 20 daily bars making a higher low" to his 14 grades
         # and it looked like it split them; coded with the study's own window it keeps BHP (0.70, which he rejected
         # twice) and drops UNP and HLT (both of which he liked). That is an overfit on 14 points, not his eye. The
