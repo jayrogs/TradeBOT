@@ -44,6 +44,8 @@ COST = L.COST
 
 
 FRESH_MIN = 2.0                # HIS RULE: the run must clear its own 60-day high by this many daily normal bars
+NEWS_GAP = 2.0                 # HIS NEWS / EARNINGS SKIP (#49): a stock that opened with a gap this many daily normal bars
+SECTOR_CALM = 1.0              # ... on the buy day or the day before, while its sector fund gapped under this: company news
 RUN_PCT_MIN = 10.0             # HIS RULE: the 20-day run must be at least this many PERCENT (a real-size run up).
                                # 6% was his eye on /messymark; 10% is his pick after the account test (backburner_runwallet:
                                # +25.3% a year at 10 slots vs +22.7% at 6%, 20%+ only +15.5%). 2026-09-22.
@@ -379,6 +381,40 @@ CRYPTO_BUYS = dict(bids=[25, 20], dollars={30: 10.0, 25: 20.0, 20: 30.0},
                    trim=("up3", 0.25))   # and a quarter more sells 3 normal bars over the buy (#48, his pick, crypto only)
 
 
+_SMAP = None
+
+
+def _news_days(sym, kind, sdf):
+    """The days a STOCK's own news hit it (#49): the day it opened with a gap of NEWS_GAP daily normal bars or more (either
+    way) while its sector fund's gap was under SECTOR_CALM of its own -- and the day after, since an after-close report
+    gaps the next morning and the dip can come a day later. Known at the open, before any hourly buy that day."""
+    global _SMAP
+    if _SMAP is None:
+        _SMAP = json.load(open(os.path.join("validation", "sector_map.json")))
+
+    def gaps(d):
+        o_ = d["Open"].values.astype(float); c_ = d["Close"].values.astype(float); a_ = P._atr(d)
+        ix = pd.DatetimeIndex(d.index)
+        ix = (ix.tz_localize(None) if ix.tz is not None else ix).normalize()
+        out_ = {}
+        for q in range(1, len(ix)):
+            if np.isfinite(a_[q - 1]) and a_[q - 1] > 0:
+                out_[ix[q]] = ((o_[q] - c_[q - 1]) / a_[q - 1], ix[q + 1] if q + 1 < len(ix) else None)
+        return out_
+    mine = gaps(sdf)
+    lead = _SMAP.get("%s|%s" % (kind, sym))
+    lk, ls = (lead[0].split("|") if lead and lead[0] != "%s|%s" % (kind, sym) else ("etf", "SPY"))
+    sd = S.frames_for(ls, lk).get("1d")
+    sec = gaps(sd) if sd is not None else {}
+    days = set()
+    for day, (g, nxt) in mine.items():
+        if abs(g) >= NEWS_GAP and abs(sec.get(day, (0.0, None))[0]) < SECTOR_CALM:
+            days.add(day)
+            if nxt is not None:
+                days.add(nxt)
+    return days
+
+
 def trades_for(sym, kind, v=None):
     if v is None:                                   # the page's own rules unless a study passes a variant
         v = dict(STOP, **CRYPTO_BUYS) if kind == "crypto" else STOP
@@ -416,6 +452,9 @@ def trades_for(sym, kind, v=None):
                        d12=L.align_to(df, "1h", frames, "1d", XM.ema(sdf["Close"].values.astype(float), 12)),
                        ylow=ylow, top=np.nan)
     sc = sdf["Close"].values.astype(float)
+    news_days = set()
+    if kind == "stock" and v.get("news_skip", True):
+        news_days = _news_days(sym, kind, sdf)
     satr = P._atr(sdf)
     run = np.full(len(sc), np.nan)
     run[T.RUN_LOOK:] = (sc[T.RUN_LOOK:] - sc[:-T.RUN_LOOK]) / np.where(satr[T.RUN_LOOK:] > 0, satr[T.RUN_LOOK:], np.nan)
@@ -501,6 +540,10 @@ def trades_for(sym, kind, v=None):
         if not (np.isfinite(s_fresh[m_]) and s_fresh[m_] >= FRESH_MIN):
             continue      # HIS RULE (2026-09-22): "previous price history was already at the levels we were looking
                           # at now .. that's not a significant run up, it's just oscillations."
+        if news_days:
+            t_ = pd.Timestamp(df.index[k])
+            if (t_.tz_localize(None) if t_.tz is not None else t_).normalize() in news_days:
+                continue      # HIS RULE (2026-09-23): "we absolutely need a news earnings skip, it muddies the water way too much"
         if not (np.isfinite(s_run_pct[m_]) and s_run_pct[m_] >= RUN_PCT_MIN):
             continue      # HIS RULE (2026-09-22, /messymark): IWD +3%, XYL +5%, XLC +5% were "not a big run up" / "a
                           # beautiful uptrend ema rider, not a run up for a backburner". Measured in normal bars all three

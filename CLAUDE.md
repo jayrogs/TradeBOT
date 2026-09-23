@@ -645,7 +645,7 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         DONE  the stop sold on the drop candle (JBHT) | "still sold while oversold" (MNST) | the old high was an odd
               target (CDNS) -> the stop walks under higher lows, no target | the run must reach fresh levels (this one)
         OPEN  a bounce that COOLS THE RSI should end the setup and the wide stop with it (BURL, and the e-book's own
-              expiry) | NEWS AND EARNINGS out (FIX was 2025-01-27, the DeepSeek crash; UNP was 2024-08-05) | the stop
+              expiry) | ~~NEWS AND EARNINGS out~~ DONE #49 | the stop
               under the DAILY higher low, not the hourly one (ETH) -- ONLY WHEN THE SECTOR HAS MOMENTUM, read from ratio
               charts (his words 2026-09-23: "that's what I would do, if I think the sector is getting more momentum.
               Sector momentum is best identified with ratio charts"; step 1 is backburner_sector.py) | take more off after a big bounce, thirds (HLT) |
@@ -945,6 +945,25 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     yet (rule 10); his call.
     HE PICKED CRYPTO ONLY (2026-09-23). On stocks it gives up about 0.07% a trade (3 of 6 years better) for the smoother
     ride, and he chose the money. CRYPTO_BUYS now carries trim=("up3", 0.25). Stocks unchanged.
+
+49. THE NEWS / EARNINGS SKIP, SHIPPED (2026-09-23, his words: "we absolutely need a news earnings skip, it muddies the water way
+    too much, adds so many variables. That's why I like crypto, it's always going so it kind of constantly prices stuff
+    in"). His round-6 rejects were news: CORZ opened -18% the day CoreWeave announced it was buying Core Scientific; SPGI
+    -6% on its earnings morning. `studies/backburner_news.py` -> validation/backburner_news.json.
+    VERSION 1, any opening gap of N daily normal bars on the buy day or the day before, stocks + ETFs: the big gaps are the
+    worse trades (3+ normal days: 37 trades, -0.94% each) -- BUT it also caught WHOLE-MARKET news (2026-04-08 every energy
+    name gapped with oil; 2026-01-30 the gold and silver names), and most of those WON.
+    CHECKED AGAINST THE REAL EARNINGS CALENDAR (the brokerage tool's get_earnings_results): CRWD 2026-06-04 and CSCO
+    2026-02-12 were the mornings after their reports; COF 2026-01-12 and CHRW 2026-07-24 were other company news. So the gap
+    catches earnings AND company news, which is what he asked for.
+    VERSION 2 = THE RULE: STOCKS ONLY, a gap of 2+ daily normal bars while the stock's SECTOR FUND gapped under 1 of its own
+    (company news, not the market), on the buy day or the day after the gap:
+        skipped (company news)         68 trades   +0.04% a trade   won 47%   worst 1 in 20 -7.6%
+        big gaps it keeps (sector too) 45 trades   +0.97%            won 73%
+        everything kept             1,660 trades   +0.86%            won 63%   (was +0.82% / 62% on 1,728)
+    The skipped trades made nothing and carried the worst losses; the total money is unchanged. NEWS_GAP / SECTOR_CALM /
+    _news_days in pics_backburner_tcg. Crypto and ETFs are not touched (no earnings). News with no opening gap (mid-day
+    headlines) is not caught.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
