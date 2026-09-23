@@ -205,8 +205,22 @@ def _fresh(h1, kind, now):
     return now - last <= limit
 
 
+def _databento_hourly(log):
+    """keep the CME futures history current from his Databento credit (databento_recent.py: budget-guarded, about once
+    an hour; his OK "yes u can handle 1.50 a year")."""
+    try:
+        sp = os.path.join("livelog", "databento_spend.json")
+        last = pd.Timestamp(json.load(io.open(sp, encoding="utf-8"))[-1]["at"]) if os.path.exists(sp) else None
+        if last is None or pd.Timestamp.now() - last >= pd.Timedelta(minutes=55):
+            import databento_recent
+            databento_recent.main(log=log)
+    except Exception as ex:
+        log("databento_recent failed: %s" % ex)
+
+
 def tick(log=print):
     t0 = time.time()
+    _databento_hourly(log)
     import crypto
     pool = [(s_, k_) for s_, k_ in S.universe()
             if (k_ in ("stock", "etf", "crypto") or (k_ == "futures" and s_ in PB.COMMODITY_FUTURES))
@@ -228,7 +242,7 @@ def tick(log=print):
         src = {str(x.sym): x.source for x in cu.itertuples()}
     except Exception:
         src = {}
-    arm, opn, errs, seen, stale = [], [], 0, 0, []
+    arm, opn, errs, seen, stale, ages = [], [], 0, 0, [], {}
     now_ny = pd.Timestamp.now(tz="America/New_York").tz_localize(None)
     now_utc = pd.Timestamp.utcnow().tz_localize(None)
     jobs = []
@@ -241,7 +255,11 @@ def tick(log=print):
                 ls_ = lead[0].split("|")[1] if lead and lead[0] != "%s|%s" % (kind, sym) else "SPY"
                 sector = (sfr.get(ls_) or (None, None))[1]
             elif kind == "futures":
-                h1 = _join(S.frames_for(sym, kind).get("1h"), yrec.get(FUT_YAHOO(sym)))
+                h0 = S.frames_for(sym, kind).get("1h")
+                yr = yrec.get(FUT_YAHOO(sym))
+                if h0 is not None and yr is not None:
+                    yr = yr[yr.index > pd.DatetimeIndex(h0.index)[-1]]      # Yahoo only for the hours Databento has not got
+                h1 = _join(h0, yr)
                 d1 = _session_daily(h1) if h1 is not None else None
             else:
                 if sym not in src:
@@ -257,6 +275,7 @@ def tick(log=print):
                 stale.append(sym)
                 continue
             seen += 1
+            ages[sym] = round(((now_utc if kind == "crypto" else now_ny) - pd.Timestamp(h1.index[-1])).total_seconds() / 3600, 1)
             jobs.append((sym, kind, _frames(h1, d1), sector))
         except Exception:
             errs += 1
@@ -268,6 +287,8 @@ def tick(log=print):
             opn += o
             if err:
                 errs += 1
+    for x in arm + opn:
+        x["data_age_h"] = ages.get(x["sym"])
     arm.sort(key=lambda x: -x["away"])          # nearest to its buy price first
     out = dict(updated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), names=seen, errors=errs, stale=stale,
                seconds=int(time.time() - t0), account=PB.ACCOUNT, armed=arm, open=opn)

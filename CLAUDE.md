@@ -1132,6 +1132,16 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     "MainProcess". After it: one server, one live pass. A dropped Polygon connection no longer kills a pass (each name
     fails alone). Yahoo was still refusing the 24 futures an hour later; they are skipped and named on the page until it
     recovers.
+    FUTURES FROM HIS DATABENTO CREDIT (his OK: "yes u can handle 1.50 a year"; ~$5.34 of the $125 credit was left).
+    `databento_recent.py` appends ohlcv-1h for the 19 CME roots of the pool to history/futures/<ROOT>_F_1h.csv.gz from the
+    last bar to about 7 hours ago -- WITHOUT A PAID SUBSCRIPTION DATABENTO SERVES CME ONLY UP TO ~6-7 HOURS AGO (exchange
+    licensing), and it reads the exact cutoff from Databento's refusal if the window moves. BUDGET ENFORCED IN CODE: the
+    price is asked first (free), a pull over $0.05 is refused, every pull is logged in livelog/databento_spend.json and
+    nothing is pulled once the last 365 days reach $2.00. The catch-up (Sep 3 -> Sep 23) cost $0.0474 for 4,641 bars;
+    a day costs about $0.004. bb_live runs it about once an hour; Yahoo fills ONLY the hours after Databento's last bar.
+    The five ICE contracts (BZ, CC, KC, SB, CT) are not on his Databento plan and stay on Yahoo. Backups of every futures
+    1h file before the first append: history/_backup/futures_1h_2026-09-23/. The page shows a futures or crypto name's
+    data age when it is over 2 hours.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the

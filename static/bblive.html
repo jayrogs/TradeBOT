@@ -28,7 +28,7 @@
 <header>
   <h1>Backburners, live</h1>
   <div class="sub">The same trade code the tests run, on live data, every 15 minutes. Stocks from Polygon (about 15 minutes late),
-    crypto from Coinbase / Kraken, commodity futures from Yahoo. <b>Read-only: nothing here places an order.</b></div>
+    crypto from Coinbase / Kraken, commodity futures from Databento (up to about 7 hours ago) plus Yahoo for the last hours. <b>Read-only: nothing here places an order.</b></div>
   <div style="margin-top:10px">Account size $ <input id="acct" type="number" min="0" step="1000">
     <span class="dim" style="margin-left:10px">5 buckets &rarr; one bucket = <b id="bucket" style="color:var(--fg)"></b></span></div>
   <div id="status" style="margin-top:8px"></div>
@@ -84,7 +84,8 @@ function render() {
       mult = Math.max(0, Math.min(mult, cap - used)); used += mult;
       return mult > 0 ? `${money(B * mult)} at ${pr(px)} (RSI ${lv})` : `<span class="faint">RSI ${lv}: none (${cap}-bucket cap)</span>`;
     }).join(', ');
-    h += `<tr><td class="l"><b>${a.sym}</b></td><td class="l"><span class="pill">${mk(a.kind)}</span></td><td>${pr(a.price)}</td>
+    const age = a.data_age_h > 2 && (a.kind === 'futures' || a.kind === 'crypto') ? ` <span class="amber" title="the last bar this name has">(data ${a.data_age_h.toFixed(0)}h old)</span>` : '';
+    h += `<tr><td class="l"><b>${a.sym}</b>${age}</td><td class="l"><span class="pill">${mk(a.kind)}</span></td><td>${pr(a.price)}</td>
           <td class="good"><b>${pr(a.buy_at)}</b></td><td class="${a.away > -3 ? 'amber' : 'dim'}">${a.away.toFixed(1)}%</td>
           <td>${money(B)}</td><td class="l dim">${later || '&mdash;'}</td></tr>`;
   }
@@ -95,7 +96,8 @@ function render() {
   if (!DATA.open.length) o += `<tr><td class="l dim" colspan="9">no open trades</td></tr>`;
   for (const t of DATA.open) {
     const lv = (t.levels && t.levels.length ? t.levels : [30, 20].slice(0, t.fills.length)).join(' + ');
-    o += `<tr><td class="l"><b>${t.sym}</b></td><td class="l"><span class="pill">${mk(t.kind)}</span></td><td class="l">${t.bought.slice(0, 16)}</td>
+    const tage = t.data_age_h > 2 && (t.kind === 'futures' || t.kind === 'crypto') ? ` <span class="amber">(data ${t.data_age_h.toFixed(0)}h old)</span>` : '';
+    o += `<tr><td class="l"><b>${t.sym}</b>${tage}</td><td class="l"><span class="pill">${mk(t.kind)}</span></td><td class="l">${t.bought.slice(0, 16)}</td>
           <td class="l">RSI ${lv}</td><td>${pr(t.entry)}</td><td>${pr(t.now)}</td>
           <td class="${t.pct_now >= 0 ? 'good' : 'bad'}">${t.pct_now >= 0 ? '+' : ''}${t.pct_now.toFixed(2)}%</td>
           <td>${t.half_sold ? '<span class="good">sold</span>' : 'sell at ' + pr(t.half_at)}</td><td class="bad">${pr(t.stop)}</td></tr>`;
