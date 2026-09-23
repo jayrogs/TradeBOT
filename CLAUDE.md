@@ -1009,6 +1009,24 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     HE GRADED THE REDRAWN SEVEN (set backburners7b): ALL SEVEN GOOD, winners and losers alike. The futures backburner looks
     right to him on real data.
 
+51. EACH COIN'S OWN LEADER, AND DAN'S LEADER RULE ON CRYPTO (2026-09-23, his XRP note: "most crypto names are paired with a
+    specific larger crypto name ... BTC, certain coins move with eth, others with solana ... weaker names will dip harder";
+    then "check for other leaders too ... all of them"). `studies/backburner_cryptolead.py` ->
+    validation/backburner_cryptolead.json: each coin matched to the big coin its DAILY returns move with most, on the FIRST
+    HALF of its history, a leader only from coins bigger than it; then the page's 341 crypto trades split by the leader's
+    hourly RSI at the last close before the buy. Nothing about the trade changed.
+        the leader at the buy          his matching (16 big coins)     the old way (all follow BTC)
+        oversold too (35 or under)     +3.08%  mid +1.37%  (40)         +4.09%  mid +3.28%  (43)
+        weak, not flushed (35-45)      +2.50%  mid +1.91%  (98)         +3.13%  mid +1.62%  (102)
+        fine (over 45)                 +3.66%  mid +3.11%  (140)        +2.90%  mid +2.79%  (133)
+    With his matching the weak-not-flushed group is the worst, which is Dan's warning -- but every group makes +2.5 to +4%
+    and the groups are 40-140 trades over 4-9 years. AS CODED IT DOES NOT SEPARATE ENOUGH TO CHANGE THE PAGE (13g: my
+    version, not a verdict). TWO FLAWS FOUND ON THE WAY: (1) BNB is in our data only from 2025-10-22 (Coinbase and Kraken
+    listed it late; he: "BNB's been around forever tho") and on the first run it "led" 58 coins by being measured over a
+    different, recent stretch -- a leader now must have data from at least as early as the coin. (2) Correlation finds the
+    coin a name moves MOST LIKE, not the one it FOLLOWS: DOT "leads" 42 coins because it is a very typical alt. A real
+    leader read needs timing (who moves first), not likeness. Offered: BNB's full history from Binance's public data.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
