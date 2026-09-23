@@ -821,6 +821,29 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     that is a read on the DROP, knowable BEFORE the buy, and it is the next test. (#38's crude "waterfall" read added
     nothing on the old, looser pool; it has not been tried on the 10%-run pool.)
 
+44f. WHERE THE BUYS GO, AND HOW FAST THE DIP (2026-09-23). His words: "be clear when you're buying too. I think it's just rsi
+    30 and 20. Maybe we try 25 also, as long as the rsi hasn't closed above 31, aka cooled down".
+    THE PAGE'S BUYS: the first at the RSI-30 price inside the candle; one equal order resting at RSI 20 for up to 12
+    hours, pulled once RSI has CLOSED above 40. Now switches `bids` and `cancel_second` in pics_backburner_tcg.
+    `studies/backburner_bids.py` -> validation/backburner_bids.json, 2,069 trades, paired on the first buy. "bullets" =
+    return x buys filled = money made per trade counted in first-buy sizes (the fair number when one version adds more):
+        the buys                                   avg     won   buys   bullets  5% worst (bullets)  vs now  years
+        NOW: 30 + 20, pulled over 40              +1.04%   64%   1.16   +0.86%   -6.6%               --      --
+        A: 30 + 20, pulled over 31 (his cooling)  +0.92%   63%   1.12   +0.81%   -6.7%              -0.05%   4/11
+        B: 30 + 25 + 20, pulled over 31           +1.08%   66%   1.45   +1.05%   -9.3%              +0.19%   9/11
+        C: 30 + 25, pulled over 31                +0.95%   64%   1.33   +0.93%   -9.2%              +0.07%   7/11
+        D: 30 only                                +0.70%   61%   1.00   +0.70%   -6.2%              -0.15%   4/11
+    Scaling in pays (D is the worst, as #35 found). B makes the most money a trade and wins most often, crypto most of
+    all (+0.74 bullets), BUT PER DOLLAR IT IS A WASH: 1.05/1.45 = 0.72 a buy against 0.86/1.16 = 0.74 now. It makes
+    more by putting more money into the same trades, and its bad trades are bigger (-9.3% vs -6.6% at 1 in 20).
+    HOW FAST THE DIP CAME (`studies/backburner_dipspeed.py` -> validation/backburner_dipspeed.json; at the first buy,
+    hours since the top of the last 50 hourly bars and normal bars fallen per hour; nothing after the buy):
+        top to buy in 5 hours or less   +1.68% (101)   6-10 hours +1.39% (306)   11-20 +0.87% (642)   21+ +0.98% (1,020)
+        speed, quarters of the pool     slowest +0.98%   second +0.91%   third +0.82%   FASTEST +1.44% (10 of 10 years)
+    HE IS RIGHT THAT THE FASTEST DIPS ARE THE BEST (about +0.45% a trade over the rest). THE SLOWEST ARE NOT THE WORST:
+    the middle is. So it is not a "skip slow dips" filter; cutting to the fastest quarter throws out 75% of the trades
+    (#29). Its natural use is choosing which signal gets a slot when the slots are full. Not built.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:

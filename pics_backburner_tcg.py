@@ -476,14 +476,23 @@ def trades_for(sym, kind, v=None):
         # number is still recorded on every trade so the page can show it -- and he is marking daily runs on /cleanruns
         # so the measure can be built from his marks instead of my guess.
         a = atr[m_]
+        # THE BUYS, in his words (2026-09-22): "I think it's just rsi 30 and 20. Maybe we try 25 also, as long as the rsi
+        # hasn't closed above 31, aka cooled down." First buy at the RSI-30 price inside the candle; then one equal-size
+        # order resting at each level in v["bids"] (default 20) for SECOND_BID_BARS hours, all pulled once RSI has
+        # CLOSED above v["cancel_second"] (default 40, the page until he picks; his rule is 31). One unit per level, the
+        # position price is their average. A candle that falls through several levels fills each of them.
         fills = [float(min(o[k], p30[k]))]; fill_bars = [int(k)]; e_last = k
+        levels = [(lv, D.rsi_price(c, au, ad, lv) if lv not in (20, 30) else (p20 if lv == 20 else p30))
+                  for lv in sorted(v.get("bids", [20]), reverse=True)]
         for j in range(k, min(n - 1, k + D.SECOND_BID_BARS)):
-            if j > k and rsi[j - 1] > v.get("cancel_second", 40):
-                break     # the second bid is pulled once a bounce has cooled the RSI past this (his BURL rule, v2:
-                          # "the long stop is for when we are scaling in during a SOLID dip" -- no adding after a bounce)
-            if np.isfinite(p20[j]) and l[j] <= p20[j]:
-                fills.append(float(min(o[j], p20[j])) if j > k else float(p20[j])); fill_bars.append(int(j)); e_last = j
+            if not levels:
                 break
+            if j > k and rsi[j - 1] > v.get("cancel_second", 40):
+                break     # pulled: a bounce has cooled the RSI (his BURL rule: no adding once it has bounced)
+            while levels and np.isfinite(levels[0][1][j]) and l[j] <= levels[0][1][j]:
+                lp = levels[0][1][j]
+                fills.append(float(min(o[j], lp)) if j > k else float(lp)); fill_bars.append(int(j)); e_last = j
+                levels.pop(0)
         entry = float(np.mean(fills))
         stop = min(fills) - DISASTER_BARS * a
         rp = (entry - stop) / entry * 100
