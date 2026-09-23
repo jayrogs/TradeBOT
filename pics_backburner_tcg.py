@@ -44,7 +44,9 @@ COST = L.COST
 
 
 FRESH_MIN = 2.0                # HIS RULE: the run must clear its own 60-day high by this many daily normal bars
-RUN_PCT_MIN = 6.0              # HIS RULE: the 20-day run must be at least this many PERCENT (a real-size run up)
+RUN_PCT_MIN = 10.0             # HIS RULE: the 20-day run must be at least this many PERCENT (a real-size run up).
+                               # 6% was his eye on /messymark; 10% is his pick after the account test (backburner_runwallet:
+                               # +25.3% a year at 10 slots vs +22.7% at 6%, 20%+ only +15.5%). 2026-09-22.
 CLEAN_MIN = 0.60               # a clean run: this share of the last 20 daily bars made a higher low than the day before
 DISASTER_BARS = 6.0            # the only line while the hourly is still oversold: a "day loser", not a chart stop
 

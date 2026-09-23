@@ -783,7 +783,7 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         20%+            +23.5% / -11.2%  +15.5% / -7.0%   +8.4% / -3.5%
     HIS #29 WAS RIGHT AGAIN: 20%+ makes double per trade and LESS A YEAR (114 trades a year against 312). 10%+ is the
     one that beats the page at 5-10 slots (+2.6 to +4.0% a year, 10-90% bands apart, a shallower dip), and ties at 20.
-    NOT SHIPPED: his call.
+    HE PICKED IT ("sure", 2026-09-22): RUN_PCT_MIN = 10.0 is now the page's rule.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
