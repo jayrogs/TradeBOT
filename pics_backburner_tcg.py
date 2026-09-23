@@ -59,7 +59,9 @@ COMMODITY_FUTURES = {"CL_F", "BZ_F", "NG_F", "HO_F", "RB_F",
 # 3x the first) are ADDED ON TOP out of spare cash when they happen, never borrowed. The old way split each bucket and left
 # half of it waiting for an RSI 20 that comes about one trade in six. backburner_sizing: +46.6% a year, worst drop -14.7%,
 # against +25.7% / -8.4% the old way (SPY +18.5% / -19.0%), 2022-09 .. 2026-09.
-ACCOUNT = dict(buckets=5, first_buy="the whole bucket at RSI 30", later_buys="on top, from spare cash, when they happen")
+ACCOUNT = dict(buckets=5, first_buy="the whole bucket at RSI 30", later_buys="on top, from spare cash, when they happen",
+               crypto_max_buckets=3)   # his "keep it however makes the most money": uncapped and a 3-bucket cap per coin both
+                                       # make +46.6% a year; the cap has the smaller drop (-14.1% vs -14.7%). 2 buckets +45.7%.
 NEWS_GAP = 2.0                 # HIS NEWS / EARNINGS SKIP (#49): a stock that opened with a gap this many daily normal bars
 SECTOR_CALM = 1.0              # ... on the buy day or the day before, while its sector fund gapped under this: company news
 RUN_PCT_MIN = 10.0             # HIS RULE: the 20-day run must be at least this many PERCENT (a real-size run up).
