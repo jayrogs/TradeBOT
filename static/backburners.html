@@ -43,26 +43,29 @@
   <div class="rule">
     1. The name just had <b>a big run UP OFF THE EMAs, to prices it has not been at recently</b> (your rule: if price was already
        at these levels, "that's not a significant run up, it's just oscillations"). You missed it. You do not chase it.<br>
-    2. You buy the <b>FIRST</b> time RSI touches <b>30</b> after that high &mdash; <b>inside the candle, at the touch</b>. A second buy waits at <b>20</b>.<br>
+    2. You buy the <b>FIRST</b> time RSI touches <b>30</b> after that high &mdash; <b>inside the candle, at the touch</b>. The run must be
+       <b>10% or more</b> in real price. <b>Stocks:</b> a second, equal buy waits at <b>20</b>. <b>Crypto:</b> $10k at 30, $20k at 25, $30k at
+       20 (deep dips snap back harder in crypto). The extra buys are pulled once RSI closes over 40.<br>
     3. The bigger uptrend is <b>still intact</b>. The drop is not news or earnings. The name trades heavily. Regular hours only.<br>
     4. <b>Nothing sells you while the hourly RSI is still 30 or under</b> &mdash; only a wide disaster line is live (round 4, your
        MNST note: "still sold while oversold"). Once the half is sold at the <b>12 EMA</b> AND RSI is back over 30, the stop goes
        <b>under the low of the drop</b>.<br>
     5. The rest has <b>no target</b>: the stop is walked up under each <b>higher low</b> and it sells on a close under the last one
        (the e-book's plan 3, and your own standard exit). "The old high" was my invention; nine ways to sell the rest are in the
-       table below, and no target beats this one. The dip on the hourly is there to mark the <b>daily higher low</b>.
+       table below, and no target beats this one. <b>Crypto only:</b> a quarter more sells 3 normal bars above the buy. The dip on the
+       hourly is there to mark the <b>daily higher low</b>.
   </div>
 </header>
 <main>
   <div id="nums"></div>
-  <div class="card warn"><b>Round 5: your run rule is on, and these are 16 trades you have never seen.</b>
-    <span class="sub">The pool now requires the run to clear its own 60-day high by 2 normal bars &mdash; your "not just oscillations"
-    rule. It throws out 1 trade in 5, and those were worth +0.65% a trade against +0.84% for the ones it keeps. Nothing else changed
-    since round 4: no stop at all while the hourly RSI is 30 or under, half at the 12 EMA, then the stop under the low of the drop
-    walked up under each higher low, out on a close under it, no target.<br><br>
-    <b>Still not built, from your earlier notes:</b> a bounce that cools the RSI should end the setup (BURL); news and earnings out
-    (FIX was the DeepSeek crash); the stop under the DAILY higher low instead of the hourly (ETH); taking more off after a big
-    bounce (HLT).</span></div>
+  <div class="card warn"><b>Round 6: everything from today is on, and these are 16 trades you have never seen &mdash; 12 stocks, 4 crypto.</b>
+    <span class="sub">What changed since round 5, one at a time and each tested on every trade:<br>
+    1. <b>The run must be 10%+ in real price</b> (your IWD / XYL / XLC rejects: +3 to +5% was "not a big run up").<br>
+    2. <b>Crypto buys pyramid</b>: $10k at 30, $20k at 25, $30k at 20. Stocks unchanged (30 and 20).<br>
+    3. <b>Crypto sells a quarter more</b> 3 normal bars above the buy, after the half. Stocks unchanged.<br>
+    4. The stop check no longer peeks at the end of the hour (it changed nothing, but it is honest now).<br><br>
+    <b>Look for:</b> does every one look like a backburner to you, and do the crypto buys and the extra sale sit where you would put them?<br><br>
+    <b>Still open:</b> news and earnings out; the stop under the DAILY higher low when the sector has momentum (parked with ratio charts).</span></div>
   <div id="stops"></div>
   <h2>Winners</h2><div id="wins"></div>
   <h2>Losers</h2><div id="losses"></div>
@@ -179,7 +182,7 @@ Promise.all([
   });
   const card = c => `<div class="card ${c.R > 0 ? 'win' : 'loss'}">
       <div class="line">${c.sym} <span style="color:var(--faint)">hourly</span> &middot; ${c.t}
-        &middot; ${c.fills.length == 1 ? 'one buy at 30' : 'bought at 30 and again at 20'}
+        &middot; ${(() => { const lv = c.fill_lv || [30, 20].slice(0, c.fills.length); const d = c.dollars; return d ? 'bought ' + lv.map(x => '$' + (d[x] ?? d[String(x)]) + 'k at ' + x).join(', ') : (lv.length == 1 ? 'one buy at 30' : 'bought at ' + lv.join(' and ')); })()}${c.trim_at != null ? ' &middot; a quarter more sold 3 bars up' : ''}
         &middot; first stop <b>${c.risk_pct.toFixed(2)}%</b> away &middot; <b>${pc(c.pct)}</b> (${rr(c.R)}) &middot; ${c.how}</div>
       <img src="/validation/backburner_tcg/${c.png}?v=${Date.now()}" loading="lazy" alt="${c.sym}">
       <div class="marks" data-id="${c.png}">
@@ -191,7 +194,7 @@ Promise.all([
       </div></div>`;
   $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
   $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
-  fetch('/api/tradenote?set=backburners5').then(r => r.json()).catch(() => ({})).then(notes => {
+  fetch('/api/tradenote?set=backburners6').then(r => r.json()).catch(() => ({})).then(notes => {
     notes = notes || {};
     document.querySelectorAll('.marks').forEach(m => {
       const id = m.dataset.id, prev = String(notes[id] || '');
@@ -205,7 +208,7 @@ Promise.all([
         const sp = m.querySelector('.saved');
         const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
         fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({set: 'backburners5', n: id, note: body})})
+          body: JSON.stringify({set: 'backburners6', n: id, note: body})})
           .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
                        setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
           .catch(fail);

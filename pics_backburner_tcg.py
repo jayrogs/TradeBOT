@@ -212,6 +212,14 @@ def _level(rule, j, ctx, entry, low0, a):
 
 
 def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p70, lows, v, ctx=None):
+    """The page's walk; also reports the extra quarter sale (#48) as trim_at / trim_px so the drawing can show it."""
+    extra = {}
+    r = _walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p70, lows, v, ctx, extra)
+    r.setdefault("trim_at", extra.get("trim_at")); r.setdefault("trim_px", extra.get("trim_px"))
+    return r
+
+
+def _walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p70, lows, v, ctx, extra):
     """Pieces come off one at a time; the stop under the low of the drop goes live when the first piece sells and
     applies to whatever is left. `lows` = every LIVE low confirmation (confirm bar, form bar, price), phantoms
     included (rule 40), for the walked stop."""
@@ -347,6 +355,8 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
             if px is None:
                 break
             got += share * (px - entry) / entry; sold += share
+            if v.get("trim") and rule == v["trim"][0]:
+                extra["trim_at"], extra["trim_px"] = int(j), float(px)
             pieces.pop(0)
             if half_at is None:
                 half_at, half_px = int(j), px
@@ -538,6 +548,7 @@ def trades_for(sym, kind, v=None):
         else:
             r = walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, s_top[m_], a, rsi, v)
         got.append(dict(sym=sym, kind=kind, k=int(k), e=int(e_last), entry=entry, fills=fills, fill_bars=fill_bars,
+                        fill_lv=[int(x_) for x_ in fill_lv], dollars=(v.get("dollars") or None),
                         stop=float(stop), risk_pct=float(rp), t=str(df.index[k]), run=float(s_run[m_]),
                         run_pct=float(s_run_pct[m_]) if np.isfinite(s_run_pct[m_]) else None,
                         clean=float(s_clean[m_]),
@@ -572,7 +583,11 @@ def draw(sym, df, sdf, tr, path):
     if tr.get("target"):
         hi = max(hi, min(tr["target"], hi * 1.08))
     rng = max(hi - lo, 1e-9)
-    ax.set_ylim(lo - 0.50 * rng, hi + 0.12 * rng)
+    # the lanes under price: one per buy, then the half, the extra quarter (crypto) and the exit, each 0.11 apart.
+    # Up to three buys now (crypto), so the bottom of the chart makes room for every lane (round 6: three labels
+    # hung off the plot when it was fixed at 0.50).
+    base_ = 0.08 + 0.07 * (len(tr["fills"]) - 1)
+    ax.set_ylim(lo - (base_ + 0.33 + 0.14) * rng, hi + 0.12 * rng)
     pad_x = max(18, int(0.16 * len(d)))
     ax.set_xlim(-1, len(d) + pad_x)
     plt.setp(ax.get_xticklabels(), visible=False)
@@ -599,12 +614,21 @@ def draw(sym, df, sdf, tr, path):
                              color=colr, fontsize=8.5, weight="bold", zorder=20)
             PR.keep_inside(ax, an)
     fb, fx = tr["fill_bars"], tr["fills"]
+    lvs = tr.get("fill_lv") or ([30, 20][:len(fx)])
+    dol = tr.get("dollars")
+    if dol:
+        # "\$": a PAIR of dollar signs is read by the chart library as a math formula ("$10k at 30, $" -> italics)
+        buy_txt = "bought " + ", ".join(r"\$%dk at %d" % (dol.get(str(lv_), dol.get(lv_, 0)), lv_) for lv_ in lvs)
+    else:
+        buy_txt = "buy at the touch of 30" if len(fx) == 1 else "bought at " + ", ".join(str(lv_) for lv_ in lvs)
     for i_, (b_, px_) in enumerate(zip(fb, fx)):
-        peg(b_ - x0, px_, lane(0.08 + 0.07 * i_), GREEN, "^",
-            ("buy at the touch of 30" if len(fx) == 1 else "bought at 30, again at 20") if i_ == len(fx) - 1 else None)
+        peg(b_ - x0, px_, lane(0.08 + 0.07 * i_), GREEN, "^", buy_txt if i_ == len(fx) - 1 else None)
+    base_ = 0.08 + 0.07 * (len(fx) - 1)
     if tr["half_at"] is not None:
-        peg(tr["half_at"] - x0, tr["half_px"], lane(0.08 + 0.07 * len(fx) + 0.10), AMBER, "o", "half off at the 12 EMA")
-    peg(end - x0, tr["exit_px"], lane(0.08 + 0.07 * len(fx) + 0.24), "#e6e9ee", "X", "out %+.2f%%" % tr["pct"])
+        peg(tr["half_at"] - x0, tr["half_px"], lane(base_ + 0.11), AMBER, "o", "half off at the 12 EMA")
+    if tr.get("trim_at") is not None:
+        peg(tr["trim_at"] - x0, tr["trim_px"], lane(base_ + 0.22), BLUE, "o", "a quarter more, 3 bars up")
+    peg(end - x0, tr["exit_px"], lane(base_ + 0.33), "#e6e9ee", "X", "out %+.2f%%" % tr["pct"])
     ax.set_title("%s hourly   first oversold after a run of %.0f daily bars   %+.2f%%  (%+.2fR against the disaster line)" % (
         sym, tr["run"], tr["pct"], tr["R"]), color="#e6e9ee", fontsize=11, loc="left", pad=8)
     # the RSI under it: the 30 line is the trigger
@@ -714,10 +738,20 @@ def main():
         picks = [r for r in rows if (r["kind"], r["sym"], r["k"]) in want]
         print("  --same %s: %d of his %d graded trades still pass today's rules" % (which, len(picks), len(want)))
     else:
-        rng = np.random.default_rng(20260921)
+        rng = np.random.default_rng(20260923)
+        if "--fresh" in sys.argv:
+            # round 6 (2026-09-23): crypto now trades differently (#45, #48), so four of the sixteen are crypto
+            def _pick(pool, nw, nl):
+                w_ = [r for r in pool if r["R"] > 0.15]; l_ = [r for r in pool if r["R"] <= -0.15]
+                return ([w_[i] for i in rng.choice(len(w_), nw, replace=False)]
+                        + [l_[i] for i in rng.choice(len(l_), nl, replace=False)])
+            picks = (_pick([r for r in rows if r["kind"] != "crypto"], 6, 6)
+                     + _pick([r for r in rows if r["kind"] == "crypto"], 2, 2))
+            rows_ = None
         wins = [r for r in rows if r["R"] > 0.15]
         losses = [r for r in rows if r["R"] <= -0.15]
-        picks = ([wins[i] for i in rng.choice(len(wins), 8, replace=False)]
+        if "--fresh" not in sys.argv:
+          picks = ([wins[i] for i in rng.choice(len(wins), 8, replace=False)]
                  + [losses[i] for i in rng.choice(len(losses), 8, replace=False)])
     by = {}
     for tr in picks:
