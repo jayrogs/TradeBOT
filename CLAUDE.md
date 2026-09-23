@@ -887,6 +887,26 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     pyramid is best (+2.38% vs +1.89% now, 8 of 10 years like the rest), at about triple the worst trade. This is also why
     backburner_split's account favoured all-in at 30 on stocks: when every dollar earns the same, money held back is idle.
 
+45. STOCKS AND CRYPTO BEHAVE DIFFERENTLY IN A DEEP DIP -- KEEP THIS (2026-09-23, his words: "very good finding, want to make
+    sure that's saved and put somewhere, cause that's very important behavior difference between sectors").
+    `studies/backburner_legbuys.py` -> validation/backburner_legbuys.json: every backburner with orders at RSI 30, 25 and
+    20, each BUY's own return per dollar, split by how deep the dip went (per dollar / won):
+                                                STOCKS + ETFs        CRYPTO
+        30 buy, price turned right away         +1.95% / 82%         +3.23% / 82%
+        30 buy, the dip went on to 25           -0.99% / 38%         -0.54% / 45%
+        the 25 buy itself                       +0.47% / 57%         +2.61% / 68%
+        the 30 buy, the dip went on to 20       -2.91% / 21%         -3.50% / 29%
+        the 20 buy itself                       +0.42% / 57%         +3.70% / 75%
+        the average dollar                      about +0.54%         about +1.89%
+    WHAT IT MEANS, in both markets: the best trades never reach 25 -- they turn on the first buy. A dip that keeps falling
+    is the weaker trade. WHERE THEY DIFFER: in STOCKS the lower buys are ordinary dollars (+0.4-0.5%, the same as any other
+    dollar), so adding them or pyramiding changes nothing but the size of the position and of the worst trade. In CRYPTO
+    the deep flushes SNAP BACK HARD and the lower buys are the BEST dollars (+2.6% and +3.7%), so buying more lower pays.
+    CONSEQUENCES: a sizing or scale-in rule is set PER MARKET, never one rule for all; any study that mixes stocks and
+    crypto into one average can hide the opposite behaviour of each; and #35's "scale in +0.35R" on the daily was an
+    all-markets number that has not been split this way. The 10/20/30 pyramid on crypto: +2.38% per dollar vs +1.89%
+    (backburner_dollars), at about triple the worst trade. Futures and forex: not measured.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
