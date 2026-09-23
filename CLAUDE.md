@@ -992,6 +992,8 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     (energy, metals, farm) at his 10%.
     HE PICKED IT ("keep the one that wins"): COMMODITY_FUTURES in pics_backburner_tcg are in the page's pool from the next
     drawing round on, stock-style buys, no news skip. Stock-index, currency and bond futures and forex stay out.
+    THIN CONTRACTS OUT (his words: "Remove thinly traded completely"): middle hourly volume under 150 over the last year --
+    ALI, ZO, DC, ZR, OJ, QG, QM, PA. 24 commodity futures remain.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the

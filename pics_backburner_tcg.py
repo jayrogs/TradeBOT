@@ -47,10 +47,13 @@ FRESH_MIN = 2.0                # HIS RULE: the run must clear its own 60-day hig
 # COMMODITY FUTURES ARE IN (#50, his pick 2026-09-23: "keep the one that wins"). Under his exact rules energy, metals and farm
 # futures behave like stocks (about +1% a trade, every year up); stock-index, currency and bond futures and forex do not
 # fire or do not pay at any run size, so they stay out. Stock-style buys (30 and 20), no news skip.
-COMMODITY_FUTURES = {"CL_F", "BZ_F", "NG_F", "HO_F", "RB_F", "QM_F", "QG_F",
-                     "GC_F", "SI_F", "HG_F", "PL_F", "PA_F", "ALI_F", "MGC_F", "SIL_F",
-                     "ZC_F", "ZS_F", "ZW_F", "ZL_F", "ZM_F", "ZO_F", "ZR_F", "KE_F", "CC_F", "KC_F", "SB_F", "CT_F",
-                     "OJ_F", "LE_F", "GF_F", "HE_F", "DC_F"}
+COMMODITY_FUTURES = {"CL_F", "BZ_F", "NG_F", "HO_F", "RB_F",
+                     "GC_F", "SI_F", "HG_F", "PL_F", "MGC_F", "SIL_F",
+                     "ZC_F", "ZS_F", "ZW_F", "ZL_F", "ZM_F", "KE_F", "CC_F", "KC_F", "SB_F", "CT_F",
+                     "LE_F", "GF_F", "HE_F"}
+# THIN CONTRACTS OUT (his words 2026-09-23: "Remove thinly traded completely"): a middle hourly volume under 150 contracts
+# over the last year -- aluminum ALI (12), oats ZO (11), dairy DC (18), rough rice ZR (84), orange juice OJ (105), mini gas
+# QG (68), mini oil QM (122), palladium PA (138). Their candles are gappy and one order can move them.
 NEWS_GAP = 2.0                 # HIS NEWS / EARNINGS SKIP (#49): a stock that opened with a gap this many daily normal bars
 SECTOR_CALM = 1.0              # ... on the buy day or the day before, while its sector fund gapped under this: company news
 RUN_PCT_MIN = 10.0             # HIS RULE: the 20-day run must be at least this many PERCENT (a real-size run up).
