@@ -90,7 +90,7 @@ def _work(args):
         return [], [], None, sym, kind
 
 
-def account(trades, closes, days, seed, slots=5, risk=None, cap=0.25, fastest=False, on_top=False):
+def account(trades, closes, days, seed, slots=5, risk=None, cap=0.25, fastest=False, on_top=False, trace=None):
     """Every buy, sale and release of held-back money handled IN TIME ORDER (a slot freed by a 3pm sale is not there for
     a 10am buy the same day -- the first version processed a day's exits before its entries), and the account marked at
     every day's close. Signals at the same hour: random order, or fastest dip first."""
@@ -173,6 +173,8 @@ def account(trades, closes, days, seed, slots=5, risk=None, cap=0.25, fastest=Fa
         eq = cash + sum(held.values()) + inv_val
         curve.append(eq)
         dep.append(inv_val / eq if eq > 0 else 0.0)
+        if trace is not None:
+            trace.append((day, len(open_), inv_val / eq if eq > 0 else 0.0))
         last_eq = eq
     return np.array(curve), taken, float(np.mean(dep)), float(np.max(dep))
 
