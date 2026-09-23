@@ -732,6 +732,37 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     AND A MISTAKE FROM THIS: `--same` redrew the round-1 set and DELETED his round-5 drawings, because it read an index
     file that is rewritten on every run. It now reads the set from HIS NOTES (`--same round1|round5`), which are the
     only copy that is safe, and `pics_backburner_tcg.py` takes `--log`.
+44c. AND THEN HE TESTED IT AND IT DIED (2026-09-22, /messymark, `pics_messymark.py`, notes in
+    validation/trade_notes_messymark.csv). Ten runs he had never seen, five that zig-zagged about 2x and five that
+    zig-zagged 5 to 9x, shuffled, the number hidden, each stopped at the dip. He tapped the ones he would not trade.
+        his three keeps zig-zagged   1.9 (GLW), 2.0 (AR), 6.6 (HLT)
+        his seven rejects            1.9, 2.0, 2.1, 5.1, 5.6, 8.5, 9.0
+    HIS KEEPS SIT RIGHT ACROSS THE RANGE. The measure agreed with MY eye (0.82 on 155 charts) and with a re-reading
+    of his old notes (0.76), and it does not agree with him on charts he had not seen. DROPPED: the number is off
+    /backburners, nothing is filtered by it. `studies/backburner_chop.py` and its result stand as an honest record of
+    what I measured; they are not a rule.
+    WHY IT FAILED, AND IT IS THE SAME TRAP AS #44: fitting a number to 25 old marks and to my own eye is not the same
+    as predicting a mark he has not made. A held-out test is the only thing that settles it, and it cost him ten taps.
+    RUN THE HELD-OUT TEST BEFORE SHIPPING ANY FILTER FROM NOW ON.
+    WHAT HE ACTUALLY POINTED AT, in his two notes: COF "not really a good runup", XLK "this wasn't a good runup". Not
+    candles at all -- THE SIZE OF THE RUN. On those ten it splits his marks perfectly (his keeps 5.6 / 6.8 / 6.9 daily
+    normal bars; the biggest of the seven rejects 5.4). A perfect split on ten points is exactly how #43 and #44 fooled
+    me, so it was TESTED ON THE POOL, not shipped (`studies/backburner_run.py` -> validation/backburner_run.json, 729
+    names, same trades, only the cut changes; the pool already requires 4+):
+        the run, in daily normal bars      n      avg    middle   won      R    worst    years   blocks
+        4 to 5 (the smallest allowed)    1,171   +0.66%  +0.45%   63%   +0.12  -23.4%   10/11   46/58
+        5 to 6                             825   +0.87%  +0.46%   61%   +0.11  -15.6%   10/10   35/41
+        6 to 7                             472   +1.12%  +0.56%   64%   +0.16  -13.4%    8/10   22/23
+        7 to 9                             312   +0.97%  +0.55%   63%   +0.11   -9.7%    8/10   11/15
+        9 and up                            48   +1.14%  +0.87%   75%   +0.20   -4.2%    6/7     2/2
+        HIS TEN SAID 5.6+                1,118   +1.09%  +0.53%   64%   +0.15  -13.4%    9/10   46/55
+        everything (the page today, 4+)  2,828   +0.84%  +0.49%   63%   +0.12  -23.4%   10/11  107/141
+    THE GRADIENT IS THERE ACROSS THE WHOLE POOL, which is evidence his ten did not supply: every step up in run size
+    is worth more per trade AND a smaller worst trade (-23.4% -> -13.4% at 5.6+, -4.2% at 9+). Crypto is where it is
+    biggest (5.6+ +3.03% vs +2.10%); stocks and ETFs +0.84% vs +0.66%.
+    THE PRICE, SAID PLAINLY: 5.6+ keeps 1,118 of 2,828 trades. It throws out SIXTY PERCENT of them, which by #29
+    ("the number of trades is everything") is a capacity question the per-trade number cannot answer. NOT SHIPPED:
+    his call, and an account test is owed before it.
     HOW THIS WORKS NOW (his words: "how can you know what trades I'd take if we haven't worked together to see what
     you're doing is even right"): ~10-16 drawings of ONE setup, he grades, I fix what he flags and redraw the SAME
     ones, and only when the drawings look like his trade do numbers get run. One change per round.
