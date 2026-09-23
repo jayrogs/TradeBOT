@@ -990,6 +990,8 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     lose at EVERY level (-0.10 to -0.13%, won 43-45%). Currency and bond futures about zero at every level. Forex, 11 real
     pairs: -0.03% to -0.01% at every level, 26-36 trades in four years. What is left worth having: COMMODITY futures
     (energy, metals, farm) at his 10%.
+    HE PICKED IT ("keep the one that wins"): COMMODITY_FUTURES in pics_backburner_tcg are in the page's pool from the next
+    drawing round on, stock-style buys, no news skip. Stock-index, currency and bond futures and forex stay out.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
