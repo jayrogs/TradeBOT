@@ -796,8 +796,11 @@ def main():
                 w_ = [r for r in pool if r["R"] > 0.15]; l_ = [r for r in pool if r["R"] <= -0.15]
                 return ([w_[i] for i in rng.choice(len(w_), nw, replace=False)]
                         + [l_[i] for i in rng.choice(len(l_), nl, replace=False)])
-            picks = (_pick([r for r in rows if r["kind"] != "crypto"], 6, 6)
-                     + _pick([r for r in rows if r["kind"] == "crypto"], 2, 2))
+            if "--futures" in sys.argv:      # round 7 (2026-09-23): the first look at commodity futures on a chart (#50)
+                picks = _pick([r for r in rows if r["kind"] == "futures"], 4, 4)
+            else:
+                picks = (_pick([r for r in rows if r["kind"] not in ("crypto", "futures")], 6, 6)
+                         + _pick([r for r in rows if r["kind"] == "crypto"], 2, 2))
             rows_ = None
         wins = [r for r in rows if r["R"] > 0.15]
         losses = [r for r in rows if r["R"] <= -0.15]

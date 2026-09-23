@@ -58,14 +58,17 @@
 </header>
 <main>
   <div id="nums"></div>
-  <div class="card warn"><b>Round 6: everything from today is on, and these are 16 trades you have never seen &mdash; 12 stocks, 4 crypto.</b>
-    <span class="sub">What changed since round 5, one at a time and each tested on every trade:<br>
-    1. <b>The run must be 10%+ in real price</b> (your IWD / XYL / XLC rejects: +3 to +5% was "not a big run up").<br>
-    2. <b>Crypto buys pyramid</b>: $10k at 30, $20k at 25, $30k at 20. Stocks unchanged (30 and 20).<br>
-    3. <b>Crypto sells a quarter more</b> 3 normal bars above the buy, after the half. Stocks unchanged.<br>
-    4. The stop check no longer peeks at the end of the hour (it changed nothing, but it is honest now).<br><br>
-    <b>Look for:</b> does every one look like a backburner to you, and do the crypto buys and the extra sale sit where you would put them?<br><br>
-    <b>Still open:</b> news and earnings out; the stop under the DAILY higher low when the sector has momentum (parked with ratio charts).</span></div>
+  <div class="card warn"><b>Round 7: commodity futures, the first time on a chart &mdash; 8 trades you have never seen, 4 winners and 4 losers.</b>
+    <span class="sub">Futures were left out until today. On all of them, with your exact rules, energy, metals and farm futures made about
+    +1% a trade and were up every year, so they are now in the pool (stock-index, currency and bond futures and forex did not work
+    at any run size and stay out). Same trade as stocks: buy at the touch of RSI 30, a second equal buy at 20, the run 10%+ in
+    price, half at the hourly 12 EMA, the rest walked under the higher lows.<br><br>
+    <b>Look for:</b> do these look like backburners to you on a futures chart, or does something about futures (the overnight
+    session, the contract rolls, the size of the moves) make them a different animal?<br><br>
+    <b>Heads up, thin contracts:</b> a few of these barely trade &mdash; aluminum (ALI, about 12 contracts an hour), oats, dairy, rough
+    rice, orange juice, the mini gas and oil, palladium (PA). ALI and PA are in this set. If their candles look messy to you, say so
+    and they come out.<br><br>
+    Also on the page since round 6: the <b>news / earnings skip</b> for stocks (CORZ and SPGI are now skipped).</span></div>
   <div id="stops"></div>
   <h2>Winners</h2><div id="wins"></div>
   <h2>Losers</h2><div id="losses"></div>
@@ -194,7 +197,7 @@ Promise.all([
       </div></div>`;
   $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
   $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
-  fetch('/api/tradenote?set=backburners6').then(r => r.json()).catch(() => ({})).then(notes => {
+  fetch('/api/tradenote?set=backburners7').then(r => r.json()).catch(() => ({})).then(notes => {
     notes = notes || {};
     document.querySelectorAll('.marks').forEach(m => {
       const id = m.dataset.id, prev = String(notes[id] || '');
@@ -208,7 +211,7 @@ Promise.all([
         const sp = m.querySelector('.saved');
         const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
         fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({set: 'backburners6', n: id, note: body})})
+          body: JSON.stringify({set: 'backburners7', n: id, note: body})})
           .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
                        setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
           .catch(fail);
