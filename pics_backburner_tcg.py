@@ -241,8 +241,24 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
     cool = v.get("cool")
     cooled = False
     cool_line = None
+    # HIS JBHT NOTE, round 1: "Slow, steady RSI cooling drops are not good for buying" -- and on BURL, "the faster the
+    # dips the better ... bulls showed up to buy discounted stock". v["slow"] = hours: when RSI first closes back over 31
+    # before the half sold, if it took this many hours or more from its lowest point, the buyers did not show up. Out at
+    # the next open. (backburner_coolshape: 4-6 hours -0.84% a trade, 7+ -1.56%, against +1.50% for 3 or less.)
+    slow = v.get("slow")
+    slow_done = False
     for j in range(e_last + 1, last + 1):
         hi = max(hi, float(h[j]))
+        if slow and not slow_done and half_at is None and pieces and rsi[j - 1] >= 31:
+            slow_done = True
+            cb = j - 1
+            lo_i = k + int(np.argmin(rsi[k:cb + 1]))
+            if cb - lo_i >= slow:
+                px = float(o[j])
+                share = sum(p_ for p_, _ in pieces)
+                pct = (got + share * (px - entry) / entry) * 100 - cost
+                return dict(end=int(j), exit_px=px, pct=float(pct), half_at=None, half_px=None, steps=steps,
+                            how="out: RSI took %d hours to climb back over 31 -- a slow bounce" % (cb - lo_i))
         if cool and half_at is None and pieces:
             if not cooled and rsi[j - 1] >= cool[0]:
                 cooled = True

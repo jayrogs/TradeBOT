@@ -813,6 +813,13 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     the unlucky one, not a pattern I can find. THE TRADES THAT GO WRONG ARE THE SLOW ONES -- RSI crawling back over 31
     for 4+ hours -- which lose on average, and that is HIS OWN JBHT NOTE from round 1: "Slow, steady RSI cooling drops
     are not good for buying". 158 trades, 8% of the pool. Next test, one variable: out at the open when the bounce is slow.
+    THEN THE ACTION, one variable (`studies/backburner_slow.py` -> validation/backburner_slow.json; switch `slow` in
+    pics_backburner_tcg, OFF on the page): out at the next open when RSI took 4 / 5 / 7+ hours to climb back over 31.
+    vs the page -0.02% / -0.01% / -0.02% a trade, better in 3-4 of 11 years: NOTHING EITHER WAY. The slow trades are the
+    bad ones, but by the time a bounce is KNOWN to be slow the damage is already in the price, so selling then saves
+    nothing. It also turns his JBHT (+0.85%) into -1.64%. What he actually said was "the faster the DIPS the better" --
+    that is a read on the DROP, knowable BEFORE the buy, and it is the next test. (#38's crude "waterfall" read added
+    nothing on the old, looser pool; it has not been tried on the 10%-run pool.)
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
