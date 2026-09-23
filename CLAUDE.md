@@ -983,6 +983,13 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     FOREX: a 10% run in a month almost never happens, so the backburner as he defines it does not fire on currencies; with
     the rule off, the pairs with real data make nothing. The ~90% win rate on the Yahoo pairs is a data warning, not a
     result (2-year Yahoo hourly bars, see #31). Sub-groups are too small for any verdict (13g). Not on the page; his call.
+    LOWERING THE 10% PER MARKET (his idea: "keep lowering the requirement % until it starts hitting"), read from the same
+    rows, one number changing. It does NOT unlock these markets: the other rules (a run of 4+ daily normal bars to fresh
+    highs) already set the supply, so a lower % adds few trades, and the ones it adds are worse -- same as stocks, the
+    bigger the run the better. Futures all: any run +0.49% (376) -> 6%+ +0.65% -> 10%+ +0.96% (187). Stock-index futures
+    lose at EVERY level (-0.10 to -0.13%, won 43-45%). Currency and bond futures about zero at every level. Forex, 11 real
+    pairs: -0.03% to -0.01% at every level, 26-36 trades in four years. What is left worth having: COMMODITY futures
+    (energy, metals, farm) at his 10%.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
