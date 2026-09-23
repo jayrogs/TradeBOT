@@ -855,7 +855,22 @@ def api_name_chart():
 
 @app.route("/bb")
 def bb_page():
+    """The backburner, LIVE, on today's rules (bb_live.py, 2026-09-23). The old forward log is /bbold."""
+    return send_from_directory("static", "bblive.html")
+
+
+@app.route("/bbold")
+def bb_old_page():
     return send_from_directory("static", "bb.html")
+
+
+@app.route("/api/bb_live")
+def api_bb_live():
+    import json as _j
+    p = os.path.join("livelog", "bb_live.json")
+    if not os.path.exists(p):
+        return jsonify(dict(ok=False, error="no live pass yet")), 404
+    return jsonify(_j.load(open(p, encoding="utf-8")))
 
 
 @app.route("/eq")
@@ -1137,6 +1152,30 @@ def _bb_loop():
         time.sleep(20)
 
 
+def _bb_live_loop():
+    """The live backburner on today's rules (bb_live.py): its own hidden process every 15 minutes, three minutes after
+    the quarter hour. A separate process because it uses 8 cores, and starting those from inside the server would start
+    copies of the server. Never two at once."""
+    import subprocess
+    import sys
+    import traceback
+    last, proc = None, None
+    exe = sys.executable.replace("python.exe", "pythonw.exe") if sys.executable.endswith("python.exe") else sys.executable
+    while True:
+        try:
+            now = pd.Timestamp.now()
+            slot = now.floor("15min")
+            running = proc is not None and proc.poll() is None
+            if not running and (last is None or (slot > last and now.minute % 15 >= 3)):
+                last = slot
+                os.makedirs("logs", exist_ok=True)
+                proc = subprocess.Popen([exe, "bb_live.py"], stdout=open(os.path.join("logs", "bb_live.log"), "a"),
+                                        stderr=subprocess.STDOUT, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        except Exception:
+            traceback.print_exc()
+        time.sleep(20)
+
+
 def _ride_loop():
     """Trend rides, live: one tick every 15 minutes, two minutes after the
     bar closes (a minute after the backburner tick so they do not fight over
@@ -1208,6 +1247,7 @@ def _live_loop():
 import threading
 threading.Thread(target=_live_loop, daemon=True).start()
 threading.Thread(target=_bb_loop, daemon=True).start()
+threading.Thread(target=_bb_live_loop, daemon=True).start()
 threading.Thread(target=_ride_loop, daemon=True).start()
 threading.Thread(target=_eq_loop, daemon=True).start()
 

@@ -402,7 +402,7 @@ CRYPTO_BUYS = dict(bids=[25, 20], dollars={30: 10.0, 25: 20.0, 20: 30.0},
 _SMAP = None
 
 
-def _news_days(sym, kind, sdf):
+def _news_days(sym, kind, sdf, sector_daily=None):
     """The days a STOCK's own news hit it (#49): the day it opened with a gap of NEWS_GAP daily normal bars or more (either
     way) while its sector fund's gap was under SECTOR_CALM of its own -- and the day after, since an after-close report
     gaps the next morning and the dip can come a day later. Known at the open, before any hourly buy that day."""
@@ -422,7 +422,7 @@ def _news_days(sym, kind, sdf):
     mine = gaps(sdf)
     lead = _SMAP.get("%s|%s" % (kind, sym))
     lk, ls = (lead[0].split("|") if lead and lead[0] != "%s|%s" % (kind, sym) else ("etf", "SPY"))
-    sd = S.frames_for(ls, lk).get("1d")
+    sd = sector_daily if sector_daily is not None else S.frames_for(ls, lk).get("1d")
     sec = gaps(sd) if sd is not None else {}
     days = set()
     for day, (g, nxt) in mine.items():
@@ -433,11 +433,14 @@ def _news_days(sym, kind, sdf):
     return days
 
 
-def trades_for(sym, kind, v=None):
+def trades_for(sym, kind, v=None, frames=None, sector_daily=None):
+    """The page's trades for one name. `frames` / `sector_daily`: LIVE data from bb_live.py (the SAME code decides
+    the live page and the studies, so the two can never drift apart); by default the history files."""
     if v is None:                                   # the page's own rules unless a study passes a variant
         v = dict(STOP, **CRYPTO_BUYS) if kind == "crypto" else STOP
-    frames = S.frames_for(sym, kind)
-    frames = {k_: v for k_, v in frames.items() if k_ in ("1h", "1d", "1w")}
+    if frames is None:
+        frames = S.frames_for(sym, kind)
+    frames = {k_: v_ for k_, v_ in frames.items() if k_ in ("1h", "1d", "1w")}
     if kind in ("stock", "etf"):
         frames = FR2.regular_hours(frames)
     df, sdf, tdf = frames.get("1h"), frames.get("1d"), frames.get("1w")
@@ -472,7 +475,7 @@ def trades_for(sym, kind, v=None):
     sc = sdf["Close"].values.astype(float)
     news_days = set()
     if kind == "stock" and v.get("news_skip", True):
-        news_days = _news_days(sym, kind, sdf)
+        news_days = _news_days(sym, kind, sdf, sector_daily)
     satr = P._atr(sdf)
     run = np.full(len(sc), np.nan)
     run[T.RUN_LOOK:] = (sc[T.RUN_LOOK:] - sc[:-T.RUN_LOOK]) / np.where(satr[T.RUN_LOOK:] > 0, satr[T.RUN_LOOK:], np.nan)

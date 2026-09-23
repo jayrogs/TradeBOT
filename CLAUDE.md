@@ -1107,6 +1107,24 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     HIS ANSWER: "keep it however makes the most money". Tested (5 buckets, 20 runs): uncapped +46.6% / -14.7%, capped at 3
     buckets a coin +46.6% / -14.1%, at 2 +45.7% / -12.3%, one bucket +42.3% / -10.9%. SHIPPED: at most 3 buckets in one coin.
 
+54. THE BACKBURNER, LIVE (2026-09-23): /bb is now `bb_live.py` + static/bblive.html (the old Sept-5 forward log is /bbold,
+    still running). IT RUNS THE EXACT TRADE CODE THE STUDIES RUN (pics_backburner_tcg.trades_for takes `frames=` and
+    `sector_daily=` now), so the live page and the backtest cannot drift apart. The server starts it as its own hidden
+    process every 15 minutes (`_bb_live_loop`, never two at once; 8 cores, a pass ~9-10 minutes on ~685 names).
+    DATA: stocks = the history on disk + the bars since from Polygon / Massive (his paid feed, ~15 min late; Yahoo rate-
+    limited 220 of 600 names on the first try); crypto = Coinbase / Kraken live; commodity futures = the Databento
+    history + recent Yahoo hourly bars. A name whose last bar is stale (over 4 days, 6 hours for crypto) is SKIPPED and
+    named on the page -- corn and wheat showed as "open since Sept 3" on a failed feed before that guard.
+    ARMED = every condition met and the first RSI-30 touch not yet made: found by asking trades_for itself -- nine made-up
+    hours are added after the last real one, the first falling through every buy level; if it takes a trade there, the
+    fills ARE the order prices (the RSI-30, 25, 20 prices for the next hour). OPEN = trades taken in the last 10 days and
+    not closed, with the half's sell price (the hourly 12 EMA) and the stop. Crypto's later buys are shown with the
+    3-bucket cap applied (so a crypto dip buys at 30 and 25 only). Account size is typed on the page (kept in the
+    browser); a bucket is a fifth of it. READ-ONLY: no order path.
+    A MISTAKE ON THE WAY: I first wrote this as backburner_live.py, which already existed (the older 5m detector the
+    scanner and pics_backburner use) -- overwritten, restored from git the same minute, the new code renamed bb_live.py.
+    LOOK BEFORE WRITING A FILE NAME THAT SOUNDS LIKE IT MIGHT EXIST.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:

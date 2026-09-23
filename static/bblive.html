@@ -1,0 +1,115 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Backburners, live</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{--bg:#0d0f12;--card:#14171c;--line:#252a33;--fg:#e6e9ee;--dim:#8b93a1;--faint:#5b6472;
+        --up:#3ddc97;--dn:#ff5c72;--amber:#ffb84d;--blue:#5aa9ff;--mono:ui-monospace,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:20px 22px 6px;max-width:1300px}
+  h1{font-size:21px;margin:0 0 4px}
+  h2{font-size:16px;margin:22px 0 6px}
+  .sub{color:var(--dim);max-width:1000px}
+  .sub b{color:var(--fg)}
+  main{padding:4px 22px 70px;max-width:1300px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;margin:12px 0;overflow-x:auto}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:13px;width:100%}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th{color:var(--faint);font-weight:500}
+  td.l,th.l{text-align:left}
+  .good{color:var(--up)} .bad{color:var(--dn)} .amber{color:var(--amber)} .dim{color:var(--dim)}
+  input{background:#1a1e25;border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:6px 9px;font:14px var(--mono);width:130px}
+  .pill{display:inline-block;padding:1px 8px;border-radius:9px;font-size:11.5px;border:1px solid var(--line);color:var(--dim)}
+  #status{font-family:var(--mono);font-size:12.5px;color:var(--dim)}
+  .rules{font-size:13px;color:var(--dim);line-height:1.8}
+  .rules b{color:var(--amber)}
+</style></head>
+<body>
+<header>
+  <h1>Backburners, live</h1>
+  <div class="sub">The same trade code the tests run, on live data, every 15 minutes. Stocks from Polygon (about 15 minutes late),
+    crypto from Coinbase / Kraken, commodity futures from Yahoo. <b>Read-only: nothing here places an order.</b></div>
+  <div style="margin-top:10px">Account size $ <input id="acct" type="number" min="0" step="1000">
+    <span class="dim" style="margin-left:10px">5 buckets &rarr; one bucket = <b id="bucket" style="color:var(--fg)"></b></span></div>
+  <div id="status" style="margin-top:8px"></div>
+</header>
+<main>
+  <h2>Armed &mdash; every condition is met, the RSI-30 touch has not happened yet</h2>
+  <div class="sub">The buy rests at the price where the <b>hourly</b> RSI would touch 30 in the next hour. That price moves every hour, so
+    it is only good until the next refresh. The later buys go on top from spare cash if price keeps falling.</div>
+  <div class="card"><table id="armed"></table></div>
+
+  <h2>Open &mdash; bought, not finished</h2>
+  <div class="sub">Half sells when the bounce reaches the hourly 12 EMA. After that the stop sits under the low of the drop and walks up
+    under each higher low; the rest sells on an hourly close under the last one. While the hourly RSI is 30 or under only the wide
+    safety line can end a trade.</div>
+  <div class="card"><table id="open"></table></div>
+
+  <div class="card rules"><b>The rules this runs:</b> first hourly RSI-30 touch after a <b>10%+</b> daily run to fresh highs, weekly trend
+    intact &middot; stocks skip company news / earnings days &middot; stocks and commodity futures buy the <b>whole bucket</b> at 30, another
+    bucket at 20 on top &middot; crypto buys the bucket at 30, <b>2x at 25, 3x at 20</b>, at most 3 buckets in one coin &middot; half at
+    the hourly 12 EMA, the rest walked under higher lows &middot; crypto sells a quarter more 3 normal bars above the buy &middot;
+    <b>5 trades at once</b>. Tested 2022-09 .. 2026-09: about +47% a year, worst drop about -15% (SPY +18.5%, -19%).
+    <span class="dim">The old forward log is at <a href="/bbold" style="color:var(--blue)">/bbold</a>.</span></div>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const money = v => '$' + Math.round(v).toLocaleString();
+const pr = v => v >= 100 ? v.toFixed(2) : v >= 1 ? v.toFixed(3) : v.toPrecision(4);
+const mk = k => ({stock: 'stock', etf: 'fund', crypto: 'crypto', futures: 'future'}[k] || k);
+let DATA = null;
+function acct() {
+  let v = 100000;
+  try { v = parseFloat(localStorage.getItem('bb_acct')) || 100000; } catch (e) {}
+  return v;
+}
+function render() {
+  if (!DATA) return;
+  const A = acct(), B = A / (DATA.account && DATA.account.buckets || 5);
+  $('#bucket').textContent = money(B);
+  const age = Math.round((Date.now() - new Date(DATA.updated.replace(' ', 'T')).getTime()) / 60000);
+  $('#status').innerHTML = `updated ${DATA.updated} (${age} min ago) &middot; ${DATA.names} names checked` +
+    (DATA.stale && DATA.stale.length ? ` &middot; <span class="amber">no fresh data for ${DATA.stale.join(', ')}</span>` : '') +
+    (DATA.errors ? ` &middot; <span class="bad">${DATA.errors} errors</span>` : '');
+  // armed
+  let h = `<tr><th class="l">name</th><th class="l">market</th><th>price now</th><th>buy at (RSI 30)</th><th>away</th>
+           <th>first buy</th><th class="l">then, if it keeps falling</th></tr>`;
+  if (!DATA.armed.length) h += `<tr><td class="l dim" colspan="7">nothing armed right now</td></tr>`;
+  for (const a of DATA.armed) {
+    // crypto: the later buys are 2x and 3x the first, but never past the cap of buckets in one coin (3)
+    const cap = a.kind === 'crypto' ? (DATA.account && DATA.account.crypto_max_buckets || 3) : 99;
+    let used = 1;
+    const later = (a.later || []).map(([lv, px]) => {
+      let mult = a.dollars ? (a.dollars[lv] || a.dollars[String(lv)] || 0) / (a.dollars[30] || a.dollars['30'] || 1) : 1;
+      mult = Math.max(0, Math.min(mult, cap - used)); used += mult;
+      return mult > 0 ? `${money(B * mult)} at ${pr(px)} (RSI ${lv})` : `<span class="faint">RSI ${lv}: none (${cap}-bucket cap)</span>`;
+    }).join(', ');
+    h += `<tr><td class="l"><b>${a.sym}</b></td><td class="l"><span class="pill">${mk(a.kind)}</span></td><td>${pr(a.price)}</td>
+          <td class="good"><b>${pr(a.buy_at)}</b></td><td class="${a.away > -3 ? 'amber' : 'dim'}">${a.away.toFixed(1)}%</td>
+          <td>${money(B)}</td><td class="l dim">${later || '&mdash;'}</td></tr>`;
+  }
+  $('#armed').innerHTML = h;
+  // open
+  let o = `<tr><th class="l">name</th><th class="l">market</th><th class="l">bought</th><th class="l">buys filled</th><th>average</th>
+           <th>now</th><th>since buy</th><th>half</th><th>stop</th></tr>`;
+  if (!DATA.open.length) o += `<tr><td class="l dim" colspan="9">no open trades</td></tr>`;
+  for (const t of DATA.open) {
+    const lv = (t.levels && t.levels.length ? t.levels : [30, 20].slice(0, t.fills.length)).join(' + ');
+    o += `<tr><td class="l"><b>${t.sym}</b></td><td class="l"><span class="pill">${mk(t.kind)}</span></td><td class="l">${t.bought.slice(0, 16)}</td>
+          <td class="l">RSI ${lv}</td><td>${pr(t.entry)}</td><td>${pr(t.now)}</td>
+          <td class="${t.pct_now >= 0 ? 'good' : 'bad'}">${t.pct_now >= 0 ? '+' : ''}${t.pct_now.toFixed(2)}%</td>
+          <td>${t.half_sold ? '<span class="good">sold</span>' : 'sell at ' + pr(t.half_at)}</td><td class="bad">${pr(t.stop)}</td></tr>`;
+  }
+  $('#open').innerHTML = o;
+}
+function load() {
+  fetch('/api/bb_live?v=' + Date.now()).then(r => r.ok ? r.json() : Promise.reject(r.status)).then(d => { DATA = d; render(); })
+    .catch(e => { $('#status').innerHTML = `<span class="bad">no live data yet (${e}) &mdash; the first pass takes about 10 minutes</span>`; });
+}
+const inp = $('#acct');
+inp.value = acct();
+inp.oninput = () => { try { localStorage.setItem('bb_acct', inp.value); } catch (e) {} render(); };
+load();
+setInterval(load, 60000);
+</script>
+</body></html>
