@@ -168,6 +168,19 @@ def frames_for(sym, kind):
         out["5m"] = trim(load_csv(os.path.join("history", "stocks", "%s_5m.csv.gz" % sym)))
         d1 = load_csv(os.path.join("history", "stocks", "%s_1d.csv.gz" % sym))
     out["1h"] = h1
+    if kind == "futures" and h1 is not None and len(h1):
+        # THE YAHOO FUTURES DAILY FILE IS BROKEN (found 2026-09-23 on his round-7 grading: "daily chart wtf", "huuuuge gaps").
+        # On many days it is one flat settlement print with ZERO volume (open = high = low = close): platinum 65% of days
+        # since 2024, micro silver 29%, cocoa 23%, cotton and coffee 17%, silver 11%, wheat 7%. It blanked the daily
+        # drawings and broke every daily number the trade reads (the normal daily move, the run size). The hourly bars are
+        # real trading (Databento), so the daily is built FROM THEM, on the futures clock: the hourly stamps are New York
+        # time with the 17:00 maintenance break, so a session runs 18:00 to 17:00 and belongs to the NEXT calendar day.
+        sess = pd.DatetimeIndex(h1.index) + pd.Timedelta(hours=6)
+        g = h1.groupby(sess.normalize())
+        d1 = pd.DataFrame({"Open": g["Open"].first(), "High": g["High"].max(), "Low": g["Low"].min(),
+                           "Close": g["Close"].last(), "Volume": g["Volume"].sum() if "Volume" in h1 else 0.0})
+        d1 = d1[d1.index.dayofweek < 5]
+        d1.index.name = "Date"
     if h1 is not None:
         out["4h"] = resample(h1, RULE["4h"])
         out["12h"] = resample(h1, RULE["12h"])

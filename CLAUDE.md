@@ -994,6 +994,18 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     drawing round on, stock-style buys, no news skip. Stock-index, currency and bond futures and forex stay out.
     THIN CONTRACTS OUT (his words: "Remove thinly traded completely"): middle hourly volume under 150 over the last year --
     ALI, ZO, DC, ZR, OJ, QG, QM, PA. 24 commodity futures remain.
+    THE FUTURES DAILY WAS BROKEN, AND HIS GRADING FOUND IT (round 7, 2026-09-23: PL "daily chart wtf", HG "daily is weird, huge
+    gaps", PL "huuuuge gaps wtf", KE "is the correct area highlighted on the daily?", HO "it just had an hourly OS right
+    before this extra move down. Why didn't it take that one???"). The Yahoo futures daily file is, on many days, ONE FLAT
+    SETTLEMENT PRINT WITH ZERO VOLUME (O = H = L = C): platinum 65% of days since 2024, micro silver 29%, cocoa 23%, cotton and
+    coffee 17%, silver 11%, wheat 7% (oil, gas, heating oil about 1%). It blanked the daily drawings and broke the daily
+    numbers the trade reads -- the normal daily move, the run, where the run topped -- which is also why HO skipped the first
+    oversold: with real daily bars it buys 2025-11-19 08:00, the one he pointed at. FIX: backburner_study.frames_for builds
+    the futures daily FROM THE HOURLY BARS (Databento, real trading) on the futures clock -- New York stamps, the 17:00
+    break, a session 18:00-17:00 belongs to the next day. Every futures number before this is SUSPECT.
+    THE FUTURES NUMBERS ON THE FIXED DATA: all futures under his rules 151 trades +0.61%; THE PAGE'S 24 COMMODITY FUTURES 107
+    trades, +0.76% a trade, middle +0.36%, won 62%, up in 4 of 4 years (2023 +0.16, 2024 +0.88, 2025 +0.62, 2026 +1.17).
+    Smaller than the first "about +1%", still in line with stocks (+0.86%). They stay in.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the

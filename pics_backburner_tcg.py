@@ -783,13 +783,24 @@ def main():
     # --same wiped the round-5 drawings (2026-09-22). His notes are the only copy that is safe.
     if "--same" in sys.argv:
         which = sys.argv[sys.argv.index("--same") + 1] if len(sys.argv) > sys.argv.index("--same") + 1 else "round5"
-        note_file = {"round1": "trade_notes_backburners.csv", "round5": "trade_notes_backburners5.csv"}.get(which)
+        note_file = {"round1": "trade_notes_backburners.csv", "round5": "trade_notes_backburners5.csv",
+                     "round7": "trade_notes_backburners7.csv"}.get(which)
         want = set()
         for ln in io.open(os.path.join("validation", note_file), encoding="utf-8").read().splitlines()[1:]:
             p_ = ln.split(",")[0].rsplit(".", 1)[0].split("_")
             if len(p_) >= 3:
                 want.add((p_[0], "_".join(p_[1:-1]), int(p_[-1])))
         picks = [r for r in rows if (r["kind"], r["sym"], r["k"]) in want]
+        if "--near" in sys.argv:
+            # the same SITUATION when a data fix moved the buy by a few hours (round 7: the rebuilt futures daily made HO
+            # buy the earlier oversold he asked about): the trade on that name within 3 days of the graded one
+            got_ = {(r_["kind"], r_["sym"], r_["k"]) for r_ in picks}
+            for kd_, sy_, k_ in want:
+                if (kd_, sy_, k_) in got_:
+                    continue
+                near_ = [r_ for r_ in rows if r_["kind"] == kd_ and r_["sym"] == sy_ and abs(r_["k"] - k_) <= 72]
+                if near_:
+                    picks.append(min(near_, key=lambda r_: abs(r_["k"] - k_)))
         print("  --same %s: %d of his %d graded trades still pass today's rules" % (which, len(picks), len(want)))
     else:
         rng = np.random.default_rng(20260923)

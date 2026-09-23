@@ -58,16 +58,12 @@
 </header>
 <main>
   <div id="nums"></div>
-  <div class="card warn"><b>Round 7: commodity futures, the first time on a chart &mdash; 8 trades you have never seen, 4 winners and 4 losers.</b>
-    <span class="sub">Futures were left out until today. On all of them, with your exact rules, energy, metals and farm futures made about
-    +1% a trade and were up every year, so they are now in the pool (stock-index, currency and bond futures and forex did not work
-    at any run size and stay out). Same trade as stocks: buy at the touch of RSI 30, a second equal buy at 20, the run 10%+ in
-    price, half at the hourly 12 EMA, the rest walked under the higher lows.<br><br>
-    <b>Look for:</b> do these look like backburners to you on a futures chart, or does something about futures (the overnight
-    session, the contract rolls, the size of the moves) make them a different animal?<br><br>
-    <b>Thin contracts are out</b> (your call): aluminum, oats, dairy, rough rice, orange juice, the mini gas and oil, and palladium
-    barely trade (under 150 contracts an hour), so they are gone from the pool completely.<br><br>
-    Also on the page since round 6: the <b>news / earnings skip</b> for stocks (CORZ and SPGI are now skipped).</span></div>
+  <div class="card warn"><b>Round 7, redrawn: the same 8 futures trades, on fixed daily data.</b>
+    <span class="sub">Your notes were right: <b>the daily futures data was broken.</b> On many days it was one flat settlement price with
+    zero volume &mdash; platinum on 65% of days, silver 11%, wheat 7% &mdash; which is why the daily charts looked blank and gappy. The
+    daily is now built from the real hourly trading. It also fixes HO: it now buys the <b>earlier</b> oversold you pointed at.
+    On the fixed data commodity futures still made +0.76% a trade (62% won, up every year), close to stocks.<br><br>
+    <b>Look for:</b> do the daily charts look right now, and do these still look like backburners to you?</span></div>
   <div id="stops"></div>
   <h2>Winners</h2><div id="wins"></div>
   <h2>Losers</h2><div id="losses"></div>
@@ -196,7 +192,7 @@ Promise.all([
       </div></div>`;
   $('#wins').innerHTML = d.charts.filter(c => c.R > 0).map(card).join('');
   $('#losses').innerHTML = d.charts.filter(c => c.R <= 0).map(card).join('');
-  fetch('/api/tradenote?set=backburners7').then(r => r.json()).catch(() => ({})).then(notes => {
+  fetch('/api/tradenote?set=backburners7b').then(r => r.json()).catch(() => ({})).then(notes => {
     notes = notes || {};
     document.querySelectorAll('.marks').forEach(m => {
       const id = m.dataset.id, prev = String(notes[id] || '');
@@ -210,7 +206,7 @@ Promise.all([
         const sp = m.querySelector('.saved');
         const fail = () => { sp.textContent = 'NOT SAVED - tell Claude'; sp.style.color = 'var(--dn)'; };
         fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({set: 'backburners7', n: id, note: body})})
+          body: JSON.stringify({set: 'backburners7b', n: id, note: body})})
           .then(r => { if (!r.ok) return fail(); sp.textContent = 'saved'; sp.style.color = '';
                        setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500); })
           .catch(fail);
