@@ -943,6 +943,8 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     better (middle +0.66% -> +1.00% at 3 bars) and more trades win. Same as #41 found for cutting earlier. Crypto at 3 bars
     is the one place it is better on every number (+3.06% vs +2.95%, middle +2.40% vs +1.68%, won 78% vs 75%). Not drawn
     yet (rule 10); his call.
+    HE PICKED CRYPTO ONLY (2026-09-23). On stocks it gives up about 0.07% a trade (3 of 6 years better) for the smoother
+    ride, and he chose the money. CRYPTO_BUYS now carries trim=("up3", 0.25). Stocks unchanged.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the

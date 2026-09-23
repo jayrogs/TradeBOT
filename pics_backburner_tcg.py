@@ -365,7 +365,8 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
 # THE BUYS DIFFER BY MARKET (#45, 2026-09-23). In crypto the deeper buys are the best dollars, so the page pyramids:
 # $10k at RSI 30, $20k at 25, $30k at 20 (backburner_dollars: +2.38% per dollar vs +1.89% for 30 + 20 at $10k each). In
 # stocks where the money goes in makes no difference, so they keep 30 + 20, one equal amount each. His pick, "sure okay".
-CRYPTO_BUYS = dict(bids=[25, 20], dollars={30: 10.0, 25: 20.0, 20: 30.0})
+CRYPTO_BUYS = dict(bids=[25, 20], dollars={30: 10.0, 25: 20.0, 20: 30.0},
+                   trim=("up3", 0.25))   # and a quarter more sells 3 normal bars over the buy (#48, his pick, crypto only)
 
 
 def trades_for(sym, kind, v=None):
