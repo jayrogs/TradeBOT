@@ -857,6 +857,21 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     NOT YET A RESULT, AND ITS OWN QUESTION: "30 only" comes out at +19.1% a year here, but only because this model locks the
     second buy's half of the slot in cash for the WHOLE trade, when in life that order is pulled within 12 hours and the
     cash goes back to work. How much of the slot the first buy should take is a separate variable, not tested.
+    THE SPLIT, WITH THE CASH DONE RIGHT (his ask: "unless you can find out if a pyramid style works better";
+    `studies/backburner_split.py` -> validation/backburner_split.json). ONE change: how the slot's money divides between
+    the 30 buy and the 20 buy; the 20 buy's money is held back only until it fills or the 12 hours run out. Stocks + ETFs,
+    1,728 trades, THE 20 BUY FILLS ON 17% OF THEM:
+        split (30 / 20)      per trade   5% worst   a year at 5 / 10 / 20 slots   dip at 10
+        all in at 30          +0.56%      -6.0%      +23.0 / +18.2 / +11.0%        -10.3%
+        67 / 33               +0.39%      -4.2%      +17.8 / +13.3 / +8.0%         -10.2%
+        NOW 50 / 50           +0.31%      -3.3%      +15.0 / +10.8 / +6.4%         -9.8%
+        pyramid 33 / 67       +0.23%      -2.5%      +11.8 / +8.2 / +4.7%          -9.3%
+        25 / 75               +0.19%      -2.2%      +10.2 / +7.1 / +3.9%          -8.9%
+    THE PYRAMID LOSES and the more that waits for 20, the less it makes: that buy happens one trade in six, so the money
+    waiting for it mostly does nothing. READ IT CAREFULLY: "all in at 30 on 20 slots" (+11.0%) is about the same as
+    "50 / 50 on 10 slots" (+10.8%) -- in both the 30 buy is 1/20 of the account. So the real finding is that holding
+    money back for the 20 buy is worth about nothing, and the extra a year comes from having more of the account working.
+    The price: a bad trade costs more (-6.0% vs -3.3% at 1 in 20). His call.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
