@@ -70,7 +70,8 @@ STOPS = {
                                                                dict(first=None, arm="never", wiggle=0.0, off=False),
 }
 STOP = dict(STOPS["Dan as written: no stop until the half is sold, then under the low"],     # round 3, after backburner_stops
-            rest="hl_close", thirds=False)      # and the rest walked under the higher lows (e-book plan 3, his #16), after backburner_rests
+            rest="hl_close", thirds=False,
+            gate_prev=True)     # which stop rests during an hour is decided from the LAST close (2026-09-23, backburner_gate)      # and the rest walked under the higher lows (e-book plan 3, his #16), after backburner_rests
 
 
 def walk(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, v=None):
@@ -294,7 +295,12 @@ def walk_rest(kind, o, h, l, c, k, e_last, entry, stop, ema12, target, a, rsi, p
         # 1. the stop, on a wick (the line under the low / chandelier) or on a close (the walked higher low).
         # HIS ROUND-3 NOTE ON MNST, "still sold while oversold": while the hourly RSI is still at or under 30 the ONLY
         # line that can take the trade out is the wide disaster line. Everything else waits for RSI to come back over.
-        live = stop if oversold else line
+        # WHICH STOP IS RESTING DURING THIS HOUR must be decided BEFORE the hour, from the LAST close (v["gate_prev"]).
+        # Until 2026-09-23 it used THIS hour's own close: a wick through the tight stop was ignored if the hour later
+        # closed oversold, and counted if it later closed over 30 -- neither is knowable while the wick happens.
+        # The close check under the higher low stays on this close: it is decided at the close, sold at the next open.
+        gate = (rsi[j - 1] <= 30) if v.get("gate_prev") else oversold
+        live = stop if gate else line
         hit = l[j] <= live or (hl_line is not None and c[j] < hl_line and not oversold)
         if hit and pieces:
             px = o[j + 1] if j + 1 <= last else c[last]

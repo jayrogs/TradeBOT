@@ -910,6 +910,13 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     the position priced as total dollars / total shares. Crypto pool, 341 trades, return on the money in each trade:
     +2.90% average (was +2.12%), middle +1.70%, won 76% (was 70%). Stocks unchanged: 30 + 20, one equal amount each.
 
+46. A LOOK-AHEAD IN THE STOP, FOUND AND MEASURED (2026-09-23). walk_rest chose which stop was resting during an hour (the
+    wide disaster line while oversold, the tight one after) from THAT HOUR'S OWN CLOSE: a wick through the tight stop was
+    ignored if the hour later closed oversold. Not knowable while the wick happens. `studies/backburner_gate.py` ->
+    validation/backburner_gate.json, same 2,069 trades: old +1.17% / honest +1.17% a trade (stocks +0.83 / +0.82, crypto
+    +2.90 / +2.95). IT INFLATED NOTHING, and the page now uses the honest version (STOP gate_prev=True). The close check
+    under the walked higher low stays on the hour's own close: it is decided at the close and sold at the next open.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
