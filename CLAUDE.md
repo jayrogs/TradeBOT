@@ -1047,6 +1047,31 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     but it still makes +2.4% a trade, so skipping it would cost money a year (#29). Page unchanged; the pairing is kept
     for later (sizing, ratio charts).
 
+52. THE WHOLE BACKBURNER AS AN ACCOUNT, EVERYTHING FROM 2026-09-23 ON (`studies/backburner_account.py` ->
+    validation/backburner_account.json). The page's own trades in every market, cash only, N slots, a slot split the way the
+    page buys (money for a later buy held back only until that order is pulled), EVERY OPEN POSITION MARKED AT EVERY DAY'S
+    CLOSE, 20 runs, 2022-09-06 .. 2026-09-04 (when the futures data starts) for every row, SPY marked the same way.
+        account                     slots   a year    worst dip (daily)   deployed   trades a year
+        SPY bought and held                 +18.5%    -19.0%              100%
+        everything                    5     +22.8%    -10.1%              40%        216
+                                     10     +18.2%    -7.9%               29%        319
+                                     20     +10.7%    -6.5%               17%        395
+        stocks + ETFs only            5     +19.2%    -10.4%              39%        179
+                                     10     +13.7%    -9.5%               28%        265
+        crypto only                   5     +6.5%     -7.1%               1%         46
+        commodity futures only        5     +1.3%     -8.3%               2%         26
+    Every calendar year up at every slot count. At 5 slots it beats SPY by ~4% a year with about half its worst dip; at 10
+    it matches SPY with about 40% of its dip. Crypto and futures fire rarely (46 and 26 a year) and add ~3.6% a year on top
+    of stocks at 5 slots. THE MONEY IS MOSTLY IDLE: 29-40% deployed on average, so the slot count is the lever.
+    CAVEATS, plainly: four years, mostly rising; the names are the ones alive today (#35 survivorship); a position is marked
+    whole until it closes (the half sold at the 12 EMA is not taken out of the daily mark, so the dips are if anything deep).
+    A DATA BUG THE MARKING FOUND FIRST: the first run showed a -57% dip with 18% deployed, which cash cannot do. BNY's
+    hourly bars are priced ~$9 and its daily ~$101. `studies/data_scale_check.py` (hourly vs daily closes, every name) found
+    35: 17 at different scales (BNY 4.8x, SOXS 15x, FDX, HIMS, INSM, MP, FTNT ...) and 18 that disagree 15%+ on 7-46% of days
+    (CVNA, META, T, GSK, KEY ...). All in validation/suspect_names.json now, out of every study and page until repaired.
+    The per-trade numbers reported earlier the same day included them; they are ~4% of the stock names. RUN
+    data_scale_check.py AFTER ANY DATA PULL.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
