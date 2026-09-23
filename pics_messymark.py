@@ -33,13 +33,18 @@ import pics_backburner_tcg as PB  # noqa: E402
 
 OUT = os.path.join("validation", "messy_mark")
 N_EACH = 5
+RUN_MIN, RUN_MAX = 5.6, 7.5   # every chart is a BIG run AND the two groups are matched on it, so the only
+                              # thing that differs is the wandering. First try had the straight ones on runs of
+                              # 6-10 and the wandering ones 5.7-6.8: the same confound again, one step smaller.
+SEEN_NAMES = {"ENB", "HNT", "CHTR", "XLK", "GLW", "COF", "HLT", "AR", "FCX", "DHR",     # the first ten he marked
+              "BTI", "KEY", "DOCN", "BHP", "UNP", "LYV", "ALAB", "BTC", "FDX", "FIX"}          # names he has already ruled on
 
 
 def _one(args):
     sym, kind = args
     try:
-        return [dict(sym=sym, kind=kind, k=r["k"], t=r["t"], wander=r["chop"])
-                for r in PB.trades_for(sym, kind) if r.get("chop") is not None]
+        return [dict(sym=sym, kind=kind, k=r["k"], t=r["t"], wander=r["chop"], run=r["run"])
+                for r in PB.trades_for(sym, kind) if r.get("chop") is not None and r.get("run") is not None]
     except Exception:
         return []
 
@@ -83,16 +88,23 @@ def main():
     f = pd.DataFrame(rows).sort_values("wander")
     # one trade per NAME, so ten different charts rather than ten dips in the same stock
     f = f.groupby("sym", as_index=False).first().sort_values("wander")
-    # the two groups must be FAR APART or the test is not a test: a 3.8 next to a 1.9 is not a difference his eye
-    # could be expected to see. Straight climbs are under 2.2; wandering ones are over 5.0.
+    # ROUND 1 WAS NOT A TEST OF WANDERING AT ALL, and he caught it: "many of the ones you showed me just had chill
+    # uptrends not big runups". Every chart he kept had a run of 5.6+ and every one he rejected 5.4 or less, so run
+    # size and wandering moved together and the marks cannot tell them apart. EVERY CHART NOW HAS A BIG RUN, so
+    # wandering is the only thing that differs -- his own one-variable rule, which I broke.
+    # and not the same NAME twice either: HLT ("kind of unsure about the 6") and LYV (the megaphone he threw out on
+    # /cleanruns) both came back on a different bar. A name he has ruled on is a name he should not be shown again.
     rng = np.random.default_rng(20260922)
-    low = f[f.wander <= 2.2].sample(N_EACH, random_state=1)
-    high = f[f.wander >= 5.0].sample(N_EACH, random_state=1)
+    f = f[(f.run >= RUN_MIN) & (f.run <= RUN_MAX)]
+    f = f[~f.sym.isin(SEEN_NAMES)]
+    print("  %d runs between %.1f and %.1f normal bars to choose from" % (len(f), RUN_MIN, RUN_MAX))
+    low = f[f.wander <= 2.5].sample(N_EACH, random_state=3)
+    high = f[f.wander >= 4.5].sample(N_EACH, random_state=3)
     picks = pd.concat([low, high]).to_dict("records")
     order = rng.permutation(len(picks))
     picks = [dict(picks[j], n=i + 1) for i, j in enumerate(order)]
-    print("  wandered least: %s" % ", ".join("%s %.1f" % (p["sym"], p["wander"]) for p in sorted(picks, key=lambda x: x["wander"])[:N_EACH]))
-    print("  wandered most:  %s" % ", ".join("%s %.1f" % (p["sym"], p["wander"]) for p in sorted(picks, key=lambda x: -x["wander"])[:N_EACH]))
+    print("  wandered least: %s" % ", ".join("%s %.1f (run %.1f)" % (p["sym"], p["wander"], p["run"]) for p in sorted(picks, key=lambda x: x["wander"])[:N_EACH]))
+    print("  wandered most:  %s" % ", ".join("%s %.1f (run %.1f)" % (p["sym"], p["wander"], p["run"]) for p in sorted(picks, key=lambda x: -x["wander"])[:N_EACH]))
 
     by = {}
     for p in picks:
@@ -111,7 +123,7 @@ def main():
     def plain(v):
         return v.item() if hasattr(v, "item") else v
     charts = [dict(n=int(d["n"]), sym=d["sym"], kind=d["kind"], k=int(d["k"]), t=str(d["t"]), png=d["png"],
-                   problems=d["problems"], hidden=dict(wander=float(plain(d["wander"])))) for d in drawn]
+                   problems=d["problems"], hidden=dict(wander=float(plain(d["wander"])), run=float(plain(d["run"])))) for d in drawn]
     json.dump(dict(generated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), charts=charts),
               io.open(os.path.join(OUT, "index.json"), "w", encoding="utf-8"), indent=1)
     print("  drawn %d, problems %d  (%.0fs)" % (len(drawn), sum(1 for d in drawn if d["problems"]), time.time() - t0))

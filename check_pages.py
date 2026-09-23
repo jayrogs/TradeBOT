@@ -56,11 +56,18 @@ def problem(where, what):
 
 
 def get(path, binary=False):
-    try:
-        with urllib.request.urlopen(BASE + path, timeout=30) as r:
-            return r.status, r.read()
-    except Exception as ex:
-        return None, str(ex).encode()
+    """/api/desk pulls LIVE prices for every focus name and only caches them for 45 seconds, so the first call after
+    a server restart takes minutes and a 30-second limit reported it as a broken page when it was not (2026-09-22).
+    Live endpoints get a long limit and one retry; everything else stays strict, because a slow FILE is a real fault."""
+    live = path.startswith("/api/")
+    for attempt in (1, 2):
+        try:
+            with urllib.request.urlopen(BASE + path, timeout=420 if live else 30) as r:
+                return r.status, r.read()
+        except Exception as ex:
+            if not live or attempt == 2:
+                return None, str(ex).encode()
+            time.sleep(2)
 
 
 def walk_numbers(o, where, path=""):
