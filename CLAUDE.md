@@ -1006,6 +1006,8 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     THE FUTURES NUMBERS ON THE FIXED DATA: all futures under his rules 151 trades +0.61%; THE PAGE'S 24 COMMODITY FUTURES 107
     trades, +0.76% a trade, middle +0.36%, won 62%, up in 4 of 4 years (2023 +0.16, 2024 +0.88, 2025 +0.62, 2026 +1.17).
     Smaller than the first "about +1%", still in line with stocks (+0.86%). They stay in.
+    HE GRADED THE REDRAWN SEVEN (set backburners7b): ALL SEVEN GOOD, winners and losers alike. The futures backburner looks
+    right to him on real data.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
