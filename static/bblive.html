@@ -23,6 +23,12 @@
   .more{font-size:13px;color:var(--dim);margin:2px 0 8px}
   img{width:100%;border-radius:10px;display:block}
   .none{color:var(--dim);padding:10px 2px}
+  .marks{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+  .verdict{background:#1a1e25;border:1px solid var(--line);color:var(--dim);padding:7px 16px;border-radius:9px;cursor:pointer;user-select:none;font-size:14px}
+  .verdict.on[data-v=good]{background:rgba(61,220,151,.15);border-color:var(--up);color:var(--up)}
+  .verdict.on[data-v=bad]{background:rgba(255,92,114,.15);border-color:var(--dn);color:var(--dn)}
+  input.note{flex:1;min-width:200px;width:auto;font:14px -apple-system,Segoe UI,Roboto,sans-serif}
+  .saved{font-size:12px;color:var(--up);min-width:70px}
 </style></head>
 <body><div class="wrap">
   <div class="top">
@@ -50,6 +56,39 @@ function aged(x) {
   return x.data_age_h > 2 && (x.kind === 'futures' || x.kind === 'crypto')
     ? ` <span class="amber" style="font-size:12px">data ${x.data_age_h.toFixed(0)}h old</span>` : '';
 }
+const marks = id => `<div class="marks" data-id="${id}">
+      <span class="verdict" data-v="good">good</span><span class="verdict" data-v="bad">bad</span>
+      <input class="note" placeholder="comment (optional)"><span class="saved"></span></div>`;
+let NOTES = {};
+function wire() {
+  document.querySelectorAll('.marks').forEach(m => {
+    const id = m.dataset.id, prev = String(NOTES[id] || ''), i = prev.indexOf(' | ');
+    const v = (i < 0 ? prev : prev.slice(0, i)).trim();
+    m.querySelector('.note').value = i < 0 ? '' : prev.slice(i + 3);
+    m.querySelectorAll('.verdict').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    const save = () => {
+      const on = m.querySelector('.verdict.on'), txt = m.querySelector('.note').value;
+      const body = (on ? on.dataset.v : '') + (txt ? ' | ' + txt : '');
+      const sp = m.querySelector('.saved');
+      const fail = () => { sp.textContent = 'NOT SAVED'; sp.style.color = 'var(--dn)'; };
+      fetch('/api/tradenote', {method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({set: 'bblive', n: id, note: body})})
+        .then(r => r.ok ? r.json() : null).then(j => {
+          if (!j || !j.ok) return fail();
+          NOTES[id] = body; sp.textContent = 'saved'; sp.style.color = '';
+          setTimeout(() => { if (sp.textContent === 'saved') sp.textContent = ''; }, 1500);
+        }).catch(fail);
+    };
+    m.querySelectorAll('.verdict').forEach(b => b.onclick = () => {
+      const was = b.classList.contains('on');
+      m.querySelectorAll('.verdict').forEach(x => x.classList.remove('on'));
+      if (!was) b.classList.add('on');
+      save();
+    });
+    let t = null;
+    m.querySelector('.note').oninput = () => { clearTimeout(t); t = setTimeout(save, 600); };
+  });
+}
 function render() {
   if (!DATA) return;
   const B = acct() / ((DATA.account && DATA.account.buckets) || 5);
@@ -72,6 +111,7 @@ function render() {
       </div>
       ${more ? `<div class="more">if it keeps falling: ${more}</div>` : ''}
       ${a.chart ? `<img src="${a.chart}?v=${encodeURIComponent(DATA.updated)}" loading="lazy" alt="${a.sym}">` : ''}
+      ${marks('armed|' + a.kind + '|' + a.sym + '|' + DATA.updated.slice(0, 10))}
     </div>`;
   }).join('') : `<div class="none">Nothing is set up right now.</div>`;
   $('#open').innerHTML = DATA.open.length ? DATA.open.map(t => `<div class="card">
@@ -82,14 +122,18 @@ function render() {
         <div class="big"><span class="lab">stop</span><span class="val red">${pr(t.stop)}</span></div>
       </div>
       ${t.chart ? `<img src="${t.chart}?v=${encodeURIComponent(DATA.updated)}" loading="lazy" alt="${t.sym}">` : ''}
+      ${marks('open|' + t.kind + '|' + t.sym + '|' + t.bought.slice(0, 16))}
     </div>`).join('') : `<div class="none">No open trades.</div>`;
+  wire();
 }
+const typing = () => document.activeElement && document.activeElement.classList.contains('note');
 function load() {
-  fetch('/api/bb_live?v=' + Date.now()).then(r => r.ok ? r.json() : Promise.reject(r.status)).then(d => { DATA = d; render(); })
+  fetch('/api/bb_live?v=' + Date.now()).then(r => r.ok ? r.json() : Promise.reject(r.status)).then(d => { DATA = d; if (!typing()) render(); })
     .catch(e => { $('#status').innerHTML = `<span class="red">no live data yet</span>`; });
 }
 const inp = $('#acct'); inp.value = acct();
 inp.oninput = () => { try { localStorage.setItem('bb_acct', inp.value); } catch (e) {} render(); };
-load(); setInterval(load, 60000);
+fetch('/api/tradenote?set=bblive').then(r => r.json()).catch(() => ({})).then(n => { NOTES = n || {}; load(); });
+setInterval(load, 60000);
 </script>
 </body></html>

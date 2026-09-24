@@ -1142,6 +1142,9 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     The five ICE contracts (BZ, CC, KC, SB, CT) are not on his Databento plan and stay on Yahoo. Backups of every futures
     1h file before the first append: history/_backup/futures_1h_2026-09-23/. The page shows a futures or crypto name's
     data age when it is over 2 hours.
+    GRADING ON /bb (2026-09-23, his ask: "why don't I have a comment field and good or bad boxes"): every card has good /
+    bad and a comment box, saved to validation/trade_notes_bblive.csv (keys armed|kind|sym|day and open|kind|sym|bought).
+    READ THAT FILE whenever he says he graded /bb.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
