@@ -134,7 +134,10 @@ def _session_daily(h1):
 
 
 def _frames(h1, d1):
-    return {"1h": h1, "1d": d1, "1w": S.resample(d1, S.RULE["1w"])}
+    # the weekly with NO 60-bar floor: a new name has fewer weeks and trades_for handles that (#55)
+    w1 = d1.resample(S.RULE["1w"]).agg({"Open": "first", "High": "max", "Low": "min", "Close": "last",
+                                         "Volume": "sum"}).dropna()
+    return {"1h": h1, "1d": d1, "1w": w1}
 
 
 def _next_hours(last, kind, n=9):
@@ -403,10 +406,11 @@ def tick(log=print):
                 if h0 is not None and len(h0) and h1 is not None and len(h1):
                     if pd.DatetimeIndex(h0.index)[-1] >= pd.DatetimeIndex(h1.index)[0]:
                         h1 = _join(h0[["Open", "High", "Low", "Close", "Volume"]], h1[["Open", "High", "Low", "Close", "Volume"]])
-                        d1 = S.resample(h1, S.RULE["1d"])
+                        d1 = h1.resample(S.RULE["1d"]).agg({"Open": "first", "High": "max", "Low": "min",
+                                                            "Close": "last", "Volume": "sum"}).dropna()
                     else:
                         short.append(sym)
-            if h1 is None or d1 is None or len(h1) < 500 or len(d1) < 120:
+            if h1 is None or d1 is None or len(h1) < 160 or len(d1) < 50:      # what the rules need (#55)
                 continue
             if not _fresh(h1, kind, now_utc if kind == "crypto" else now_ny):
                 stale.append(sym)

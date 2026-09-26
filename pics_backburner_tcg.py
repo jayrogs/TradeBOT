@@ -402,6 +402,21 @@ CRYPTO_BUYS = dict(bids=[25, 20], dollars={30: 10.0, 25: 20.0, 20: 30.0},
 _SMAP = None
 
 
+def _align(small, frames, htf, arr):
+    """A bigger chart's series on the hourly clock: only bars that had CLOSED by the hourly bar's close count. The same
+    as tcg_lab.align_to, without its 60-bar floor (a new name's weekly has fewer; #55)."""
+    out = np.full(len(small), np.nan)
+    hdf = frames.get(htf)
+    if hdf is None or not len(hdf):
+        return out
+    lc = small.index.values + pd.Timedelta(S.DUR["1h"]).to_timedelta64()
+    hc = hdf.index.values + pd.Timedelta(S.DUR[htf]).to_timedelta64()
+    pos = np.searchsorted(hc, lc, side="right") - 1
+    ok = pos >= 0
+    out[ok] = np.asarray(arr, dtype=float)[pos[ok]]
+    return out
+
+
 def _news_days(sym, kind, sdf, sector_daily=None):
     """The days a STOCK's own news hit it (#49): the day it opened with a gap of NEWS_GAP daily normal bars or more (either
     way) while its sector fund's gap was under SECTOR_CALM of its own -- and the day after, since an after-close report
@@ -444,7 +459,16 @@ def trades_for(sym, kind, v=None, frames=None, sector_daily=None):
     if kind in ("stock", "etf"):
         frames = FR2.regular_hours(frames)
     df, sdf, tdf = frames.get("1h"), frames.get("1d"), frames.get("1w")
-    if df is None or sdf is None or tdf is None or len(df) < 500 or len(sdf) < 120 or len(tdf) < 60:
+    # NEW NAMES ARE IN (2026-09-26, his pick after the review, #55: "yeah new is fine"). The old floor (500 hourly, 120
+    # daily, 60 weekly bars) was checked on the WHOLE FILE, so the study traded coins 55 days old while the live page,
+    # seeing only what existed, never could. The floor is now only what the rules themselves need: a 50-day high and
+    # the 60-day look-back behind the run (50 daily bars), the weekly 50 EMA's 5-week slope (6 weekly bars), and 150
+    # hourly bars before the buy. A young name's weekly is built here, since frames_for drops one under 60 bars.
+    if tdf is None and sdf is not None and len(sdf):
+        tdf = sdf.resample(S.RULE["1w"]).agg({"Open": "first", "High": "max", "Low": "min", "Close": "last",
+                                               "Volume": "sum"}).dropna()
+        frames = dict(frames, **{"1w": tdf})
+    if df is None or sdf is None or tdf is None or len(df) < 160 or len(sdf) < 50 or len(tdf) < 6:
         return []
     o = df["Open"].values.astype(float); c = df["Close"].values.astype(float)
     h = df["High"].values.astype(float); l = df["Low"].values.astype(float)
@@ -470,7 +494,7 @@ def trades_for(sym, kind, v=None, frames=None, sector_daily=None):
                     ylow[first_i[q]:last_i[q] + 1] = float(np.min(l[first_i[q - 1]:last_i[q - 1] + 1]))
             ctx = dict(ema12=ema12, ema26=XM.ema(c, 26), ema50=XM.ema(c, 50),
                        p50=D.rsi_price(c, au, ad, 50), p60=D.rsi_price(c, au, ad, 60), p70=p70, p30=p30,
-                       d12=L.align_to(df, "1h", frames, "1d", XM.ema(sdf["Close"].values.astype(float), 12)),
+                       d12=_align(df, frames, "1d", XM.ema(sdf["Close"].values.astype(float), 12)),
                        ylow=ylow, top=np.nan)
     sc = sdf["Close"].values.astype(float)
     news_days = set()
@@ -479,13 +503,13 @@ def trades_for(sym, kind, v=None, frames=None, sector_daily=None):
     satr = P._atr(sdf)
     run = np.full(len(sc), np.nan)
     run[T.RUN_LOOK:] = (sc[T.RUN_LOOK:] - sc[:-T.RUN_LOOK]) / np.where(satr[T.RUN_LOOK:] > 0, satr[T.RUN_LOOK:], np.nan)
-    s_run = L.align_to(df, "1h", frames, "1d", run)
+    s_run = _align(df, frames, "1d", run)
     # THE SAME RUN IN PLAIN PERCENT (2026-09-22). Measured in the name's own normal bars, a quiet index fund that
     # climbed 3% scores the same as a stock that climbed 45%. He rejected IWD (+3%), XYL (+5%) and XLC (+5%) as "not a
     # big run up" while my bar measure called all three big. He sees the real size.
     run_pct = np.full(len(sc), np.nan)
     run_pct[T.RUN_LOOK:] = 100.0 * (sc[T.RUN_LOOK:] / sc[:-T.RUN_LOOK] - 1.0)
-    s_run_pct = L.align_to(df, "1h", frames, "1d", run_pct)
+    s_run_pct = _align(df, frames, "1d", run_pct)
     # HIS RULE, round 1 and round 3 (BHP "does not look like a clean run up, very messy chart"; UNP "really wild daily
     # candles ... too hectic for a clean backburner play"). A big run is not the same as a CLEAN one. Of the measures I
     # tried against his 14 grades -- path straightness, body share, daily range, share of up days -- the one that keeps
@@ -511,17 +535,17 @@ def trades_for(sym, kind, v=None, frames=None, sector_daily=None):
     prior60 = pd.Series(sh_).rolling(60, min_periods=30).max().shift(T.RUN_LOOK).values
     with np.errstate(invalid="ignore"):
         fresh_d = (top20 - prior60) / np.where(satr > 0, satr, np.nan)
-    s_fresh = L.align_to(df, "1h", frames, "1d", fresh_d)
+    s_fresh = _align(df, frames, "1d", fresh_d)
     # AND HIS ROUND-5 WORDS (MOD): "the daily chart had so many days for the ema12 to catch up, NOT REALLY A NAME
     # RUNNING HOT at this point for a backburner". BKNG: "a lot of time to wind down in this eq after the last HH".
     # So: at the DIP, is price still up off the daily 12 EMA -- or has the EMA caught up while it wound sideways?
     hot_d = np.where(satr > 0, (sc - se12) / satr, np.nan)
-    s_hot = L.align_to(df, "1h", frames, "1d", hot_d)
-    s_off12 = L.align_to(df, "1h", frames, "1d", off12_d)
-    s_off26 = L.align_to(df, "1h", frames, "1d", off26_d)
+    s_hot = _align(df, frames, "1d", hot_d)
+    s_off12 = _align(df, frames, "1d", off12_d)
+    s_off26 = _align(df, frames, "1d", off26_d)
     dl_ = sdf["Low"].values.astype(float)
     clean = pd.Series(np.r_[np.nan, dl_[1:] > dl_[:-1]].astype(float)).rolling(20, min_periods=20).mean().values
-    s_clean = L.align_to(df, "1h", frames, "1d", clean)
+    s_clean = _align(df, frames, "1d", clean)
     # MESSY CANDLES, fitted on 155 charts labelled by eye (2026-09-22, his ask: "we should make an automatic filter
     # to not have shitty charting names"). Of sixteen measures the only one that agrees with BOTH my 155 eye labels
     # and his own five "messy chart" rejects is how much GROUND the run covered against how far it actually went:
@@ -532,15 +556,15 @@ def trades_for(sym, kind, v=None, frames=None, sector_daily=None):
     net_ = np.abs(sc - pd.Series(sc).shift(55).values)
     with np.errstate(invalid="ignore", divide="ignore"):
         chop_d = ground / np.where(net_ > 0, net_, np.nan)
-    s_chop = L.align_to(df, "1h", frames, "1d", chop_d)
+    s_chop = _align(df, frames, "1d", chop_d)
     top = pd.Series(sdf["High"].values.astype(float)).rolling(T.HIGH_LOOK, min_periods=T.HIGH_LOOK).max().values
-    s_top = L.align_to(df, "1h", frames, "1d", top)
-    ext_t = L.align_to(df, "1h", frames, "1d", T._last_extreme_time(sdf, 1)[0])
+    s_top = _align(df, frames, "1d", top)
+    ext_t = _align(df, frames, "1d", T._last_extreme_time(sdf, 1)[0])
     tc = tdf["Close"].values.astype(float)
     e50 = XM.ema(tc, 50)
     up = np.zeros(len(tc))
     up[5:] = ((tc[5:] > e50[5:]) & (e50[5:] > e50[:-5])).astype(float)
-    t_up = L.align_to(df, "1h", frames, "1w", up)
+    t_up = _align(df, frames, "1w", up)
     touch = np.isfinite(p30) & (l <= p30)
     was_out = np.r_[False, rsi[:-1] > 30]
     starts = np.where(touch & was_out)[0]

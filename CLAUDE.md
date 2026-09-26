@@ -1159,9 +1159,17 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
             as in #53 (everything)                        +47.0% a year, worst dip -14.9%
             new listings out (what the live page can do)  +39.8% a year, worst dip -12.2%
             every young trade out                         +38.0% a year, worst dip -12.2%
-        So #53's +46.6% / backburner_curve's line are ~7 points a year too high FOR THE PAGE AS IT RUNS. His call which way
-        to close it: keep the rule (the honest number is ~+40%), or let the live page take new listings with the weekly
-        check skipped when there is not enough weekly history (the backtest says those are the best trades).
+        So #53's +46.6% / backburner_curve's line were ~7 points a year too high FOR THE PAGE AS IT RAN.
+        HIS PICK ("yeah new is fine"): NEW NAMES ARE IN. trades_for's floor is now only what the rules need (160 hourly, 50
+        daily, 6 weekly bars), its bigger-chart reads use a local `_align` without tcg_lab.align_to's 60-bar floor, and a
+        young name's weekly is built from its daily. Checked: all 2,043 existing trades identical to the cent, 4 added
+        (HYPE x3, FPS: names under 14 months in total). The live-sized window now finds ENA, ONDO, PENGU, VVV and AERO,
+        which it missed before. So the +47% line is now what the page can take.
+        How new names did (study, first ~14 months of a name): new coins 76 trades +4.9% a trade, middle +4.1%, won 82%
+        (established coins +2.6% / +1.9% / 79%); IPO stocks (ARM, CAVA, VIK, ALAB ...) 17 trades about +2.1%, won 65%.
+        NOT DONE: 135 coins the exchanges list have NO history on disk (BAT, CRO, BLUR, 0G ...; some are stablecoins such
+        as EURC). The backtest never saw them, so they are not on the live page either. Adding them needs a history pull
+        first, then the study rerun. Same for any stock IPO after the last Polygon pull.
       - THE LIVE CRYPTO WINDOW WAS TOO SHORT. bb_live read 720 hourly + 600 daily bars from the exchange; replaying the
         last two years that way missed 22 of 100 study trades (most are the new-listing kind above; AVAX 2025-09-22 was
         missed only because a 50 EMA on 85 weeks is not the one on the full history). FIXED: the history on disk is joined
