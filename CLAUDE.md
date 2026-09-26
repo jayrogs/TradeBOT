@@ -1237,6 +1237,20 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     Up from #53's +46.6% / -14.7%. 2024 (the crypto run) is still half the story; four mostly rising years; survivorship
     (#35) still applies to the stock list.
 
+58. THE LONGEST WINDOW THE DATA ALLOWS, AND THE CRYPTO SHARE (2026-09-26, his ask: "How much was the crypto run ... backtest
+    this longer than 4 years, since it's requirements are a large pump, it shouldn't fire much in bad times").
+    `studies/backburner_long.py` -> validation/backburner_long.json. The page's account (#57), 20 runs. LIMITS: his Polygon
+    plan serves 5 years (403 NOT_AUTHORIZED before ~2021-09), most coins start 2022, ~16 go back further, futures 2022-09.
+        A. everything from 2021-10      +35.4% a year, worst drop -15.0%  | 2021 -1  2022 +1  2023 +22  2024 +88  2025 +29  2026 +52
+        B. the same WITHOUT crypto      +23.9%, -14.3%                     | 2022 +1  2023 +12  2024 +42  2025 +26  2026 +43
+        C. crypto alone from 2017       +21.0%, -21.6%  | 2017 +63 2018 +5 2019 +7 2020 -10 2021 +42 2022 +0 2023 +19 2024 +115 2025 +4 2026 +5
+        SPY held from 2021-10           +12.2%, -25.4% (2022 -19%)    BTC held from 2017  +57.8%, -83.8% (2018 -73%, 2022 -65%)
+    THE CRYPTO RUN: 2024 was +88% with crypto and +42% without, so crypto added about 46 of those points.
+    HIS BAD-TIMES POINT, MEASURED: crypto fired 4 times in 2018 and ZERO in 2022, and its account was +5% and +0% in those
+    years while BTC lost 73% and 65%. Stocks did NOT go quiet in the 2022 bear (185 signals, near their normal rate), but
+    the account was about flat (+1%) while SPY lost 19%. The 2021-10 .. 2022-09 year it adds costs the average: +48.6%
+    over the last four years becomes +35.4% over five.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
