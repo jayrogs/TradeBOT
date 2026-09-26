@@ -1321,6 +1321,11 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     livelog/databento_oneoff.json). `join_futures_2018.py`: 13 of 17 roots joined (overlap gap 0.0000%). ZL, ZM, KE, GF
     were NOT: their files start 2024-09 (Yahoo's 2 years), so 2022-09 .. 2024-09 is a hole; filling it costs $0.31
     (priced, not bought -- his call). Backups in history/_backup/futures_1h_pre_2018/.
+    BOUGHT TOO, same day ("Buy", $0.31): `join_futures_gap.py` fills ZL ZM KE GF 2018 -> 2024-09 (overlap gap 0.000%, only
+    weekend/holiday breaks). ALL 22 FUTURES NOW START 2018. With them: futures 205 trades, +0.41% a trade, middle +0.34%,
+    won 60%; the account from 2018-06 +35.1% a year, worst drop -19.8%, 2022 -6% (futures fired 24 times in 2022, the
+    commodity top); without crypto +18.5%. As built, futures are the weakest market in the bad year -- my version, a
+    lead for a filter, not a verdict (13g). Total Databento one-off spend today: $6.16 + $3.73 + $0.31.
     FUTURES PER TRADE FROM 2018 (22 contracts, page rules): 176 trades, +0.48% a trade, middle +0.37%, won 62%, +0.11R.
     By year: 2018 -0.39 (5), 2019 +0.03 (9), 2020 +0.43 (23), 2021 +0.62 (39), 2022 -0.67 (14), 2023 +0.21, 2024 +0.96,
     2025 +0.45, 2026 +1.15. Energy +0.67%, metals +0.22%, farm +0.64%. The 2022 commodity top cost them.
