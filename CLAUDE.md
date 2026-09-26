@@ -1185,6 +1185,27 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         week late in both study and live -- late, not look-ahead. `cancel_second` is still 40 on the page; #44f left 31
         as his pick to make.
 
+56. FUTURES IN REAL CONTRACTS (2026-09-26, his words: "futures is leveraged on its own"). `studies/backburner_futures_contracts.py`
+    -> validation/backburner_futures_contracts.json. Every account before this bought futures like a stock ($20k bucket =
+    $20k of oil). Now: whole contracts (CME/ICE sizes; micro first where one exists), the bucket is the margin, $100k
+    start, the page's account (5 buckets, on_top), 20 runs, 2022-09 .. 2026-09. Margins approximate. A year / typical worst
+    drop / worst run's drop / worst single futures trade as a share of the WHOLE account:
+        WHOLE ACCOUNT, futures bought like stocks      +48.3%  -14.6%  -17.5%   -4.2%
+          micro, contracts up to 1x the bucket         +48.2%  -14.7%  -18.7%   -1.5%   (5 a year skipped: no micro)
+          micro, up to 2x                              +50.3%  -14.5%  -17.5%   -5.4%
+          micro, up to 3x                              +53.0%  -14.7%  -17.4%  -10.7%
+          micro, up to 5x                              +59.0%  -15.9%  -29.8%  -24.2%
+          micro, up to 10x                             +71.0%  -30.0%  -63.2%  -86.1%
+          standard contracts only, up to 5x            +60.4%  -15.1%  -29.8%  -24.7%
+          as many micros as the margin allows          +70.2%  -47.9%  -78.5%  -143%
+        FUTURES ONLY: 1x +0.9%, 3x +3.4%, 5x +4.6% with a -50% drop, 10x micro GOES TO ZERO IN ALL 20 RUNS.
+    THE ZERO IS REAL, NOT A BUG: 2026-01-30, the gold and silver crash. The page bought GC, MGC, SI and SIL in the same
+    hour -- two metals, each bet TWICE (MGC is micro gold, SIL is micro silver) -- and silver fell 104 -> 79. At 10x a
+    bucket each, that is the account. WHAT IT SAYS: futures are ~27 trades a year here, so their leverage moves the
+    account only a few % a year up to about 3x, and past 5x one correlated day decides everything. OPEN: the pool holds
+    the same metal twice (GC + MGC, SI + SIL); one contract per underlying is the obvious fix, his call. ICE contracts
+    (BZ CC KC SB CT) have no bars after 2026-09-04 (Yahoo refusing), so the live page skips them as stale.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
