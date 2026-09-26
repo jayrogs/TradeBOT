@@ -232,6 +232,14 @@ def _databento_hourly(log):
             databento_recent.main(log=log)
     except Exception as ex:
         log("databento_recent failed: %s" % ex)
+    try:                          # the five ICE contracts, from Yahoo, into the history files (#56)
+        st = os.path.join("livelog", "yahoo_ice_last.txt")
+        if not os.path.exists(st) or time.time() - os.path.getmtime(st) >= 55 * 60:
+            import yahoo_ice_recent
+            yahoo_ice_recent.main(log=log)
+            io.open(st, "w", encoding="utf-8").write(pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"))
+    except Exception as ex:
+        log("yahoo_ice_recent failed: %s" % ex)
 
 
 CHARTS = os.path.join("static", "bblive_charts")

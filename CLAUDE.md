@@ -1209,7 +1209,12 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     run -32.1%); 10x +57.8% / -27.4% (worst run -64.1%); margin max +55.9% / -40.7% (worst run -81.1%). Futures alone at
     10x micro now survives (+11.5%, -66.9% drop); at margin max it still goes to zero in all 20 runs. The doubled metals
     had been adding ~2-3% a year at 3x (they were mostly winners) by doubling the size of one bet. ICE contracts
-    (BZ CC KC SB CT) have no bars after 2026-09-04 (Yahoo refusing), so the live page skips them as stale.
+    (BZ CC KC SB CT) had no bars after 2026-09-04 (Yahoo refusing until ~09-25). FIXED: `yahoo_ice_recent.py` appends Yahoo's
+    finished hourly bars to their history files (seam checked, 0.5% worst over 792 shared hours; backups in
+    history/_backup/futures_1h_ice/); bb_live runs it about once an hour. Cocoa sometimes fails on the first try.
+    HIS CORRECTION ON WORDS (2026-09-26): "the leverage I was talking about was just how futures works". Never say "2x",
+    "3x" for futures again: say HOW MANY CONTRACTS a bucket buys (a $20k bucket: 2 micro oil = ~$18k of oil; 6 = ~$55k;
+    the margin allows ~30).
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the

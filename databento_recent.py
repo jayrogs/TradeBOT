@@ -4,7 +4,7 @@ His OK: "yes u can handle 1.50 a year". The 4-year history came from his Databen
 subscription Databento serves CME bars only up to about 6 hours ago (exchange licensing), which is fine for history; the
 last few hours come from Yahoo in bb_live.py.
 
-Pulls ohlcv-1h for the continuous front contract ("CL.v.0") of the 19 CME roots in the backburner pool, from each file's
+Pulls ohlcv-1h for the continuous front contract ("CL.v.0") of the 17 CME roots (MGC and SIL out, #56) in the backburner pool, from each file's
 last bar up to 6.5 hours ago, and appends them to history/futures/<ROOT>_F_1h.csv.gz (New York wall time, the stamp of the
 hour's start -- the convention of the files). The minute cache the history was built from is not touched.
 
@@ -23,7 +23,7 @@ import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 os.chdir(HERE)
-ROOTS = ["CL", "NG", "HO", "RB", "GC", "SI", "HG", "PL", "MGC", "SIL", "ZC", "ZS", "ZW", "ZL", "ZM", "KE", "LE", "GF", "HE"]
+ROOTS = ["CL", "NG", "HO", "RB", "GC", "SI", "HG", "PL", "ZC", "ZS", "ZW", "ZL", "ZM", "KE", "LE", "GF", "HE"]
 DATASET, SCHEMA = "GLBX.MDP3", "ohlcv-1h"
 PER_PULL, PER_YEAR = 0.05, 2.00
 SPEND = os.path.join("livelog", "databento_spend.json")
