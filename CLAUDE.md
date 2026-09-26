@@ -1272,6 +1272,21 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     Up every full year but none lost more than 1% (2018, 2022), in the two SPY down years. It trails SPY in 2019-2021's
     steady rise. Stock signals: 2018 68 (half year), 2019 159, 2020 263, 2021 326, 2022 185.
 
+60. CRYPTO HOURS BACK TO 2017-2020, FREE (2026-09-26). `backfill_binance_all.py` joins Binance's public archive (<COIN>USDT
+    1h) in front of every coin file, only where the 30 days both have agree (median gap under 0.5%) and meet with no hole;
+    `--okx` does the same from OKX for coins Binance lacks (OKX's deep pagination mostly fails; it added 5). 80 coins from
+    Binance + 5 from OKX. Skipped: AI and ENJ (Binance's token is not our file's, 21-30% apart), HNT and LIT (a hole), 36
+    not on Binance. Backups in history/_backup/crypto_1h_pre_binance/. Coins with history before 2021: 16 -> 43.
+    HIS STANDING ORDER (2026-09-26): "Can you just keep getting data and stop asking". Free data: just pull it (checks,
+    backups, data_scale_check), report after. Money beyond the existing Databento guard: price first, his yes.
+    THE ACCOUNT FROM 2018-06 WITH IT (backburner_long.py, the page's rules, 20 runs):
+        everything          +35.8% a year, worst drop -18.7% | 2018 -1  2019 +18  2020 +14  2021 +117  2022 +1  2023 +25  2024 +87  2025 +29  2026 +50
+        without crypto      +18.9%, -14.9%
+        crypto alone, 2017  +26.0%, -25.7% | 2018 +5  2019 +10  2020 -15  2021 +128  2022 +0  2023 +20  2024 +108  2025 +2  2026 +5
+        SPY held            +13.3%, -34.1%;  BTC held from 2017 +57.8%, -83.8%
+    Crypto signals a year: 2018 4, 2019 13, 2020 39, 2021 134, 2022 0, 2023 35, 2024 135. The 2021 alt-coin run (+117%)
+    was invisible before: most coin files started in 2022. Crypto in its 2020 year: -15% (the March crash).
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
