@@ -1317,6 +1317,17 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     MORE NAMES MADE THE ACCOUNT WORSE: the thinner names take buckets the better ones would have had. Dan's "names
     trading hundreds of millions" holds up. Tier 2 stays out; the data is kept for later tests.
 
+63. FUTURES HOURS BACK TO 2018, BOUGHT (2026-09-26, his "Buy"; $3.73, GLBX.MDP3 ohlcv-1h "<ROOT>.v.0", logged in
+    livelog/databento_oneoff.json). `join_futures_2018.py`: 13 of 17 roots joined (overlap gap 0.0000%). ZL, ZM, KE, GF
+    were NOT: their files start 2024-09 (Yahoo's 2 years), so 2022-09 .. 2024-09 is a hole; filling it costs $0.31
+    (priced, not bought -- his call). Backups in history/_backup/futures_1h_pre_2018/.
+    FUTURES PER TRADE FROM 2018 (22 contracts, page rules): 176 trades, +0.48% a trade, middle +0.37%, won 62%, +0.11R.
+    By year: 2018 -0.39 (5), 2019 +0.03 (9), 2020 +0.43 (23), 2021 +0.62 (39), 2022 -0.67 (14), 2023 +0.21, 2024 +0.96,
+    2025 +0.45, 2026 +1.15. Energy +0.67%, metals +0.22%, farm +0.64%. The 2022 commodity top cost them.
+    THE ACCOUNT FROM 2018-06, EVERY MARKET NOW FROM THE SAME YEAR (page rules, 20 runs): +35.7% a year, worst drop -19.6%
+    (2018 -1, 2019 +18, 2020 +20, 2021 +124, 2022 -3, 2023 +31, 2024 +75, 2025 +27, 2026 +51); without crypto +18.9%,
+    -17.1%; SPY +13.3%, -34.1%.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
