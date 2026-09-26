@@ -1175,7 +1175,11 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
         missed only because a 50 EMA on 85 weeks is not the one on the full history). FIXED: the history on disk is joined
         in front of the live bars and the daily is built from the hourly, as frames_for does. THE DISK HISTORY ENDS
         2026-09-07; once it is 30+ days behind (about 2026-10-07) the join leaves a hole and the name is listed under
-        `short_history` in livelog/bb_live.json. The crypto hourly history needs a top-up before then.
+        `short_history` in livelog/bb_live.json. FIXED THE SAME DAY: `crypto_recent.py` appends each coin's finished hourly bars (all 148
+        files now end 2026-09-26), trying Coinbase, Kraken, OKX in turn and keeping the first feed that reaches back to the
+        file's end AND agrees with it (median gap under 0.5%) -- LIT and LUNA are different coins under the same ticker on
+        some exchanges, and one feed only served 300 bars. Backups in history/_backup/crypto_1h/. bb_live runs it about
+        every 6 hours.
       - THE CRYPTO CARD PRICED THE POSITION WITH THE 20 BUY the 3-bucket cap never lets it make. Fixed in open_trades. The
         study's per-trade crypto numbers (#45, #48) still include that buy; the account tests apply the cap.
       - PASSED: walk_selftest 658 / 0 mismatches (it checks tcg_lab's walk, NOT the page's _walk_rest -- no self-test

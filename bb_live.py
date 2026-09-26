@@ -240,6 +240,14 @@ def _databento_hourly(log):
             io.open(st, "w", encoding="utf-8").write(pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"))
     except Exception as ex:
         log("yahoo_ice_recent failed: %s" % ex)
+    try:                          # the crypto hourly history on disk, about every 6 hours (#55: the live join needs it)
+        st = os.path.join("livelog", "crypto_recent_last.txt")
+        if not os.path.exists(st) or time.time() - os.path.getmtime(st) >= 6 * 3600:
+            import crypto_recent
+            crypto_recent.main(log=log)
+            io.open(st, "w", encoding="utf-8").write(pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"))
+    except Exception as ex:
+        log("crypto_recent failed: %s" % ex)
 
 
 CHARTS = os.path.join("static", "bblive_charts")
