@@ -439,6 +439,9 @@ def tick(log=print):
                 errs += 1
     for x in arm + opn:
         x["data_age_h"] = ages.get(x["sym"])
+        if x["kind"] == "futures" and x["sym"] in PB.CONTRACTS:
+            nm, code, mult, mrate = PB.CONTRACTS[x["sym"]]
+            x["contract"] = dict(name=nm, code=code, mult=mult, margin=mrate)
         frs[x["sym"]] = frame_of.get(x["sym"])
     try:
         chart_problems = _draw_cards(arm, opn, frs, PB.ACCOUNT)

@@ -1212,6 +1212,13 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     (BZ CC KC SB CT) had no bars after 2026-09-04 (Yahoo refusing until ~09-25). FIXED: `yahoo_ice_recent.py` appends Yahoo's
     finished hourly bars to their history files (seam checked, 0.5% worst over 792 shared hours; backups in
     history/_backup/futures_1h_ice/); bb_live runs it about once an hour. Cocoa sometimes fails on the first try.
+    PER TRADE ON THE 22 (MGC, SIL out): 88 trades, +0.70% a trade, middle +0.37%, won 62%, +0.12R; each year up (2023
+    +0.16, 2024 +0.88, 2025 +0.45, 2026 +1.15). Energy 18 trades +1.97% (middle +0.36%), metals 49 +0.14% (middle +0.38%),
+    farm 21 +0.91%. (With the doubles: 107 trades, +0.76%.)
+    FUTURES CARDS SAY WHAT TO BUY (his ask, same day): PB.CONTRACTS holds the smallest contract per name (micro where one
+    exists, code only where certain -- micro natural gas has none written); /bb shows "HOW MUCH: 2 MCL", the value, and the
+    most the exchange margin would allow; "too big" when one contract is worth more than a bucket (micro gold ~$42k and
+    micro silver ~$65k both are, on a $20k bucket). Numbers only, never a size recommendation.
     HIS CORRECTION ON WORDS (2026-09-26): "the leverage I was talking about was just how futures works". Never say "2x",
     "3x" for futures again: say HOW MANY CONTRACTS a bucket buys (a $20k bucket: 2 micro oil = ~$18k of oil; 6 = ~$55k;
     the margin allows ~30).

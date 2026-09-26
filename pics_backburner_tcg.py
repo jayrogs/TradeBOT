@@ -65,6 +65,24 @@ COMMODITY_FUTURES = {"CL_F", "BZ_F", "NG_F", "HO_F", "RB_F",
 ACCOUNT = dict(buckets=5, first_buy="the whole bucket at RSI 30", later_buys="on top, from spare cash, when they happen",
                crypto_max_buckets=3)   # his "keep it however makes the most money": uncapped and a 3-bucket cap per coin both
                                        # make +46.6% a year; the cap has the smaller drop (-14.1% vs -14.7%). 2 buckets +45.7%.
+# WHAT TO BUY ON A FUTURES SIGNAL (2026-09-26, his ask: make each futures card say what to buy). The signal comes from the
+# main contract's chart; the order goes in the SMALLEST contract that exists (a $20k bucket cannot hold one standard gold
+# contract, ~$430k). (what it is, the code where one is certain, dollars per 1.00 of the quoted price, approximate
+# initial margin as a share of the contract's value). Exchange specs, CME / ICE.
+CONTRACTS = {
+    "CL_F": ("micro crude oil, 100 barrels", "MCL", 100, 0.07), "BZ_F": ("Brent crude, 1,000 barrels", "BZ", 1000, 0.07),
+    "NG_F": ("micro natural gas, 1,000 MMBtu", "", 1000, 0.15), "HO_F": ("heating oil, 42,000 gallons", "HO", 42000, 0.07),
+    "RB_F": ("gasoline, 42,000 gallons", "RB", 42000, 0.07),
+    "GC_F": ("micro gold, 10 oz", "MGC", 10, 0.06), "SI_F": ("micro silver, 1,000 oz", "SIL", 1000, 0.08),
+    "HG_F": ("micro copper, 2,500 lb", "MHG", 2500, 0.06), "PL_F": ("platinum, 50 oz", "PL", 50, 0.07),
+    "ZC_F": ("micro corn, 500 bushels", "MZC", 5, 0.05), "ZS_F": ("micro soybeans, 500 bushels", "MZS", 5, 0.05),
+    "ZW_F": ("micro wheat, 500 bushels", "MZW", 5, 0.06), "KE_F": ("KC wheat, 5,000 bushels", "KE", 50, 0.06),
+    "ZL_F": ("micro soybean oil, 6,000 lb", "MZL", 60, 0.06), "ZM_F": ("micro soybean meal, 10 tons", "MZM", 10, 0.06),
+    "CC_F": ("cocoa, 10 tonnes", "CC", 10, 0.12), "KC_F": ("coffee, 37,500 lb", "KC", 375, 0.09),
+    "SB_F": ("sugar, 112,000 lb", "SB", 1120, 0.07), "CT_F": ("cotton, 50,000 lb", "CT", 500, 0.06),
+    "LE_F": ("live cattle, 40,000 lb", "LE", 400, 0.04), "GF_F": ("feeder cattle, 50,000 lb", "GF", 500, 0.04),
+    "HE_F": ("lean hogs, 40,000 lb", "HE", 400, 0.05),
+}
 NEWS_GAP = 2.0                 # HIS NEWS / EARNINGS SKIP (#49): a stock that opened with a gap this many daily normal bars
 SECTOR_CALM = 1.0              # ... on the buy day or the day before, while its sector fund gapped under this: company news
 RUN_PCT_MIN = 10.0             # HIS RULE: the 20-day run must be at least this many PERCENT (a real-size run up).

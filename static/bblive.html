@@ -89,6 +89,21 @@ function wire() {
     m.querySelector('.note').oninput = () => { clearTimeout(t); t = setTimeout(save, 600); };
   });
 }
+// A FUTURES CARD SAYS WHAT TO BUY (2026-09-26): how many of the smallest contract a bucket buys at the buy price, what that
+// much is worth, and the most the exchange margin (approximate) would let a bucket hold. Nothing here is advice on size.
+function contracts(x, B, px) {
+  const c = x.contract;
+  if (!c) return '';
+  const one = px * c.mult, n = Math.floor(B / one), mx = Math.floor(B / (one * c.margin));
+  const what = c.name + (c.code ? ` (${c.code})` : '');
+  if (n < 1) return `<div class="more amber">one ${what} is ${money(one)} &mdash; more than a ${money(B)} bucket. The margin
+    (about ${money(one * c.margin)}) would allow ${mx}.</div>`;
+  return `<div class="more">buy <b>${n} ${what}</b> &mdash; ${money(n * one)} worth. The margin would allow up to ${mx}.</div>`;
+}
+function howMany(x, B, px) {
+  const c = x.contract, n = Math.floor(B / (px * c.mult));
+  return n >= 1 ? `${n} ${c.code || 'contracts'}` : '<span class="amber">too big</span>';
+}
 function render() {
   if (!DATA) return;
   const B = acct() / ((DATA.account && DATA.account.buckets) || 5);
@@ -100,15 +115,16 @@ function render() {
     const more = (a.later || []).map(([lv, px]) => {
       let m = a.dollars ? (a.dollars[lv] || a.dollars[String(lv)] || 0) / (a.dollars[30] || a.dollars['30'] || 1) : 1;
       if (a.kind === 'crypto') { m = Math.max(0, Math.min(m, cap - used)); used += m; }
-      return m > 0 ? `${money(B * m)} more at ${pr(px)}` : '';
+      return m > 0 ? (a.contract ? `the same again at ${pr(px)}` : `${money(B * m)} more at ${pr(px)}`) : '';
     }).filter(Boolean).join(' &middot; ');
     return `<div class="card">
       <div class="head">
         <div><span class="name">${a.sym}</span><span class="kind">${mk(a.kind)}</span>${aged(a)}</div>
         <div class="big"><span class="lab">buy at</span><span class="val green">${pr(a.buy_at)}</span></div>
-        <div class="big"><span class="lab">how much</span><span class="val">${money(B)}</span></div>
+        <div class="big"><span class="lab">how much</span><span class="val">${a.contract ? howMany(a, B, a.buy_at) : money(B)}</span></div>
         <div class="big"><span class="lab">price has to drop</span><span class="val ${a.away > -3 ? 'amber' : ''}">${Math.abs(a.away).toFixed(1)}%</span></div>
       </div>
+      ${contracts(a, B, a.buy_at)}
       ${more ? `<div class="more">if it keeps falling: ${more}</div>` : ''}
       ${a.chart ? `<img src="${a.chart}?v=${encodeURIComponent(DATA.updated)}" loading="lazy" alt="${a.sym}">` : ''}
       ${marks('armed|' + a.kind + '|' + a.sym + '|' + DATA.updated.slice(0, 10))}
@@ -121,6 +137,7 @@ function render() {
         <div class="big"><span class="lab">sell half</span><span class="val amber">${t.half_sold ? 'done' : pr(t.half_at)}</span></div>
         <div class="big"><span class="lab">stop</span><span class="val red">${pr(t.stop)}</span></div>
       </div>
+      ${contracts(t, B, t.entry)}
       ${t.chart ? `<img src="${t.chart}?v=${encodeURIComponent(DATA.updated)}" loading="lazy" alt="${t.sym}">` : ''}
       ${marks('open|' + t.kind + '|' + t.sym + '|' + t.bought.slice(0, 16))}
     </div>`).join('') : `<div class="none">No open trades.</div>`;
