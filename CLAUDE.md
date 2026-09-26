@@ -1227,6 +1227,16 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     "3x" for futures again: say HOW MANY CONTRACTS a bucket buys (a $20k bucket: 2 micro oil = ~$18k of oil; 6 = ~$55k;
     the margin allows ~30).
 
+57. THE HEADLINE, RERUN WITH EVERYTHING FROM 2026-09-26 (new names in, MGC/SIL out, crypto and ICE history topped up).
+    backburner_sizing (1,661 trades, 20 runs) and backburner_curve (the page's exact account: 5 buckets, whole bucket at 30,
+    later buys on top, 3-bucket cap per coin; futures bought like stocks -- #56 has them in contracts):
+        the page's account, $100k Sep 2022 -> $497k, +48.6% a year, worst drop -13.8%  (SPY $197k, +18.2%, -19.0%)
+        each year: 2022 +7%, 2023 +22%, 2024 +88%, 2025 +39%, 2026 +45%
+        sizing table, full slot at 30 + later buys on top: 3 at once +51.5% / -16.6%, 5 +48.3% / -14.5%, 8 +40.9% / -10.6%,
+        10 +34.3% / -9.5%. Old way (half waiting at 20), 5 at once: +25.7% / -8.1%.
+    Up from #53's +46.6% / -14.7%. 2024 (the crypto run) is still half the story; four mostly rising years; survivorship
+    (#35) still applies to the stock list.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
