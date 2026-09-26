@@ -1202,8 +1202,13 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     THE ZERO IS REAL, NOT A BUG: 2026-01-30, the gold and silver crash. The page bought GC, MGC, SI and SIL in the same
     hour -- two metals, each bet TWICE (MGC is micro gold, SIL is micro silver) -- and silver fell 104 -> 79. At 10x a
     bucket each, that is the account. WHAT IT SAYS: futures are ~27 trades a year here, so their leverage moves the
-    account only a few % a year up to about 3x, and past 5x one correlated day decides everything. OPEN: the pool holds
-    the same metal twice (GC + MGC, SI + SIL); one contract per underlying is the obvious fix, his call. ICE contracts
+    account only a few % a year up to about 3x, and past 5x one correlated day decides everything.
+    ONE CONTRACT PER METAL (his "go", same night): MGC and SIL are out of COMMODITY_FUTURES (22 left); gold and silver can
+    still be sized in micros. Rerun, whole account: control +46.7% / -14.6%; micros up to 1x +48.0% / -14.7%; 2x +49.5%
+    / -14.5%; 3x +50.6% / -14.9% (worst run -17.8%, worst futures trade -13.1% of the account); 5x +51.8% / -15.6% (worst
+    run -32.1%); 10x +57.8% / -27.4% (worst run -64.1%); margin max +55.9% / -40.7% (worst run -81.1%). Futures alone at
+    10x micro now survives (+11.5%, -66.9% drop); at margin max it still goes to zero in all 20 runs. The doubled metals
+    had been adding ~2-3% a year at 3x (they were mostly winners) by doubling the size of one bet. ICE contracts
     (BZ CC KC SB CT) have no bars after 2026-09-04 (Yahoo refusing), so the live page skips them as stale.
 
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the

@@ -48,9 +48,12 @@ FRESH_MIN = 2.0                # HIS RULE: the run must clear its own 60-day hig
 # futures behave like stocks (about +1% a trade, every year up); stock-index, currency and bond futures and forex do not
 # fire or do not pay at any run size, so they stay out. Stock-style buys (30 and 20), no news skip.
 COMMODITY_FUTURES = {"CL_F", "BZ_F", "NG_F", "HO_F", "RB_F",
-                     "GC_F", "SI_F", "HG_F", "PL_F", "MGC_F", "SIL_F",
+                     "GC_F", "SI_F", "HG_F", "PL_F",
                      "ZC_F", "ZS_F", "ZW_F", "ZL_F", "ZM_F", "KE_F", "CC_F", "KC_F", "SB_F", "CT_F",
                      "LE_F", "GF_F", "HE_F"}
+# ONE CONTRACT PER METAL (2026-09-26, his "go", #56): MGC (micro gold) and SIL (micro silver) are the SAME metal as GC and
+# SI, so the pool bought each metal twice in the same hour (2026-01-30, the metals crash). They are out; a gold or silver
+# trade can still be placed in micro contracts -- that is sizing, not a second signal.
 # THIN CONTRACTS OUT (his words 2026-09-23: "Remove thinly traded completely"): a middle hourly volume under 150 contracts
 # over the last year -- aluminum ALI (12), oats ZO (11), dairy DC (18), rough rice ZR (84), orange juice OJ (105), mini gas
 # QG (68), mini oil QM (122), palladium PA (138). Their candles are gappy and one order can move them.
