@@ -1302,6 +1302,21 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     SURVIVORSHIP GROWS WITH THIS: every added coin is one alive and listed TODAY; the coins of 2021 that died are not here.
     Read the crypto rows, 2021 above all, as a ceiling.
 
+62. MORE DATA, 2026-09-26 (his "Price it, and yeah get whatever else you can").
+    PRICED, NOT BOUGHT (Databento, GLBX.MDP3 ohlcv-1h continuous front, the 17 CME roots): 2018 -> 2022-09 $3.72, 2015 ->
+    $6.12, 2010 -> $10.08. ICE: cocoa/coffee/sugar/cotton 2018-12 -> 2024-09 $26.32, Brent $7.93. Waiting on his yes.
+    STOCKS TOPPED UP: `stock_recent.py` appends Polygon hours AND days after each file's last bar (603 of 604 names, to
+    2026-09-25), overlap-checked; bb_live runs it every 6 hours. backfill_polygon.py now REFUSES to re-pull an hourly file
+    that holds the bought 2018-2021 bars (it would have overwritten them) and knows "1d".
+    TIER 2: `fetch_more_stocks.py` -> history/stocks_more/ (NOT in the trading universe): 333 names trading $100M-$186M a
+    day (everything over ~$186M is already in the universe), Polygon's 5 years. Five whose hourly and daily disagree are
+    left out (ARMK DOC EHC J MUD). `studies/backburner_tier2.py` + `backburner_tier2_account.py`, 2021-10 on:
+        per trade   tier 2: 773 trades +0.74%, middle +0.39%, won 59%   | the page's list: 1,583 trades +0.82%, +0.51%, 63%
+        the account (page rules, 20 runs): the page's list +37.5% a year, worst drop -14.9%
+                                           with tier 2 added +32.4%, worst drop -20.1%, 2022 -8% (was +0%)
+    MORE NAMES MADE THE ACCOUNT WORSE: the thinner names take buckets the better ones would have had. Dan's "names
+    trading hundreds of millions" holds up. Tier 2 stays out; the data is kept for later tests.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:

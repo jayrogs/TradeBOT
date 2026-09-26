@@ -31,7 +31,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 os.chdir(HERE)
 OUT = os.path.join("history", "stocks")
 OLD = os.path.join("history", "stocks_iex")
-SPAN = {"5m": (5, "minute"), "15m": (15, "minute"), "1h": (1, "hour")}
+SPAN = {"5m": (5, "minute"), "15m": (15, "minute"), "1h": (1, "hour"), "1d": (1, "day")}
 START = "2021-06-01"
 
 
@@ -90,6 +90,10 @@ def one(args):
         path = os.path.join(OUT, "%s_%s.csv.gz" % (sym, tf))
         if not force and fresh(path):
             out.append("%s fresh" % tf); continue
+        if tf == "1h" and os.path.exists(path) and pd.read_csv(path, usecols=[0], nrows=1).iloc[0, 0] < "2021-09-01":
+            # THE 2018-2021 BARS WERE BOUGHT (join_xnas_history.py, #59): a full re-pull here would overwrite them with
+            # Polygon's 5 years. Top the file up with stock_recent.py instead.
+            out.append("%s kept (has the 2018-2021 Databento bars; use stock_recent.py)" % tf); continue
         try:
             d = pull(sym, tf, k)
         except Exception as ex:

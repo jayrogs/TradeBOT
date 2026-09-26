@@ -248,6 +248,15 @@ def _databento_hourly(log):
             io.open(st, "w", encoding="utf-8").write(pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"))
     except Exception as ex:
         log("crypto_recent failed: %s" % ex)
+    try:                          # stock and fund hours + days on disk, from Polygon, about every 6 hours (#62)
+        st = os.path.join("livelog", "stock_recent_last.txt")
+        if not os.path.exists(st) or time.time() - os.path.getmtime(st) >= 6 * 3600:
+            import stock_recent
+            stock_recent.main(log=log)
+            stock_recent.main(log=log, folder=os.path.join("history", "stocks_more"))
+            io.open(st, "w", encoding="utf-8").write(pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"))
+    except Exception as ex:
+        log("stock_recent failed: %s" % ex)
 
 
 CHARTS = os.path.join("static", "bblive_charts")
