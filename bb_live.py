@@ -321,7 +321,7 @@ def _draw_cards(arm, opn, frs, account):
     os.makedirs(CHARTS, exist_ok=True)
     keep, problems = set(), 0
     for a in arm:
-        fr = frs.get(a["sym"])
+        fr = frs.get((a["kind"], a["sym"]))
         if fr is None:
             continue
         lines = [(a["buy_at"], PB.GREEN, "buy at %s" % _fmt(a["buy_at"]))]
@@ -338,7 +338,7 @@ def _draw_cards(arm, opn, frs, account):
         a["chart"], a["chart_problems"] = "/bblive_charts/" + fn, pr_
         problems += len(pr_); keep.add(fn)
     for t in opn:
-        fr = frs.get(t["sym"])
+        fr = frs.get((t["kind"], t["sym"]))
         if fr is None:
             continue
         lines = [(t["entry"], "#e6e9ee", "bought %s" % _fmt(t["entry"])), (t["stop"], PB.RED, "stop %s" % _fmt(t["stop"]))]
@@ -432,12 +432,12 @@ def tick(log=print):
                 stale.append(sym)
                 continue
             seen += 1
-            ages[sym] = round(((now_utc if kind == "crypto" else now_ny) - pd.Timestamp(h1.index[-1])).total_seconds() / 3600, 1)
+            ages[(kind, sym)] = round(((now_utc if kind == "crypto" else now_ny) - pd.Timestamp(h1.index[-1])).total_seconds() / 3600, 1)
             jobs.append((sym, kind, _frames(h1, d1), sector))
         except Exception:
             errs += 1
     import concurrent.futures as cf
-    frame_of = {j[0]: j[2] for j in jobs}
+    frame_of = {(j[1], j[0]): j[2] for j in jobs}      # by (kind, ticker): BTC is a coin AND a fund
     with cf.ProcessPoolExecutor(max_workers=8) as ex:
         for a, o, err in ex.map(_one, jobs, chunksize=4):
             if a:
@@ -446,11 +446,11 @@ def tick(log=print):
             if err:
                 errs += 1
     for x in arm + opn:
-        x["data_age_h"] = ages.get(x["sym"])
+        x["data_age_h"] = ages.get((x["kind"], x["sym"]))
         if x["kind"] == "futures" and x["sym"] in PB.CONTRACTS:
             nm, code, mult, mrate = PB.CONTRACTS[x["sym"]]
             x["contract"] = dict(name=nm, code=code, mult=mult, margin=mrate)
-        frs[x["sym"]] = frame_of.get(x["sym"])
+        frs[(x["kind"], x["sym"])] = frame_of.get((x["kind"], x["sym"]))
     try:
         chart_problems = _draw_cards(arm, opn, frs, PB.ACCOUNT)
     except Exception as ex:

@@ -1287,6 +1287,21 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     Crypto signals a year: 2018 4, 2019 13, 2020 39, 2021 134, 2022 0, 2023 35, 2024 135. The 2021 alt-coin run (+117%)
     was invisible before: most coin files started in 2022. Crypto in its 2020 year: -15% (the March crash).
 
+61. 112 NEW COINS (2026-09-26, free). `fetch_new_coins.py`: every coin in crypto.universe(250) with no history file, full
+    hourly history from Coinbase / Kraken / OKX, or from Binance when Kraken's 720-hour cap leaves under 60 days (Binance
+    kept only where its recent bars agree with the exchange's). NOT KEPT: pegged coins (90% of days within 2% of their
+    middle price -- EURC, U ...), copies of BTC / ETH / SOL (wrapped or staked), under 60 days. 85 + 27 kept, 21 not;
+    then backfill_binance_all added earlier Binance history to 53 files. 148 -> 260 coin files. The live page scans them
+    from its next pass (it reads the disk universe).
+    TICKER CLASHES: crypto META, T, G, BTC share tickers with stocks or funds. bb_live now keys frames and data ages by
+    (kind, ticker) -- before, a BTC coin card could have drawn the BTC fund's chart. The suspect list is keyed by ticker
+    only, so crypto META and T are excluded along with the stocks; conservative, left as is.
+    THE ACCOUNT FROM 2018-06 WITH THEM (the page's rules, 20 runs): everything +37.8% a year, worst drop -18.2% (2018 -1,
+    2019 +18, 2020 +21, 2021 +134, 2022 +1, 2023 +28, 2024 +76, 2025 +28, 2026 +53); without crypto +18.9%; crypto alone
+    from 2017 +31.7%, -24.8%; SPY +13.3%, -34.1%. Crypto signals: 2018 4, 2019 16, 2020 51, 2021 182, 2022 0, 2024 189.
+    SURVIVORSHIP GROWS WITH THIS: every added coin is one alive and listed TODAY; the coins of 2021 that died are not here.
+    Read the crypto rows, 2021 above all, as a ceiling.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
