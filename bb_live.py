@@ -182,8 +182,21 @@ def open_trades(sym, kind, fr, sector_daily):
         hh = h1[(h1.index.hour >= 9) & (h1.index.hour <= 15)] if kind in ("stock", "etf") else h1
         c = hh["Close"].values.astype(float)
         e12 = float(XM.ema(c, 12)[-1])
+        entry = r["entry"]
+        dol = r.get("dollars")
+        if dol and kind == "crypto":
+            # the 3-bucket cap (#53) means a crypto position never buys the 3x order at 20: price the position on the
+            # buys the account actually makes (review 2026-09-26: the card showed the uncapped average).
+            cap, used, dd, ff = float(PB.ACCOUNT.get("crypto_max_buckets", 3)), 0.0, [], []
+            base = float(dol.get(30, dol.get("30", 1.0)))
+            for lv, f in zip(r.get("fill_lv") or [30], r["fills"]):
+                m = min(float(dol.get(lv, dol.get(str(lv), 0.0))) / base, max(0.0, cap - used))
+                used += m
+                if m > 0:
+                    dd.append(m); ff.append(f)
+            entry = float(sum(dd) / sum(d_ / f_ for d_, f_ in zip(dd, ff)))
         out.append(dict(sym=sym, kind=kind, bought=str(hh.index[r["k"]]), fills=r["fills"], levels=r.get("fill_lv"),
-                        entry=r["entry"], now=float(c[-1]), pct_now=100 * (c[-1] / r["entry"] - 1),
+                        entry=entry, now=float(c[-1]), pct_now=100 * (c[-1] / entry - 1),
                         half_sold=r["half_at"] is not None, half_at=(float(r["half_px"]) if r["half_px"] else e12),
                         stop=float(r["steps"][-1][1]) if r.get("steps") else float(r["stop"]),
                         trim_done=r.get("trim_at") is not None, dollars=r.get("dollars")))
@@ -353,7 +366,7 @@ def tick(log=print):
         src = {str(x.sym): x.source for x in cu.itertuples()}
     except Exception:
         src = {}
-    arm, opn, errs, seen, stale, ages = [], [], 0, 0, [], {}
+    arm, opn, errs, seen, stale, ages, short = [], [], 0, 0, [], {}, []
     frs = {}
     now_ny = pd.Timestamp.now(tz="America/New_York").tz_localize(None)
     now_utc = pd.Timestamp.utcnow().tz_localize(None)
@@ -381,6 +394,18 @@ def tick(log=print):
                 for d_ in (h1, d1):
                     if d_ is not None and getattr(d_.index, "tz", None) is not None:
                         d_.index = d_.index.tz_localize(None)
+                # THE SAME DATA THE STUDY SAW (review 2026-09-26): 720 hourly and 600 daily bars alone missed 22 of 100
+                # recent study trades -- the weekly 50 EMA on 85 weeks is not the one on the full history. So the
+                # history on disk is joined in front of the live bars and the daily is built from the hourly, exactly
+                # as backburner_study.frames_for does for crypto. If the disk file ends before the live bars begin
+                # (history not topped up for 30+ days) the join would leave a hole: the name is listed as short.
+                h0 = S.load_csv(os.path.join("history", "%s_1h.csv.gz" % sym))
+                if h0 is not None and len(h0) and h1 is not None and len(h1):
+                    if pd.DatetimeIndex(h0.index)[-1] >= pd.DatetimeIndex(h1.index)[0]:
+                        h1 = _join(h0[["Open", "High", "Low", "Close", "Volume"]], h1[["Open", "High", "Low", "Close", "Volume"]])
+                        d1 = S.resample(h1, S.RULE["1d"])
+                    else:
+                        short.append(sym)
             if h1 is None or d1 is None or len(h1) < 500 or len(d1) < 120:
                 continue
             if not _fresh(h1, kind, now_utc if kind == "crypto" else now_ny):
@@ -410,6 +435,7 @@ def tick(log=print):
         log("bb_live: charts failed: %s" % ex)
     arm.sort(key=lambda x: -x["away"])          # nearest to its buy price first
     out = dict(updated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), names=seen, errors=errs, stale=stale,
+               short_history=short,
                chart_problems=chart_problems,
                seconds=int(time.time() - t0), account=PB.ACCOUNT, armed=arm, open=opn)
     os.makedirs("livelog", exist_ok=True)

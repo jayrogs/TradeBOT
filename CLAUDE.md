@@ -1146,6 +1146,37 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     bad and a comment box, saved to validation/trade_notes_bblive.csv (keys armed|kind|sym|day and open|kind|sym|bought).
     READ THAT FILE whenever he says he graded /bb.
 
+55. THE OVERNIGHT REVIEW, AFTER THE MOVE TO THIS ACCOUNT (2026-09-26, his ask: "review everything to make sure there isnt
+    any major inconsistencies"). Checks and what they found:
+      - THE SERVER WAS DOWN since 2026-09-24 16:55 (no python running after the move): /bb had not updated for two days.
+        Restarted with run_server.ps1.
+      - THE BACKTEST TAKES TRADES THE LIVE PAGE NEVER CAN. trades_for demands 500 hourly, 120 daily and 60 WEEKLY bars, but
+        checks it on the WHOLE FILE, not on what existed at the trade. So a coin 55 days old (ENA 2025-07-29) trades in the
+        study; live it needs ~14 months of history first. 211 of 2,043 page trades are like that, and they are the best
+        ones (crypto +4.71% a trade vs +2.56%). Two kinds: NEW LISTINGS (new coins, IPOs) the live page will never take,
+        and FUTURES in their first 14 months of data (history starts 2022-09) -- those the live page takes now.
+        The page's account (5 buckets, whole bucket at 30, later buys on top), 20 runs (`studies/backburner_young.py`):
+            as in #53 (everything)                        +47.0% a year, worst dip -14.9%
+            new listings out (what the live page can do)  +39.8% a year, worst dip -12.2%
+            every young trade out                         +38.0% a year, worst dip -12.2%
+        So #53's +46.6% / backburner_curve's line are ~7 points a year too high FOR THE PAGE AS IT RUNS. His call which way
+        to close it: keep the rule (the honest number is ~+40%), or let the live page take new listings with the weekly
+        check skipped when there is not enough weekly history (the backtest says those are the best trades).
+      - THE LIVE CRYPTO WINDOW WAS TOO SHORT. bb_live read 720 hourly + 600 daily bars from the exchange; replaying the
+        last two years that way missed 22 of 100 study trades (most are the new-listing kind above; AVAX 2025-09-22 was
+        missed only because a 50 EMA on 85 weeks is not the one on the full history). FIXED: the history on disk is joined
+        in front of the live bars and the daily is built from the hourly, as frames_for does. THE DISK HISTORY ENDS
+        2026-09-07; once it is 30+ days behind (about 2026-10-07) the join leaves a hole and the name is listed under
+        `short_history` in livelog/bb_live.json. The crypto hourly history needs a top-up before then.
+      - THE CRYPTO CARD PRICED THE POSITION WITH THE 20 BUY the 3-bucket cap never lets it make. Fixed in open_trades. The
+        study's per-trade crypto numbers (#45, #48) still include that buy; the account tests apply the cap.
+      - PASSED: walk_selftest 658 / 0 mismatches (it checks tcg_lab's walk, NOT the page's _walk_rest -- no self-test
+        covers the page's walk yet); check_pages clean but for eq_scan being stale from the downtime; bars between the
+        first buy and a later buy are never walked, and the 12 EMA was reached in that gap on only 9 of 2,043 trades.
+      - NOTED, NOT CHANGED: the weekly bar (W-FRI) counts as closed a week after its Friday, so the weekly trend read is a
+        week late in both study and live -- late, not look-ahead. `cancel_second` is still 40 on the page; #44f left 31
+        as his pick to make.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
