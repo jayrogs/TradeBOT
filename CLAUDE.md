@@ -1251,6 +1251,27 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     the account was about flat (+1%) while SPY lost 19%. The 2021-10 .. 2022-09 year it adds costs the average: +48.6%
     over the last four years becomes +35.4% over five.
 
+59. STOCK HOURS BACK TO 2018, BOUGHT (2026-09-26, his "Buy it"). Databento XNAS.ITCH ohlcv-1h, 2018-05-01 .. 2021-10-01, 555
+    stocks and funds + FB and SQ (the old tickers of META and XYZ), $6.16 -- logged in livelog/databento_oneoff.json, NOT in
+    databento_spend.json (that file's $2-a-year guard would have stopped the futures top-ups). Raw file in
+    cache/databento_stocks/. His Polygon plan refuses anything before ~2021-09 (403 NOT_AUTHORIZED).
+    WHAT IT IS: trades on the Nasdaq exchange only (~15% of the volume), so VOLUME before 2021-09 is ~15% of the real
+    number; prices match Polygon to 0.003% (checked on a bought overlap month). `join_xnas_history.py`: the splits come from
+    each name's daily file (centred 5-day median of daily close / raw 15:00 close), the LEVEL from the 2021-09 weeks both
+    sources have (they must agree hour by hour); 492 names joined, 14 skipped (a different company held the ticker, a hole
+    between the two sources, or too little overlap). Backups in history/_backup/stocks_1h_pre_xnas/. data_scale_check after
+    it: nothing new flagged. history/stocks/SOURCE.json says so.
+    AN OLD BUG IT SHOWED: our META hourly bars before 2022-06 are the Roundhill META fund ($14.76 on 2021-10-15, Facebook
+    was $325). META was already excluded (suspect list), so no study used it. Some daily files are adjusted for spin-offs
+    the hourly ones are not (DHR, BHP about 12% apart in 2021); the rules read each chart on its own, so it is a scale
+    difference, not a wrong trade.
+    THE ACCOUNT FROM 2018-06 (`backburner_long.py`, the page's rules, 20 runs):
+        everything          +28.2% a year, worst drop -17.8% | 2018 -1  2019 +18  2020 +11  2021 +36  2022 +1  2023 +22  2024 +92  2025 +26  2026 +50
+        without crypto      +18.9%, -14.9%                   | 2018 -1  2019 +10  2020 +24  2021 +9   2022 +1  2023 +14  2024 +42  2025 +23  2026 +46
+        SPY held            +13.3%, -34.1%                   | 2018 -9  2019 +29  2020 +16  2021 +27  2022 -19 2023 +24  2024 +23  2025 +16  2026 +13
+    Up every full year but none lost more than 1% (2018, 2022), in the two SPY down years. It trails SPY in 2019-2021's
+    steady rise. Stock signals: 2018 68 (half year), 2019 159, 2020 263, 2021 326, 2022 185.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
