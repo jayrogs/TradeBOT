@@ -1333,6 +1333,17 @@ Edit it freely. If a rule here and a memory note disagree, this file wins.
     (2018 -1, 2019 +18, 2020 +20, 2021 +124, 2022 -3, 2023 +31, 2024 +75, 2025 +27, 2026 +51); without crypto +18.9%,
     -17.1%; SPY +13.3%, -34.1%.
 
+64. EACH MARKET ALONE, YEAR BY YEAR, 2018-06 ON (2026-09-26, `studies/backburner_markets_years.py` ->
+    validation/backburner_markets_years.json; page rules; each market's own 5-bucket account, 20 runs):
+        stocks    +18.4% a year, worst drop -16.8% | 2018 -1 2019 +10 2020 +27 2021 +10 2022 +0 2023 +12 2024 +38 2025 +32 2026 +36
+        funds      +2.2%, -11.1%                   | never more than +10% a year; 2020 -5
+        crypto    +30.0%, -24.8%                   | 2021 +188, 2024 +97, 2018/2022 +0 (no signals), 2020 -1, 2025 -2
+        futures    +1.0%, -11.5%                   | 2022 -7, best year 2021 +6
+        SPY +13.3% (-34.1%), BTC +33.7% (-76.7%)
+    Per trade, stocks are positive every year (+0.07% in 2018 to +1.24% in 2020); crypto +0.70% to +4.74%; funds and
+    futures swing around zero. ON THEIR OWN, FUNDS AND FUTURES BARELY PAY; in the shared account they fill buckets the
+    stocks and crypto would otherwise leave idle.
+
 42. JOEY'S RATIO-CHART WEBINAR (2026-09-22, Jay sent the link with Joey's post "ratio charts continue to be one of the
     most powerful and underused tools in the market"). Pulled, read in full, distilled in TCG_METHOD.md #20. It is the
     4th of his four-part series and it says MY VERSION OF THE BIGGEST RULE ON THIS DESK IS TOO CRUDE:
